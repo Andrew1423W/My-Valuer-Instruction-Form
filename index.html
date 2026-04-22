@@ -820,12 +820,1585 @@ function initAutocomplete() {
 // Load Google Maps script
 (function() {
   const s = document.createElement('script');
-  s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initAutocomplete`;
+  s.src = `https://maps.googleapis.com/maps/api/js?key=${GOOGLE_API_KEY}&libraries=places&callback=initAutocomplete&loading=async&v=weekly`;
   s.async = true;
   s.defer = true;
   s.onerror = () => console.warn('Google Maps failed to load');
   document.head.appendChild(s);
 })();
+
+const today = new Date().toISOString().split("T")[0];
+document.getElementById("c_inst_date").value = today;
+
+function toggleCheck(cb) {
+  cb.closest(".check-item").classList.toggle("checked", cb.checked);
+}
+
+function calcFee() {
+  const f1 = parseFloat(document.getElementById("c_fee1").value)||0;
+  const f2 = parseFloat(document.getElementById("c_fee2").value)||0;
+  const total = (f1+f2)*1.15;
+  document.getElementById("c_total").textContent = "$" + total.toLocaleString("en-NZ",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function selectPropType(el) {
+  el.closest(".check-grid").querySelectorAll(".check-item").forEach(function(item) {
+    item.classList.remove("checked");
+  });
+  el.classList.add("checked");
+  const otherBox = document.getElementById("propTypeOther");
+  if (otherBox) {
+    otherBox.style.display = el.textContent.trim() === "Other" ? "block" : "none";
+    if (el.textContent.trim() !== "Other") document.getElementById("c_proptype_other").value = "";
+  }
+}
+
+function toggleAdditional() {
+  const isOn = document.getElementById('c_is_additional').checked;
+  document.getElementById('additionalFields').style.display = isOn ? 'block' : 'none';
+  if (!isOn) {
+    document.querySelectorAll('#additionalPurposeGrid .check-item').forEach(el => el.classList.remove('checked'));
+    document.getElementById('additionalPurposeOther').style.display = 'none';
+    document.getElementById('additionalPurposeBlurb').style.display = 'none';
+  }
+}
+
+function toggleAddlPurpose(el) {
+  el.closest('.check-grid').querySelectorAll('.check-item').forEach(i => i.classList.remove('checked'));
+  el.classList.add('checked');
+  const txt = el.textContent.trim();
+  const fullText = el.getAttribute('data-full') || '';
+  const otherBox  = document.getElementById('additionalPurposeOther');
+  const blurbBox  = document.getElementById('additionalPurposeBlurb');
+  const blurbArea = document.getElementById('c_additional_purpose_blurb');
+  if (txt === 'Other') {
+    if (otherBox)  otherBox.style.display  = 'block';
+    if (blurbBox)  blurbBox.style.display  = 'none';
+  } else {
+    if (otherBox)  otherBox.style.display  = 'none';
+    if (blurbBox)  blurbBox.style.display  = fullText ? 'block' : 'none';
+    if (blurbArea) blurbArea.value = fullText;
+  }
+}
+
+function getAdditionalPurpose() {
+  if (!document.getElementById('c_is_additional')?.checked) return '';
+  const checked = document.querySelector('#additionalPurposeGrid .check-item.checked');
+  if (!checked) return '';
+  if (checked.textContent.trim() === 'Other') {
+    return document.getElementById('c_additional_purpose_other')?.value?.trim() || '';
+  }
+  return document.getElementById('c_additional_purpose_blurb')?.value?.trim() ||
+    checked.getAttribute('data-full') || checked.textContent.trim();
+}
+
+function togglePurpose(el) {
+  el.closest(".check-grid").querySelectorAll(".check-item").forEach(function(item) {
+    item.classList.remove("checked");
+  });
+  el.classList.add("checked");
+
+  const txt = el.textContent.trim();
+  const fullText = el.getAttribute("data-full") || "";
+
+  // Other — show free text box, hide blurb
+  const otherBox  = document.getElementById("purposeOther");
+  const blurbBox  = document.getElementById("purposeBlurb");
+  const blurbArea = document.getElementById("c_purpose_blurb");
+
+  if (txt === "Other") {
+    if (otherBox)  otherBox.style.display  = "block";
+    if (blurbBox)  blurbBox.style.display  = "none";
+    if (blurbArea) blurbArea.value = "";
+    document.getElementById("c_purpose_other").value = "";
+  } else {
+    if (otherBox)  otherBox.style.display  = "none";
+    if (blurbBox)  blurbBox.style.display  = fullText ? "block" : "none";
+    if (blurbArea) blurbArea.value = fullText;
+  }
+}
+
+function getChecked(gridId) {
+  return Array.from(document.querySelectorAll("#" + gridId + " .check-item.checked"))
+    .map(el => {
+      const txt = el.textContent.trim();
+      if (txt === "Other") {
+        const otherId = gridId === "propTypeGrid" ? "c_proptype_other" : "c_purpose_other";
+        const val = document.getElementById(otherId)?.value?.trim();
+        return val ? val : "Other";
+      }
+      // For purpose grid, use the (possibly edited) blurb textarea
+      if (gridId === "purposeGrid") {
+        const blurb = document.getElementById("c_purpose_blurb")?.value?.trim();
+        if (blurb) return blurb;
+        return el.getAttribute("data-full") || txt;
+      }
+      return txt;
+    }).join(", ");
+}
+
+function buildPrompt() {
+  const f1 = parseFloat(document.getElementById("c_fee1").value)||0;
+  const f2 = parseFloat(document.getElementById("c_fee2").value)||0;
+  const gst = ((f1+f2)*0.15).toFixed(2);
+  const total = ((f1+f2)*1.15).toFixed(2);
+  const titles = [1,2,3,4,5,6].map(n=>document.getElementById("c_title"+n).value).filter(Boolean).join(", ");
+  return `You are the AI assistant for My Valuer Limited, a registered valuation firm at 2 Pandora Road, Napier (Phone: 06 835 3350). Generate a clean, professional ValuePro job entry summary. Format under clear headings. Include a one-sentence SCOPE NOTE at the top. Never refer to PINZ — always NZIV.
+
+INSTRUCTION FORM DATA:
+Instruction Date: ${document.getElementById("c_inst_date").value}
+Taken By: ${document.getElementById("c_taken_by").value||"—"}
+VOS Order No: ${document.getElementById("c_vos").value||"—"}
+Allocated To: ${document.getElementById("c_alloc").value||"—"}
+Prior Reference: ${document.getElementById("c_prior_ref").value||"—"}
+
+PROPERTY: ${document.getElementById("c_prop_addr").value||"—"}
+Identifier (Title No): ${document.getElementById("c_title_no").value||"—"}
+Estate: ${document.getElementById("c_estate").value||"—"}
+Area: ${document.getElementById("c_area").value||"—"}
+Legal Description: ${document.getElementById("c_legal_desc").value||"—"}
+Registered Owner: ${document.getElementById("c_owner").value||"—"}
+
+INSTRUCTOR: ${document.getElementById("c_inst_name").value||"—"} | Ph: ${document.getElementById("c_inst_phone").value||"—"}
+
+CLIENT: ${document.getElementById("c_client_name").value||"—"} | Ph: ${document.getElementById("c_client_phone").value||"—"}
+Address: ${document.getElementById("c_client_addr").value||"—"}
+Borrower: ${document.getElementById("c_borrower").value||"—"}
+Email: ${document.getElementById("c_email").value||"—"}
+
+REPORT TO: ${document.getElementById("c_report_name").value||"—"} | ${document.getElementById("c_report_addr").value||"—"}
+
+TERMS OF ENGAGEMENT: ${document.getElementById("c_toe_sel")?.value === "other" ? document.getElementById("c_toe_name")?.value||"—" : document.getElementById("c_client_name")?.value||"—"}
+Appointment: ${document.getElementById("c_appt_name").value||"—"} | Ph: ${document.getElementById("c_appt_phone").value||"—"} | ${(document.getElementById("c_appt_date").value ? new Date(document.getElementById("c_appt_date").value).toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) + (document.getElementById("c_appt_time").value ? ' at ' + document.getElementById("c_appt_time").value : '') : "—")}
+Due Date: ${document.getElementById("c_due_date").value||"—"}
+
+FEES: Market Report: $${f1.toFixed(2)} excl GST | Insurance: $${f2.toFixed(2)} excl GST | GST: $${gst} | TOTAL: $${total} incl GST
+Council File: ${document.getElementById("c_council_file").value} | Mileage: ${document.getElementById("c_mileage").value||"0"} km
+
+PROPERTY TYPE: ${getChecked("propTypeGrid")||"Not selected"}
+PURPOSE: ${getChecked("purposeGrid")||"Not selected"}
+
+VALUATION NOTES: ${document.getElementById("c_valn_notes").value||"None"}
+
+RATING VALUATION: Land: ${document.getElementById("c_rv_land").value||"—"} | Improvements: ${document.getElementById("c_rv_imp").value||"—"} | CV: ${document.getElementById("c_rv_cv").value||"—"}
+RATES: Council: ${document.getElementById("c_rates_council").value||"—"} | HBRC: ${document.getElementById("c_rates_hbrc").value||"—"}
+
+TITLE REFERENCES: ${titles||"—"}
+Legal Description: ${document.getElementById("c_legal_desc").value||"—"}`;
+}
+
+// Track current output mode
+let currentOutput = "summary";
+let lastSummary = "";
+let lastEmail = "";
+let lastQuote = "";
+
+function switchOutput(mode) {
+  currentOutput = mode;
+  const tabs = {
+    summary: document.getElementById("tabSummary"),
+    email:   document.getElementById("tabEmail"),
+    quote:   document.getElementById("tabQuote")
+  };
+  const emailBtn    = document.getElementById("emailBtn");
+  const quoteEmailBtn = document.getElementById("quoteEmailBtn");
+  const inactiveStyle = { bg: "rgba(255,255,255,0.07)", col: "rgba(255,255,255,0.6)" };
+
+  // Reset all tabs
+  Object.values(tabs).forEach(t => { if (t) { t.style.background = inactiveStyle.bg; t.style.color = inactiveStyle.col; } });
+
+  // Activate selected tab
+  if (tabs[mode]) { tabs[mode].style.background = "var(--blue)"; tabs[mode].style.color = "var(--white)"; }
+
+  // Show correct content and buttons
+  emailBtn.style.display    = "none";
+  if (quoteEmailBtn) quoteEmailBtn.style.display = "none";
+
+  if (mode === "summary") {
+    document.getElementById("outputText").textContent = lastSummary;
+    document.getElementById("outputReady").textContent = "✓ Ready for ValuePro";
+  } else if (mode === "email") {
+    document.getElementById("outputText").textContent = lastEmail;
+    document.getElementById("outputReady").textContent = "✓ Ready to Send";
+    emailBtn.style.display = "flex";
+  } else if (mode === "quote") {
+    document.getElementById("outputText").textContent = lastQuote;
+    document.getElementById("outputReady").textContent = "✓ Quote Ready to Send";
+    if (quoteEmailBtn) quoteEmailBtn.style.display = "flex";
+  }
+}
+
+function buildEmailPrompt() {
+  const f1 = parseFloat(document.getElementById("c_fee1").value)||0;
+  const f2 = parseFloat(document.getElementById("c_fee2").value)||0;
+  const total = ((f1+f2)*1.15).toFixed(2);
+
+  return `You are a professional assistant for My Valuer Limited, a registered NZIV valuation firm in Napier, New Zealand.
+
+Write a brief, professional internal email from a valuer to the office manager asking them to load a new job into ValuePro. Start with just "Hi," (no name). Keep it concise and friendly. Include all the job details below clearly formatted so they can be entered into ValuePro easily. Sign off as "${document.getElementById("c_alloc").value || "the valuer"}".
+
+JOB DETAILS:
+Property: ${document.getElementById("c_prop_addr").value||"—"}
+Title No: ${document.getElementById("c_title_no").value||"—"}
+Legal Description: ${document.getElementById("c_legal_desc").value||"—"}
+Area: ${document.getElementById("c_area").value||"—"}
+Estate: ${document.getElementById("c_estate").value||"—"}
+Registered Owner: ${document.getElementById("c_owner").value||"—"}
+Instructor: ${document.getElementById("c_inst_name").value||"—"} | Ph: ${document.getElementById("c_inst_phone").value||"—"}
+Client: ${document.getElementById("c_client_name").value||"—"} | Ph: ${document.getElementById("c_client_phone").value||"—"}
+Client Address: ${document.getElementById("c_client_addr").value||"—"}
+Borrower: ${document.getElementById("c_borrower").value||"—"}
+Email: ${document.getElementById("c_email").value||"—"}
+Appointment: ${document.getElementById("c_appt_name").value||"—"} | ${document.getElementById("c_appt_phone").value||"—"} | ${(document.getElementById("c_appt_date").value ? new Date(document.getElementById("c_appt_date").value).toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) + (document.getElementById("c_appt_time").value ? ' at ' + document.getElementById("c_appt_time").value : '') : "—")}
+Due Date: ${document.getElementById("c_due_date").value||"—"}
+Property Type: ${document.querySelector("#propTypeGrid .check-item.checked")?.textContent||"—"}
+Purpose: ${document.querySelector("#purposeGrid .check-item.checked")?.textContent||"—"}
+Market Report Fee: $${f1.toFixed(2)} excl GST
+Insurance Fee: $${f2.toFixed(2)} excl GST
+Total incl GST: $${total}
+Valuation Notes: ${document.getElementById("c_valn_notes").value||"None"}
+Title References: ${[1,2,3,4,5,6].map(n=>document.getElementById("c_title"+n).value).filter(Boolean).join(", ")||"—"}`;
+}
+
+function generateSummary() {
+  const btn = document.getElementById("genBtn");
+  btn.disabled = true;
+  btn.textContent = "Generating…";
+  document.getElementById("outputPlaceholder").style.display = "none";
+  document.getElementById("outputResult").classList.remove("visible");
+
+  // Build both outputs directly from form — no API needed
+  lastSummary = buildValueProSummary();
+  lastEmail   = buildEmail();
+
+  // Build quote email and show/hide tab
+  const isQuote = document.getElementById("c_is_quote")?.checked;
+  const quoteTab = document.getElementById("tabQuote");
+  if (isQuote) {
+    lastQuote = buildQuoteEmailText();
+    if (quoteTab) quoteTab.style.display = "flex";
+  } else {
+    lastQuote = "";
+    if (quoteTab) quoteTab.style.display = "none";
+    // If currently on quote tab, switch to summary
+    if (currentOutput === "quote") currentOutput = "summary";
+  }
+
+  document.getElementById("outputResult").classList.add("visible");
+  document.getElementById("printBtn").style.display = "flex";
+  switchOutput(currentOutput);
+
+  btn.disabled = false;
+  btn.textContent = "✦ Generate";
+
+  // Auto-save to SharePoint in background
+  if (document.getElementById('c_prop_addr').value) {
+    saveJobToSharePoint().catch(e => console.log('SP save:', e));
+  }
+}
+
+// Build ValuePro summary directly from form fields
+function buildValueProSummary() {
+  const prop    = document.getElementById("c_prop_addr").value || "—";
+  const instDate= document.getElementById("c_inst_date").value || "—";
+  const takenBy = document.getElementById("c_taken_by").value || "—";
+  const vos     = document.getElementById("c_vos").value || "—";
+  const alloc   = document.getElementById("c_alloc").value || "—";
+  const priorRef= document.getElementById("c_prior_ref").value || "—";
+  const titleNo = document.getElementById("c_title_no").value || "—";
+  const estate  = document.getElementById("c_estate").value || "—";
+  const area    = document.getElementById("c_area").value || "—";
+  const legal   = document.getElementById("c_legal_desc").value || "—";
+  const owner   = document.getElementById("c_owner").value || "—";
+  const instNm  = document.getElementById("c_inst_name").value || "—";
+  const instPh  = document.getElementById("c_inst_phone").value || "—";
+  const client  = document.getElementById("c_client_name").value || "—";
+  const clientPh= document.getElementById("c_client_phone").value || "—";
+  const clientAd= document.getElementById("c_client_addr").value || "—";
+  const borrower= document.getElementById("c_borrower").value || "—";
+  const email   = document.getElementById("c_email").value || "—";
+  const reptNm  = document.getElementById("c_report_name").value || "—";
+  const reptAd  = document.getElementById("c_report_addr").value || "—";
+  const getDelivery = (f) => {
+    const sel = document.getElementById('c_' + f + '_sel');
+    const primary = (!sel || sel.value === 'client') ? {
+      name:  document.getElementById('c_client_name').value || '—',
+      email: document.getElementById('c_email').value       || '—',
+      addr:  document.getElementById('c_client_addr').value || '—'
+    } : {
+      name:  document.getElementById('c_' + f + '_name').value  || '—',
+      email: document.getElementById('c_' + f + '_email').value || '—',
+      addr:  document.getElementById('c_' + f + '_addr').value  || '—'
+    };
+    return { primary, extras: [] };
+  };
+  const toeD = getDelivery('toe');
+  const rptD = getDelivery('rpt');
+  const invD = getDelivery('inv');
+  const fmtD = (d) => {
+    const all = [d.primary, ...d.extras];
+    return all.map(r => [r.name, r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ');
+  };
+  const apptNm  = document.getElementById("c_appt_name").value || "—";
+  const apptPh  = document.getElementById("c_appt_phone").value || "—";
+  const apptDate = document.getElementById("c_appt_date").value;
+  const apptTime = document.getElementById("c_appt_time").value;
+  const apptDay  = apptDate ? new Date(apptDate).toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) + (apptTime ? ' at ' + apptTime : '') : "—";
+  const dueDate = document.getElementById("c_due_date").value || "—";
+  const propType= document.querySelector("#propTypeGrid .check-item.checked")?.textContent?.trim() || "—";
+  const purpose = getChecked("purposeGrid") || "—";
+  const f1      = parseFloat(document.getElementById("c_fee1").value)||0;
+  const f2      = parseFloat(document.getElementById("c_fee2").value)||0;
+  const gst     = ((f1+f2)*0.15).toFixed(2);
+  const total   = ((f1+f2)*1.15).toFixed(2);
+  const council = document.getElementById("c_council_file").value || "No";
+  const mileage = document.getElementById("c_mileage").value || "0";
+  const notes   = document.getElementById("c_valn_notes").value || "None";
+  const rvLand  = document.getElementById("c_rv_land").value || "—";
+  const rvImp   = document.getElementById("c_rv_imp").value || "—";
+  const rvCV    = document.getElementById("c_rv_cv").value || "—";
+  const rCouncil= document.getElementById("c_rates_council").value || "—";
+  const rHBRC   = document.getElementById("c_rates_hbrc").value || "—";
+  const titles  = [1,2,3,4,5,6].map(n=>document.getElementById("c_title"+n).value).filter(Boolean).join(", ") || "—";
+
+  return `MY VALUER LIMITED — VALUATION INSTRUCTION
+2 Pandora Road, Napier | Ph: 06 835 3350 | info​@myvaluer.net.nz
+${"─".repeat(50)}
+
+SCOPE: ${propType} valuation of ${prop} for ${purpose}.
+
+JOB REFERENCE
+─────────────────────────────────────
+Instruction Date:     ${instDate}
+Taken By:             ${takenBy}
+VOS Order No:         ${vos}
+Allocated To:         ${alloc}
+Prior Reference:      ${priorRef}
+
+PROPERTY
+─────────────────────────────────────
+Address:              ${prop}
+Property Type:        ${propType}
+Identifier (Title):   ${titleNo}
+Estate:               ${estate}
+Area:                 ${area}
+Legal Description:    ${legal}
+Registered Owner:     ${owner}
+Title References:     ${titles}
+
+INSTRUCTOR
+─────────────────────────────────────
+Name:                 ${instNm}
+Phone:                ${instPh}
+
+CLIENT
+─────────────────────────────────────
+Name:                 ${client}
+Phone:                ${clientPh}
+Address:              ${clientAd}
+Borrower:             ${borrower}
+Email:                ${email}
+
+REPORT TO
+─────────────────────────────────────
+Name:                 ${reptNm}
+Address:              ${reptAd}
+
+TERMS OF ENGAGEMENT
+─────────────────────────────────────
+Terms of Engagement:  ${fmtD(toeD)}
+Report To:            ${fmtD(rptD)}
+Invoice To:           ${fmtD(invD)}
+Appointment:          ${apptNm} | ${apptPh} | ${apptDay}
+Valuation Due:        ${dueDate}
+
+PURPOSE OF VALUATION
+─────────────────────────────────────
+${purpose}
+
+FEES
+─────────────────────────────────────
+Market Report Fee:    $${f1.toFixed(2)} excl GST
+Insurance Fee:        $${f2.toFixed(2)} excl GST
+GST:                  $${gst}
+Total incl GST:       $${total}
+Council File:         ${council}
+Mileage:              ${mileage} km
+
+RATING VALUATION
+─────────────────────────────────────
+Land Value:           ${rvLand}
+Improvements:         ${rvImp}
+Capital Value:        ${rvCV}
+Council Rates:        ${rCouncil} p.a.
+HBRC Rates:           ${rHBRC} p.a.
+
+VALUATION NOTES
+─────────────────────────────────────
+${notes}`;
+}
+
+// Build email locally from form data — no API call needed
+function buildEmail() {
+  return buildEmailPlain();
+}
+
+function buildEmailPlain() {
+  const v = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+
+  const prop     = v('c_prop_addr');
+  const sender   = getSenderName();
+  const legal    = v('c_legal_desc');
+  const valRef   = v('c_val_ref');
+  const insRef   = v('c_ins_ref');
+  const priorRef2 = v('c_prior_ref2');
+  const area     = v('c_area');
+  const instNm   = v('c_inst_name');
+  const instPh   = v('c_inst_phone');
+  const client   = v('c_client_name');
+  const clientPh = v('c_client_phone');
+  const clientAd = v('c_client_addr');
+  const borrower = v('c_borrower');
+  const poNum    = v('c_po_number');
+  const email    = v('c_email');
+  const apptNm   = v('c_appt_name');
+  const apptPh   = v('c_appt_phone');
+  const apptDate = v('c_appt_date');
+  const apptTime = v('c_appt_time');
+  const apptDay  = apptDate ? new Date(apptDate).toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + (apptTime ? ' at ' + apptTime : '') : '';
+  const dueDate  = v('c_due_date') ? new Date(v('c_due_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
+  const propType = document.querySelector('#propTypeGrid .check-item.checked')?.textContent?.trim() || '';
+  const purpose  = getChecked('purposeGrid') || '';
+  const f1       = parseFloat(v('c_fee1'))||0;
+  const f2       = parseFloat(v('c_fee2'))||0;
+  const gst      = ((f1+f2)*0.15).toFixed(2);
+  const total    = ((f1+f2)*1.15).toFixed(2);
+  const notes    = v('c_valn_notes');
+  const rvLand   = v('c_rv_land');
+  const rvImp    = v('c_rv_imp');
+  const rvCV     = v('c_rv_cv');
+  const rCouncil = v('c_rates_council');
+  const rHBRC    = v('c_rates_hbrc');
+  const takenBy  = v('c_taken_by');
+  const alloc    = v('c_alloc');
+  const vos      = v('c_vos');
+  const instDate = v('c_inst_date') ? new Date(v('c_inst_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
+
+  const getDelivery = (f) => {
+    const sel = document.getElementById('c_' + f + '_sel');
+    const primary = (!sel || sel.value === 'client')
+      ? { name: v('c_client_name'), email: v('c_email') }
+      : { name: v('c_' + f + '_name'), email: v('c_' + f + '_email') };
+    const extras = [];
+    const container = document.getElementById('c_' + f + '_extras');
+    if (container) {
+      container.querySelectorAll('div').forEach(div => {
+        const inputs = div.querySelectorAll('input');
+        if (inputs.length >= 2) {
+          const nm = inputs[0]?.value?.trim();
+          const em = inputs[1]?.value?.trim();
+          if (nm || em) extras.push({ name: nm || '', email: em || '' });
+        }
+      });
+    }
+    return { primary, extras };
+  };
+  const toeD = getDelivery('toe');
+  const rptD = getDelivery('rpt');
+  const invD = getDelivery('inv');
+
+  const row = (label, val) => val ? label + ': ' + val + '\n' : '';
+  const sep  = '─'.repeat(40);
+  const head = (title) => sep + '\n' + title + '\n' + sep + '\n';
+
+  const fmtD = (d) => {
+    const all = [d.primary, ...d.extras];
+    return all.map(r => [r.name, r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ');
+  };
+  const toeStr = fmtD(toeD);
+  const rptStr = fmtD(rptD);
+  const invStr = fmtD(invD);
+
+  const parts = ['Hi,\n\nPlease load the following new valuation instruction into ValuePro.'];
+
+  const jobRows = row('Instruction Date', instDate) + row('Taken By', takenBy) + row('Allocated To', alloc) + row('VOS Order No', vos);
+  if (jobRows) parts.push(head('JOB REFERENCE') + jobRows);
+
+  const propRows = row('Address', prop) + row('Property Type', propType) + row('Legal Description', legal) + row('Area', area);
+  if (propRows) parts.push(head('PROPERTY DETAILS') + propRows);
+
+  if (purpose) parts.push(head('PURPOSE OF VALUATION') + purpose);
+
+  const instRows = row('Name', instNm) + row('Phone', instPh);
+  if (instRows) parts.push(head('INSTRUCTOR') + instRows);
+
+  const clientRows = row('Name', client) + row('Email', email) + row('Phone', clientPh) + row('Address', clientAd) + row('Borrower', borrower);
+  if (clientRows) parts.push(head('CLIENT') + clientRows);
+
+  const delivRows = row('Terms of Engagement', toeStr) + row('Report To', rptStr) + row('Invoice To', invStr);
+  if (delivRows) parts.push(head('TERMS, REPORT & INVOICE') + delivRows);
+
+  const apptRows = row('Contact', apptNm) + row('Phone', apptPh) + row('Date & Time', apptDay) + row('Valuation Due', dueDate);
+  if (apptRows) parts.push(head('APPOINTMENT & DUE DATE') + apptRows);
+
+  const feeRows = (f1 ? row('Market Report Fee', '$' + f1.toFixed(2) + ' excl. GST') : '') +
+    (f2 ? row('Insurance Fee', '$' + f2.toFixed(2) + ' excl. GST') : '') +
+    ((f1||f2) ? row('GST (15%)', '$' + gst) + row('Total incl. GST', '$' + total) : '');
+  if (feeRows) parts.push(head('FEES') + feeRows);
+
+  const rvRows = row('Land Value', rvLand) + row('Improvements', rvImp) + row('Capital Value', rvCV) +
+    (rCouncil ? row('Council Rates', rCouncil + ' p.a.') : '') +
+    (rHBRC ? row('HBRC Rates', rHBRC + ' p.a.') : '');
+  if (rvRows) parts.push(head('RATING VALUATION') + rvRows);
+
+  const addlPurpose = getAdditionalPurpose();
+  if (addlPurpose) parts.push(head('ADDITIONAL INSTRUCTION') + addlPurpose);
+  if (notes) parts.push(head('VALUATION NOTES') + notes);
+
+  parts.push(sep + '\nKind regards,');
+
+  return parts.join('\n');
+}
+
+async function copyOutput() {
+  const text = document.getElementById("outputText").innerText;
+  await navigator.clipboard.writeText(text);
+  const btn = document.getElementById("copyBtn");
+  const orig = btn.innerHTML;
+  btn.innerHTML = "✓ Copied!";
+  btn.classList.add("copied");
+  setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove("copied");},2000);
+}
+
+function openEmail() {
+  const prop = document.getElementById("c_prop_addr").value || "New Valuation Job";
+  // Pre-fill dialog
+  document.getElementById("sendFrom").value    = getSenderEmail();
+  document.getElementById("sendTo").value      = "info"+"@"+"myvaluer.net.nz";
+  // Strip postcode (4 digits) and ", New Zealand" from address for subject line
+  const propShort = prop.replace(/,?\s*\d{4}\s*,?/g, ',').replace(/,?\s*New Zealand\s*$/i, '').replace(/,\s*,/g, ',').replace(/,\s*$/,'').trim();
+  document.getElementById("sendSubject").value = "New Valuation Instruction | " + propShort;
+  // Show dialog
+  const dlg = document.getElementById("sendDialog");
+  dlg.style.display = "flex";
+}
+
+function closeSendDialog() {
+  document.getElementById("sendDialog").style.display = "none";
+}
+
+async function doSendEmail() {
+  const to      = document.getElementById("sendTo").value;
+  const subject = document.getElementById("sendSubject").value;
+  const body    = lastEmail || buildEmailPlain();
+  closeSendDialog();
+
+  if (!body || body.trim().length === 0) {
+    alert("No email content found. Please click Generate first.");
+    return;
+  }
+
+  openEmailPreview(to, subject, body, false);
+}
+
+function openEmailPreview(to, subject, body, isQuote) {
+  // Populate overlay
+  document.getElementById("previewTo").textContent      = "To: " + to;
+  document.getElementById("previewSubject").textContent = "Subject: " + subject;
+  document.getElementById("previewBody").textContent    = body;
+  document.getElementById("previewStatus").style.display = "none";
+
+  // Store for sending
+  window._previewTo   = to;
+  window._previewSub  = subject;
+  window._previewBody = body;
+
+  const btn = document.getElementById("previewSendBtn");
+  btn.disabled = false;
+  btn.textContent = "✓ Send Email";
+  btn.style.background = "#0f766e";
+
+  // Show overlay
+  const overlay = document.getElementById("emailPreviewOverlay");
+  overlay.style.display = "block";
+  overlay.scrollTop = 0;
+  document.body.style.overflow = "hidden";
+}
+
+function openArchive() {
+  document.getElementById("archiveOverlay").style.display = "block";
+  loadArchive();
+}
+
+function closeArchive() {
+  document.getElementById("archiveOverlay").style.display = "none";
+}
+
+async function loadArchive() {
+  const status = document.getElementById("archiveStatus");
+  const list   = document.getElementById("archiveList");
+  status.textContent = "Loading recent jobs…";
+  list.innerHTML = "";
+  try {
+    const jobs = await searchJobsInSharePoint("");
+    renderArchiveJobs(jobs);
+  } catch(err) {
+    status.textContent = "Could not load archive — " + err.message;
+  }
+}
+
+async function searchArchive() {
+  const query  = document.getElementById("archiveSearch").value.trim();
+  const status = document.getElementById("archiveStatus");
+  const list   = document.getElementById("archiveList");
+  status.textContent = "Searching…";
+  list.innerHTML = "";
+  try {
+    const jobs = await searchJobsInSharePoint(query);
+    renderArchiveJobs(jobs);
+  } catch(err) {
+    status.textContent = "Search failed — " + err.message;
+  }
+}
+
+function renderArchiveJobs(jobs) {
+  const status = document.getElementById("archiveStatus");
+  const list   = document.getElementById("archiveList");
+  if (!jobs.length) { status.textContent = "No jobs found."; return; }
+  status.textContent = jobs.length + " job" + (jobs.length !== 1 ? "s" : "") + " found";
+  list.innerHTML = "";
+  jobs.forEach(job => {
+    const f   = job.fields;
+    const div = document.createElement("div");
+    div.style.cssText = "padding:12px 16px;border:1.5px solid #dce4ee;border-radius:8px;cursor:pointer;transition:all 0.15s;";
+    div.onmouseover = () => div.style.background = "#f4f8fd";
+    div.onmouseout  = () => div.style.background = "";
+    div.innerHTML =
+      "<div style='font-weight:700;font-size:14px;color:#0e1c35;'>" + (f.Title || "No address") + "</div>" +
+      "<div style='font-size:12px;color:#888;margin-top:3px;'>" +
+        (f.TakenBy || "") + (f.InstructionDate ? " &nbsp;|&nbsp; " + f.InstructionDate : "") +
+        (f.ClientName ? " &nbsp;|&nbsp; " + f.ClientName : "") +
+      "</div>";
+    div.onclick = async () => {
+      try {
+        const fields = await loadJobFromSharePoint(job.id);
+        applyJobFields(fields);
+        closeArchive();
+        window.scrollTo({top:0,behavior:"smooth"});
+      } catch(e) { alert("Could not load job: " + e.message); }
+    };
+    list.appendChild(div);
+  });
+}
+
+function closeEmailPreview() {
+  document.getElementById("emailPreviewOverlay").style.display = "none";
+  document.body.style.overflow = "";
+}
+
+async function sendEmailFromPreview() {
+  const btn    = document.getElementById("previewSendBtn");
+  const status = document.getElementById("previewStatus");
+  const to     = window._previewTo;
+  const sub    = window._previewSub;
+  const body   = window._previewBody;
+
+  btn.disabled = true;
+  btn.textContent = "Sending...";
+
+  try {
+    await sendViaGraph(to, sub, body);
+    btn.textContent = "✓ Sent!";
+    btn.style.background = "#2d7a4f";
+    status.style.display = "block";
+    status.style.background = "#d1fae5";
+    status.style.color = "#065f46";
+    status.textContent = "Email sent successfully!";
+    setTimeout(() => closeEmailPreview(), 2500);
+  } catch(err) {
+    // Fallback to mailto
+    btn.disabled = false;
+    btn.textContent = "✓ Send Email";
+    const mailtoUrl = "mailto:" + encodeURIComponent(to) +
+      "?subject=" + encodeURIComponent(sub) +
+      "&body=" + encodeURIComponent(body);
+    window.location.href = mailtoUrl;
+    status.style.display = "block";
+    status.style.background = "#fef3c7";
+    status.style.color = "#92400e";
+    status.textContent = "Opening in Outlook as fallback — please click Send in Outlook.";
+  }
+}
+
+function buildQuoteEmailText() {
+  const prop       = document.getElementById("c_prop_addr").value || "";
+  const client     = document.getElementById("c_client_name").value || "Client";
+  const quoteFee   = parseFloat(document.getElementById("c_quote_fee").value)||0;
+  const quoteExpiry= document.getElementById("c_quote_expiry").value;
+  const sender     = getSenderName();
+  const senderEmail= getSenderEmail();
+  const gst        = (quoteFee * 0.15).toFixed(2);
+  const total      = (quoteFee * 1.15).toFixed(2);
+  const expiryStr  = quoteExpiry ? new Date(quoteExpiry).toLocaleDateString("en-NZ",{day:"numeric",month:"long",year:"numeric"}) : "14 days from today";
+  const purpose    = getChecked("purposeGrid") || "Valuation services as discussed";
+  const sep        = "─".repeat(36);
+
+  const acceptSubject = encodeURIComponent("RE: Valuation Quote — " + prop);
+  const acceptBody    = encodeURIComponent("Hi " + sender + ",\n\nI confirm I accept the quote and wish to proceed with the valuation of " + prop + ".\n\nPlease arrange access and proceed.\n\nKind regards,\n" + client);
+  const acceptLink    = "mailto:" + senderEmail + "?subject=" + acceptSubject + "&body=" + acceptBody;
+
+  return `Dear ${client},
+
+Thank you for your enquiry. Please find below our fee proposal for the above property.
+
+${sep}
+PROPERTY
+${sep}
+${prop}
+
+${sep}
+SCOPE OF WORK
+${sep}
+${purpose}
+
+${sep}
+FEE PROPOSAL
+${sep}
+Professional Fee:     $${quoteFee.toFixed(2)} excl. GST
+GST (15%):            $${gst}
+Total incl. GST:      $${total}
+
+This quote is valid until ${expiryStr}.
+
+${sep}
+
+Should you wish to proceed, click the link below or reply to this email confirming your instruction and we will arrange access and complete the valuation within our standard timeframe.
+
+  ✅ ACCEPT QUOTE & PROCEED → ${acceptLink}
+
+If you have any questions, please don't hesitate to contact us.
+
+Kind regards,
+${sender}
+My Valuer Limited
+2 Pandora Road, Napier
+Ph: 06 835 3350
+${senderEmail}`;
+}
+
+function openQuoteEmail() {
+  const prop        = document.getElementById("c_prop_addr").value || "Property";
+  const client      = document.getElementById("c_client_name").value || "";
+  const clientEmail = document.getElementById("c_email").value || "";
+  const quoteFee    = parseFloat(document.getElementById("c_quote_fee").value)||0;
+  const quoteExpiry = document.getElementById("c_quote_expiry").value;
+  const sender      = getSenderName();
+  const senderEmail = getSenderEmail();
+  const gst         = (quoteFee * 0.15).toFixed(2);
+  const total       = (quoteFee * 1.15).toFixed(2);
+  const expiryStr   = quoteExpiry ? new Date(quoteExpiry).toLocaleDateString("en-NZ",{day:"numeric",month:"long",year:"numeric"}) : "14 days from today";
+  const purpose     = getChecked("purposeGrid") || "Valuation services as discussed";
+
+  const acceptSubject = encodeURIComponent("RE: Valuation Quote — " + prop);
+  const acceptBody    = encodeURIComponent("Hi " + sender + ",\n\nI confirm I accept the quote and wish to proceed with the valuation of " + prop + ".\n\nPlease arrange access and proceed.\n\nKind regards,\n" + (client || "Client"));
+  const acceptLink    = "mailto:" + senderEmail + "?subject=" + acceptSubject + "&body=" + acceptBody;
+
+  // Plain text version for the mailto body
+  const plainText =
+    "Dear " + (client || "Client") + ",\n\n" +
+    "Thank you for your enquiry. Please find below our fee proposal for the above property.\n\n" +
+    "PROPERTY\n" + prop + "\n\n" +
+    "SCOPE OF WORK\n" + purpose + "\n\n" +
+    "FEE PROPOSAL\n" +
+    "Professional Fee (excl. GST): $" + quoteFee.toFixed(2) + "\n" +
+    "GST (15%): $" + gst + "\n" +
+    "Total (incl. GST): $" + total + "\n\n" +
+    "This quote is valid until " + expiryStr + ".\n\n" +
+    "To accept this quote, please reply to this email confirming your instruction to proceed.\n\n" +
+    "If you have any questions, please do not hesitate to contact us.\n\n" +
+    "Kind regards,\n" + sender + "\nMy Valuer Limited\n2 Pandora Road, Napier\nPh: 06 835 3350\n" + senderEmail;
+
+  // Strip postcode and country from address for subject line
+  const propShort = prop.replace(/,?\s*\d{4}\s*,?/g, ',').replace(/,?\s*New Zealand\s*$/i, '').replace(/,\s*,/g, ',').replace(/,\s*$/,'').trim();
+  const subject = "Valuation Quote | " + propShort;
+
+  // Update body with new wording
+  const finalText =
+    "Dear " + (client || "Client") + ",\n\n" +
+    "Thank you for your enquiry. Please find below our fee proposal for the above property.\n\n" +
+    "PROPERTY\n" + prop + "\n\n" +
+    "SCOPE OF WORK\n" + purpose + "\n\n" +
+    "FEE PROPOSAL\n" +
+    "Professional Fee (excl. GST): $" + quoteFee.toFixed(2) + "\n" +
+    "GST (15%): $" + gst + "\n" +
+    "Total (incl. GST): $" + total + "\n\n" +
+    "This quote is valid until " + expiryStr + ".\n\n" +
+    "We look forward to assisting you with this valuation. To get started, simply reply to this email confirming your instruction to proceed and we will be in touch to arrange access at your earliest convenience.\n\n" +
+    "If you have any questions, please do not hesitate to contact us.\n\n" +
+    "Kind regards,";
+
+  // Open preview window for valuer to review before sending
+  openEmailPreview(clientEmail, subject, finalText, true);
+}
+
+
+function printForm() {
+  refreshDeliveryDisplays();
+
+  // Helper to get field value
+  const v = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+
+  // Get delivery recipient details
+  const getDelivery = (f) => {
+    const sel = document.getElementById('c_' + f + '_sel');
+    const primary = (!sel || sel.value === 'client')
+      ? { name: v('c_client_name'), email: v('c_email') }
+      : { name: v('c_' + f + '_name'), email: v('c_' + f + '_email') };
+    const extras = [];
+    const container = document.getElementById('c_' + f + '_extras');
+    if (container) {
+      container.querySelectorAll('div').forEach(div => {
+        const inputs = div.querySelectorAll('input');
+        if (inputs.length >= 2) {
+          const nm = inputs[0]?.value?.trim();
+          const em = inputs[1]?.value?.trim();
+          if (nm || em) extras.push({ name: nm || '', email: em || '' });
+        }
+      });
+    }
+    return { primary, extras };
+  };
+  const toeD = getDelivery('toe');
+  const rptD = getDelivery('rpt');
+  const invD = getDelivery('inv');
+
+  // Appointment
+  const apptDate = v('c_appt_date');
+  const apptTime = v('c_appt_time');
+  const apptStr  = apptDate ? new Date(apptDate).toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + (apptTime ? ' at ' + apptTime : '') : '';
+
+  // Due date
+  const dueDate = v('c_due_date');
+  const dueDateStr = dueDate ? new Date(dueDate).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
+
+  // Fees
+  const f1    = parseFloat(v('c_fee1'))||0;
+  const f2    = parseFloat(v('c_fee2'))||0;
+  const gst   = ((f1+f2)*0.15).toFixed(2);
+  const total = ((f1+f2)*1.15).toFixed(2);
+
+  // Purpose
+  const purpose = getChecked('purposeGrid') || '';
+  const propType = document.querySelector('#propTypeGrid .check-item.checked')?.textContent?.trim() || '';
+
+  // Titles
+  const titles = [1,2,3,4,5,6].map(n=>v('c_title'+n)).filter(Boolean).join(', ');
+
+  // Quote
+  const isQuote   = document.getElementById('c_is_quote')?.checked;
+  const quoteFee  = parseFloat(v('c_quote_fee'))||0;
+  const quoteExp  = v('c_quote_expiry');
+  const quoteExpStr = quoteExp ? new Date(quoteExp).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
+
+  // Row helper — only renders if value exists
+  const row = (label, val) => val ? `
+    <tr>
+      <td style="padding:5px 10px;width:38%;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;white-space:nowrap;">${label}</td>
+      <td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">${val}</td>
+    </tr>` : '';
+
+  // Section helper
+  const section = (num, title, rows) => {
+    const content = rows.filter(Boolean).join('');
+    if (!content) return '';
+    return `
+    <div style="break-inside:avoid;margin-bottom:14px;">
+      <div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+        <span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">${num}</span>
+        <span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">${title}</span>
+      </div>
+      <table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">
+        ${content}
+      </table>
+    </div>`;
+  };
+
+  // Build logo src from page
+  const logoSrc = document.querySelector('.header-logo img')?.src || '';
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<title>Valuation Instruction — ${v('c_prop_addr') || 'My Valuer'}</title>
+<style>
+  @page { size: A4; margin: 12mm 12mm 12mm 12mm; }
+  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: white; }
+  .page { max-width: 100%; }
+  .col-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #7DA6D4;padding-bottom:8px;margin-bottom:16px;">
+    <img src="${logoSrc}" style="height:40px;" alt="My Valuer"/>
+    <div style="text-align:right;">
+      <div style="font-size:13pt;font-weight:800;color:#0e1c35;">Valuation Instruction Form</div>
+      <div style="font-size:8pt;color:#555;margin-top:2px;">2 Pandora Road, Napier &nbsp;|&nbsp; 06 835 3350 &nbsp;|&nbsp; info​@myvaluer.net.nz</div>
+    </div>
+  </div>
+
+  <!-- Property address prominent at top -->
+  ${v('c_prop_addr') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:8px 14px;margin-bottom:16px;break-inside:avoid;">
+    <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:3px;">Property Address</div>
+    <div style="font-size:12pt;font-weight:700;color:#0e1c35;">${v('c_prop_addr')}</div>
+    ${propType ? `<div style="font-size:9pt;color:#555;margin-top:2px;">${propType}</div>` : ''}
+  </div>` : ''}
+
+  ${isQuote ? `<div style="background:#fff8e1;border:2px solid #c8a44a;border-radius:6px;padding:8px 14px;margin-bottom:16px;break-inside:avoid;">
+    <div style="font-size:10pt;font-weight:800;color:#5a3e00;">⚡ QUOTE</div>
+    <div style="font-size:9pt;color:#5a3e00;margin-top:2px;">Fee: $${quoteFee.toFixed(2)} excl. GST &nbsp;|&nbsp; Valid until: ${quoteExpStr}</div>
+  </div>` : ''}
+
+  <!-- Two column layout -->
+  <div class="col-wrap">
+    <div>
+      ${section(1, 'Job Reference', [
+        row('Instruction Date', v('c_inst_date') ? new Date(v('c_inst_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : ''),
+        row('Taken By', v('c_taken_by')),
+        row('VOS Order No.', v('c_vos')),
+        row('Valuation Allocated To', v('c_alloc')),
+        row('Prior Reference', v('c_prior_ref'))
+      ])}
+
+      ${section(2, 'Title Details', [
+        row('Title No.', v('c_title_no')),
+        row('Estate', v('c_estate')),
+        row('Area', v('c_area')),
+        row('Legal Description', v('c_legal_desc')),
+        row('Registered Owner', v('c_owner')),
+        row('Title References', titles)
+      ])}
+
+      ${section(3, 'Instructor', [
+        row('Name', v('c_inst_name')),
+        row('Phone', v('c_inst_phone'))
+      ])}
+
+      ${section(4, 'Client', [
+        row('Client Name', v('c_client_name')),
+        row('Email', v('c_email')),
+        row('Phone', v('c_client_phone')),
+        row('Borrower', v('c_borrower')),
+        row('Address', v('c_client_addr'))
+      ])}
+
+      ${section(5, 'Address Report To', [
+        row('Name', v('c_report_name')),
+        row('Address', v('c_report_addr'))
+      ])}
+
+      ${section(6, 'Terms, Report & Invoice Delivery', [
+        row('Terms of Engagement', [toeD.primary, ...toeD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
+        row('Report sent to', [rptD.primary, ...rptD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
+        row('Invoice sent to', [invD.primary, ...invD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; '))
+      ])}
+    </div>
+
+    <div>
+      ${section(7, 'Appointment', [
+        row('Name', v('c_appt_name')),
+        row('Phone', v('c_appt_phone')),
+        row('Date & Time', apptStr)
+      ])}
+
+      ${dueDateStr ? `<div style="break-inside:avoid;margin-bottom:14px;">
+        <div style="background:#b91c1c;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+          <span style="background:rgba(255,255,255,0.25);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">8</span>
+          <span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Valuation Due Date</span>
+        </div>
+        <div style="border:2px solid #b91c1c;border-top:none;border-radius:0 0 4px 4px;padding:12px 16px;background:#fff8f8;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+          <div style="font-size:16pt;font-weight:800;color:#b91c1c;">${dueDateStr}</div>
+        </div>
+      </div>` : ''}
+
+      ${section('8b', 'Valuation Fee', [
+        row('Market Report Fee', f1 ? '$' + f1.toFixed(2) + ' excl. GST' : ''),
+        row('Insurance Fee', f2 ? '$' + f2.toFixed(2) + ' excl. GST' : ''),
+        row('GST (15%)', (f1||f2) ? '$' + gst : ''),
+        row('Total incl. GST', (f1||f2) ? '$' + total : '')
+      ])}
+
+      ${section(9, 'Property Type', [
+        row('Type', propType)
+      ])}
+
+      ${section(10, 'Purpose of Valuation', [
+        row('Purpose', purpose)
+      ])}
+
+      ${section(11, 'Valuation Notes', [
+        row('Notes', v('c_valn_notes'))
+      ])}
+
+      ${section(12, 'Council Rates & Rating Valuation', [
+        row('Land Value', v('c_rv_land')),
+        row('Improvements', v('c_rv_imp')),
+        row('Capital Value', v('c_rv_cv')),
+        row('Council Rates', v('c_rates_council') ? v('c_rates_council') + ' p.a.' : ''),
+        row('HBRC Rates', v('c_rates_hbrc') ? v('c_rates_hbrc') + ' p.a.' : ''),
+        row('Council File', v('c_council_file')),
+        row('Mileage', v('c_mileage') ? v('c_mileage') + ' km' : '')
+      ])}
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top:16px;border-top:1px solid #dce4ee;padding-top:8px;display:flex;justify-content:space-between;font-size:8pt;color:#888;">
+    <span>My Valuer Limited &nbsp;|&nbsp; 2 Pandora Road, Napier &nbsp;|&nbsp; 06 835 3350</span>
+    <span>Printed: ${new Date().toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'})}</span>
+  </div>
+
+</div>
+</body>
+</html>`;
+
+  // Write to a new window and print
+  const win = window.open('', '_blank');
+  if (win) {
+    try { win.moveTo(0,0); win.resizeTo(screen.availWidth, screen.availHeight); } catch(e) {}
+  win.document.write(html);
+    win.document.close();
+    win.onload = function() { win.print(); };
+  }
+}
+
+function resetForm() {
+  document.querySelectorAll("input[type=text],input[type=number],input[type=email],textarea").forEach(el=>el.value="");
+  document.querySelectorAll("input[type=date]").forEach(el=>el.value=today);
+  document.querySelectorAll(".check-item").forEach(el=>el.classList.remove("checked"));
+  document.querySelector("#propTypeGrid .check-item").classList.add("checked");
+  document.querySelector("#purposeGrid .check-item").classList.add("checked");
+  document.getElementById("c_total").textContent="$0.00";
+  ["c_legal_desc","c_title_no","c_estate","c_area"].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = "";
+  });
+  const ls = document.getElementById("linz_status");
+  if (ls) ls.style.display = "none";
+  document.getElementById("outputResult").classList.remove("visible");
+  document.getElementById("outputPlaceholder").style.display="flex";
+
+  // Reset all select dropdowns to their first option
+  document.querySelectorAll("select").forEach(el => el.selectedIndex = 0);
+
+  // Reset delivery displays
+  ["toe","rpt","inv"].forEach(f => handleDelivery(f, "client"));
+
+  // Reset quote
+  const quoteCheck = document.getElementById("c_is_quote");
+  if (quoteCheck) { quoteCheck.checked = false; }
+  const quoteFields = document.getElementById("quoteFields");
+  if (quoteFields) quoteFields.style.display = "none";
+  const qBtn = document.getElementById("quoteEmailBtn");
+  if (qBtn) qBtn.style.display = "none";
+
+  // Hide purpose/proptype Other boxes and blurb
+  const purposeOther = document.getElementById("purposeOther");
+  const purposeBlurb = document.getElementById("purposeBlurb");
+  const propTypeOther = document.getElementById("propTypeOther");
+  if (purposeOther)  purposeOther.style.display  = "none";
+  if (purposeBlurb)  purposeBlurb.style.display  = "none";
+  if (propTypeOther) propTypeOther.style.display = "none";
+}
+
+// ── STAFF EMAIL MAP ──────────────────────────────────────
+const STAFF_EMAILS = {
+  'Andrew White':   'andrew'+'@'+'myvaluer.net.nz',
+  'Paul Bibby':     'paul'+'@'+'myvaluer.net.nz',
+  'Dayna Campbell': 'dayna'+'@'+'myvaluer.net.nz',
+  'Bridget Ireland':'bridget'+'@'+'myvaluer.net.nz',
+  'Jody White':     'jody'+'@'+'myvaluer.net.nz'
+};
+
+function getSenderEmail() {
+  const takenBy = document.getElementById('c_taken_by').value;
+  return STAFF_EMAILS[takenBy] || 'info​@myvaluer.net.nz';
+}
+
+function getSenderName() {
+  return document.getElementById('c_taken_by').value || 'The team';
+}
+
+// ── QUOTE TOGGLE ──────────────────────────────────────────
+function toggleQuote() {
+  const isQuote = document.getElementById('c_is_quote').checked;
+  document.getElementById('quoteFields').style.display = isQuote ? 'block' : 'none';
+  const qBtn = document.getElementById('quoteEmailBtn');
+  if (qBtn && isQuote && document.getElementById('outputResult').classList.contains('visible')) {
+    qBtn.style.display = 'flex';
+  } else if (qBtn) {
+    qBtn.style.display = 'none';
+  }
+}
+
+// ── DELIVERY SECTION ─────────────────────────────────────
+function getClientSummary() {
+  const name  = document.getElementById('c_client_name').value;
+  const email = document.getElementById('c_email').value;
+  const parts = [name, email].filter(Boolean);
+  return parts.length ? parts.join(' | ') : null;
+}
+
+function handleDelivery(field, val) {
+  const display   = document.getElementById('c_' + field + '_display');
+  const dispName  = document.getElementById('c_' + field + '_display_name');
+  const dispEmail = document.getElementById('c_' + field + '_display_email');
+  const other     = document.getElementById('c_' + field + '_other');
+  if (!val) {
+    // Nothing selected — hide both
+    display.style.display = 'none';
+    other.style.display   = 'none';
+  } else if (val === 'client') {
+    other.style.display   = 'none';
+    display.style.display = 'flex';
+    const name  = document.getElementById('c_client_name').value;
+    const email = document.getElementById('c_email').value;
+    dispName.textContent      = name  || '— enter client name above —';
+    dispName.style.fontStyle  = name  ? 'normal' : 'italic';
+    dispName.style.color      = name  ? 'var(--black)' : 'var(--grey,#888)';
+    dispEmail.textContent     = email || '— enter client email above —';
+    dispEmail.style.fontStyle = email ? 'normal' : 'italic';
+    dispEmail.style.color     = email ? 'var(--black)' : 'var(--grey,#888)';
+  } else {
+    display.style.display = 'none';
+    other.style.display   = 'block';
+  }
+}
+
+// Refresh all delivery displays when client fields change
+function refreshDeliveryDisplays() {
+  ['toe','rpt','inv'].forEach(f => {
+    const sel = document.getElementById('c_' + f + '_sel');
+    if (sel) handleDelivery(f, sel.value);
+  });
+}
+['c_client_name','c_email'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', refreshDeliveryDisplays);
+});
+
+// Initialise immediately when DOM is ready
+window.addEventListener('load', function() {
+  setTimeout(refreshDeliveryDisplays, 100);
+});
+
+// ── ADDITIONAL DELIVERY RECIPIENTS ───────────────────────
+function addDeliveryRecipient(field) {
+  const container = document.getElementById('c_' + field + '_extras');
+  if (!container) return;
+  const idx = container.children.length + 1;
+  const div = document.createElement('div');
+  div.style.cssText = 'margin-top:8px;padding:10px;background:rgba(125,166,212,0.05);border:1.5px solid var(--border);border-radius:7px;position:relative;';
+  div.innerHTML =
+    '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--grey);margin-bottom:6px;">Additional Recipient ' + idx + '</div>' +
+    '<button type="button" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--grey);font-size:16px;cursor:pointer;line-height:1;">×</button>' +
+    '<div class="row2" style="margin-bottom:6px;">' +
+      '<div class="field" style="margin:0;"><label>Name</label><input type="text" placeholder="" style="width:100%;"/></div>' +
+      '<div class="field" style="margin:0;"><label>Email</label><input type="email" placeholder="" style="width:100%;"/></div>' +
+    '</div>';
+  container.appendChild(div);
+}
+
+// ── REPORT TO QUICK FILL ─────────────────────────────────
+function fillReportTo(val) {
+  if (!val) return;
+  if (val === 'same') {
+    document.getElementById('c_report_name').value = document.getElementById('c_client_name').value || '';
+    document.getElementById('c_report_addr').value = document.getElementById('c_client_addr').value || '';
+  } else {
+    const parts = val.split('|');
+    document.getElementById('c_report_name').value = parts[0] || '';
+    document.getElementById('c_report_addr').value = parts[1] || '';
+  }
+  // Reset preset dropdown
+  document.getElementById('c_report_preset').value = '';
+}
+
+// ── TERMS OF ENGAGEMENT EMAIL HELPERS ────────────────────
+function handleTermsEmail(field, val) {
+  const inputId   = field === 'report' ? 'c_terms_report_email'         : 'c_terms_email';
+  const displayId = field === 'report' ? 'c_terms_report_email_display'  : 'c_terms_email_display';
+  const input   = document.getElementById(inputId);
+  const display = document.getElementById(displayId);
+  const clientEmail = document.getElementById('c_email').value || '';
+
+  if (val === 'other') {
+    display.style.display = 'none';
+    input.style.display   = 'block';
+    input.value = '';
+    input.focus();
+  } else {
+    input.style.display   = 'none';
+    display.style.display = 'block';
+    input.value           = clientEmail;
+    display.textContent   = clientEmail || '— enter client email above —';
+    display.style.color   = clientEmail ? 'var(--black)' : 'var(--grey,#888)';
+    display.style.fontStyle = clientEmail ? 'normal' : 'italic';
+  }
+}
+
+// Sync display divs when client email changes
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'c_email') {
+    const val = e.target.value;
+    [['c_terms_report_email_sel','c_terms_report_email','c_terms_report_email_display'],
+     ['c_terms_email_sel','c_terms_email','c_terms_email_display']].forEach(([selId, inputId, displayId]) => {
+      const sel = document.getElementById(selId);
+      if (sel && sel.value === 'same') {
+        document.getElementById(inputId).value       = val;
+        const d = document.getElementById(displayId);
+        d.textContent  = val || '— enter client email above —';
+        d.style.color  = val ? 'var(--black)' : 'var(--grey,#888)';
+        d.style.fontStyle = val ? 'normal' : 'italic';
+      }
+    });
+  }
+});
+
+
+
+// ── DRAFT MANAGER ────────────────────────────────────────
+const DRAFTS_KEY = 'myvaluer_drafts';
+
+function getAllDrafts() {
+  try { return JSON.parse(localStorage.getItem(DRAFTS_KEY)) || []; }
+  catch(e) { return []; }
+}
+
+function saveDraft() {
+  const prop = document.getElementById("c_prop_addr").value.trim();
+  if (!prop) { alert("Please enter a property address before saving a draft."); return; }
+
+  const data = {};
+  document.querySelectorAll('input[type=text],input[type=number],input[type=date],input[type=email],textarea,select').forEach(el => {
+    if (el.id) data[el.id] = el.value;
+  });
+  const propChecked = document.querySelector('#propTypeGrid .check-item.checked');
+  if (propChecked) data['_propType'] = propChecked.textContent.trim();
+  const purposeChecked = document.querySelector('#purposeGrid .check-item.checked');
+  if (purposeChecked) data['_purpose'] = purposeChecked.textContent.trim();
+
+  // Save additional delivery recipients
+  ['toe','rpt','inv'].forEach(f => {
+    const container = document.getElementById('c_' + f + '_extras');
+    if (!container) return;
+    const recipients = [];
+    container.querySelectorAll('div').forEach(div => {
+      const inputs = div.querySelectorAll('input');
+      if (inputs.length >= 2) {
+        const nm = inputs[0]?.value?.trim();
+        const em = inputs[1]?.value?.trim();
+        if (nm || em) recipients.push({ name: nm || '', email: em || '' });
+      }
+    });
+    data['_extras_' + f] = recipients;
+  });
+
+  const drafts = getAllDrafts();
+  const now = new Date();
+  const label = prop + ' — ' + now.toLocaleDateString('en-NZ', {day:'numeric',month:'short',year:'numeric'}) + ' ' + now.toLocaleTimeString('en-NZ', {hour:'2-digit',minute:'2-digit'});
+  const id = Date.now().toString();
+
+  drafts.unshift({ id, label, data, saved: now.toISOString() });
+  if (drafts.length > 10) drafts.pop();
+
+  localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+  renderDraftDropdown();
+
+  const saveBtn = document.querySelector('#draftPanel button:last-child');
+  if (saveBtn) { const orig = saveBtn.textContent; saveBtn.textContent = '✓ Saved!'; saveBtn.style.background = '#2d7a4f'; setTimeout(() => { saveBtn.textContent = orig; saveBtn.style.background = 'var(--blue,#7da6d4)'; }, 1800); }
+}
+
+function loadDraft(id) {
+  const drafts = getAllDrafts();
+  const draft = drafts.find(d => d.id === id);
+  if (!draft) return;
+
+  // Clear form first
+  document.querySelectorAll('input[type=text],input[type=number],input[type=email],textarea').forEach(el => el.value = '');
+  document.querySelectorAll('input[type=date]').forEach(el => el.value = today);
+  document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+
+  // Clear any existing extra recipients
+  ['toe','rpt','inv'].forEach(f => {
+    const container = document.getElementById('c_' + f + '_extras');
+    if (container) container.innerHTML = '';
+  });
+
+  // Restore values
+  Object.keys(draft.data).forEach(id => {
+    if (id.startsWith('_')) return;
+    const el = document.getElementById(id);
+    if (el) el.value = draft.data[id];
+  });
+  if (draft.data['_propType']) {
+    document.querySelectorAll('#propTypeGrid .check-item').forEach(el => {
+      el.classList.toggle('checked', el.textContent.trim() === draft.data['_propType']);
+    });
+  }
+  if (draft.data['_purpose']) {
+    document.querySelectorAll('#purposeGrid .check-item').forEach(el => {
+      el.classList.toggle('checked', el.textContent.trim() === draft.data['_purpose']);
+    });
+  }
+
+  // Restore additional delivery recipients
+  ['toe','rpt','inv'].forEach(f => {
+    const recipients = draft.data['_extras_' + f] || [];
+    recipients.forEach(r => {
+      addDeliveryRecipient(f);
+      const container = document.getElementById('c_' + f + '_extras');
+      if (!container) return;
+      const lastDiv = container.lastElementChild;
+      if (!lastDiv) return;
+      const inputs = lastDiv.querySelectorAll('input');
+      if (inputs[0]) inputs[0].value = r.name || '';
+      if (inputs[1]) inputs[1].value = r.email || '';
+    });
+  });
+
+  calcFee();
+  closeDraftPanel();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function deleteDraft(id, event) {
+  event.stopPropagation();
+  if (!confirm('Delete this draft?')) return;
+  let drafts = getAllDrafts().filter(d => d.id !== id);
+  localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
+  renderDraftDropdown();
+}
+
+function renderDraftDropdown() {
+  const panel = document.getElementById('draftPanel');
+  const list = document.getElementById('draftList');
+  const badge = document.getElementById('draftBadge');
+  if (!list) return;
+
+  const drafts = getAllDrafts();
+  badge.textContent = drafts.length > 0 ? drafts.length : '';
+  badge.style.display = drafts.length > 0 ? 'inline-flex' : 'none';
+
+  if (drafts.length === 0) {
+    list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--grey,#6b7280);font-size:13px;">No saved drafts yet.<br>Fill in a job and click <strong>Save Draft</strong>.</div>';
+    return;
+  }
+
+  list.innerHTML = drafts.map(d => `
+    <div onclick="loadDraft('${d.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border,#dce4ee);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(125,166,212,0.08)'" onmouseout="this.style.background=''">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--black,#1a1a1a);">${d.label.split(' — ')[0]}</div>
+        <div style="font-size:11px;color:var(--grey,#6b7280);margin-top:2px;">${d.label.split(' — ').slice(1).join(' — ')}</div>
+      </div>
+      <button onclick="deleteDraft('${d.id}', event)" title="Delete draft" style="background:rgba(185,28,28,0.08);border:none;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:#b91c1c;cursor:pointer;flex-shrink:0;margin-left:10px;">✕</button>
+    </div>`).join('');
+}
+
+function toggleDraftPanel() {
+  const panel = document.getElementById('draftPanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  if (panel.style.display === 'block') renderDraftDropdown();
+}
+
+function closeDraftPanel() {
+  const panel = document.getElementById('draftPanel');
+  if (panel) panel.style.display = 'none';
+}
+
+// Close panel if clicking outside
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('draftPanel');
+  const btn = document.getElementById('draftMenuBtn');
+  if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
+    panel.style.display = 'none';
+  }
+});
+
+// Init badge on load
+window.addEventListener('load', function() {
+  renderDraftDropdown();
+  restoreAutosave();
+  // Restore email field (obfuscated to prevent CF injection)
+  const st = document.getElementById('sendTo');
+  if (st && st.dataset.email) st.value = st.dataset.email + '@' + 'myvaluer.net.nz';
+  // Pre-initialize MSAL so it's ready when needed
+  getMsalInstance().catch(e => console.log('MSAL pre-init:', e));
+});
+
+// ── AUTOSAVE ──────────────────────────────────────────────
+const AUTOSAVE_KEY = 'myvaluer_autosave';
+
+function collectFormData() {
+  const data = {};
+  document.querySelectorAll('input[type=text],input[type=number],input[type=date],input[type=email],textarea,select').forEach(el => {
+    if (el.id) data[el.id] = el.value;
+  });
+  const propChecked = document.querySelector('#propTypeGrid .check-item.checked');
+  if (propChecked) data['_propType'] = propChecked.textContent.trim();
+  const purposeChecked = document.querySelector('#purposeGrid .check-item.checked');
+  if (purposeChecked) data['_purpose'] = purposeChecked.textContent.trim();
+  // Save additional delivery recipients
+  ['toe','rpt','inv'].forEach(f => {
+    const container = document.getElementById('c_' + f + '_extras');
+    if (!container) return;
+    const recipients = [];
+    container.querySelectorAll('div').forEach(div => {
+      const inputs = div.querySelectorAll('input');
+      if (inputs.length >= 2) {
+        const nm = inputs[0]?.value?.trim();
+        const em = inputs[1]?.value?.trim();
+        if (nm || em) recipients.push({ name: nm || '', email: em || '' });
+      }
+    });
+    data['_extras_' + f] = recipients;
+  });
+  return data;
+}
+
+function applyFormData(data) {
+  Object.keys(data).forEach(id => {
+    if (id.startsWith('_')) return;
+    const el = document.getElementById(id);
+    if (el) el.value = data[id];
+  });
+  if (data['_propType']) {
+    document.querySelectorAll('#propTypeGrid .check-item').forEach(el => {
+      el.classList.toggle('checked', el.textContent.trim() === data['_propType']);
+    });
+  }
+  if (data['_purpose']) {
+    document.querySelectorAll('#purposeGrid .check-item').forEach(el => {
+      el.classList.toggle('checked', el.textContent.trim() === data['_purpose']);
+    });
+  }
+  // Restore additional delivery recipients
+  ['toe','rpt','inv'].forEach(f => {
+    const container = document.getElementById('c_' + f + '_extras');
+    if (container) container.innerHTML = '';
+    const recipients = data['_extras_' + f] || [];
+    recipients.forEach(r => {
+      addDeliveryRecipient(f);
+      const cont = document.getElementById('c_' + f + '_extras');
+      if (!cont) return;
+      const lastDiv = cont.lastElementChild;
+      if (!lastDiv) return;
+      const inputs = lastDiv.querySelectorAll('input');
+      if (inputs[0]) inputs[0].value = r.name || '';
+      if (inputs[1]) inputs[1].value = r.email || '';
+    });
+  });
+  calcFee();
+}
+
+function doAutosave() {
+  const data = collectFormData();
+  // Only autosave if there's something worth saving
+  const hasContent = data['c_prop_addr'] || data['c_client_name'] || data['c_inst_name'];
+  if (!hasContent) return;
+  data['_autosaved'] = new Date().toISOString();
+  localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
+  // Show brief indicator
+  showAutosaveToast();
+}
+
+function restoreAutosave() {
+  try {
+    const saved = localStorage.getItem(AUTOSAVE_KEY);
+    if (!saved) return;
+    const data = JSON.parse(saved);
+    // Only restore if there's actual content
+    if (!data['c_prop_addr'] && !data['c_client_name'] && !data['c_inst_name']) return;
+    applyFormData(data);
+    showAutosaveBanner(data['_autosaved']);
+  } catch(e) { console.log('Autosave restore error:', e); }
+}
+
+function showAutosaveToast() {
+  const toast = document.getElementById('autosaveToast');
+  if (!toast) return;
+  toast.style.opacity = '1';
+  clearTimeout(window._autosaveToastTimer);
+  window._autosaveToastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 1800);
+}
+
+function showAutosaveBanner(isoDate) {
+  const banner = document.getElementById('autosaveBanner');
+  if (!banner) return;
+  let timeStr = '';
+  if (isoDate) {
+    const d = new Date(isoDate);
+    timeStr = ' — saved at ' + d.toLocaleTimeString('en-NZ', {hour:'2-digit', minute:'2-digit'});
+  }
+  banner.querySelector('#autosaveTime').textContent = timeStr;
+  banner.style.display = 'flex';
+}
+
+function dismissAutosave(keep) {
+  const banner = document.getElementById('autosaveBanner');
+  if (banner) banner.style.display = 'none';
+  if (!keep) {
+    localStorage.removeItem(AUTOSAVE_KEY);
+    // Clear form
+    document.querySelectorAll('input[type=text],input[type=number],input[type=email],textarea').forEach(el => el.value = '');
+    document.querySelectorAll('input[type=date]').forEach(el => el.value = today);
+    document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+    document.querySelectorAll('.check-item').forEach(el => el.classList.remove('checked'));
+    document.querySelector('#propTypeGrid .check-item')?.classList.add('checked');
+    document.querySelector('#purposeGrid .check-item')?.classList.add('checked');
+    calcFee();
+  }
+}
+
+// Autosave every 5 seconds while there's content
+let _autosaveTimer = null;
+document.addEventListener('input', function() {
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer = setTimeout(doAutosave, 5000);
+  // Auto-regenerate if output is already visible
+  clearTimeout(window._regenTimer);
+  window._regenTimer = setTimeout(function() {
+    if (document.getElementById('outputResult').classList.contains('visible')) {
+      generateSummary();
+    }
+  }, 800);
+});
+document.addEventListener('change', function() {
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer = setTimeout(doAutosave, 5000);
+  // Auto-regenerate if output is already visible
+  clearTimeout(window._regenTimer);
+  window._regenTimer = setTimeout(function() {
+    if (document.getElementById('outputResult').classList.contains('visible')) {
+      generateSummary();
+    }
+  }, 800);
+});
+
+// Clear drafts on new job (don't auto-delete, just reset form)
+const origReset = resetForm;
+resetForm = function() {
+  origReset();
+  closeDraftPanel();
+  localStorage.removeItem(AUTOSAVE_KEY);
+  const ab = document.getElementById('autosaveBanner');
+  if (ab) ab.style.display = 'none';
+};
 </script>
 <style>
 /* Style the Google autocomplete dropdown to match My Valuer branding */
@@ -901,7 +2474,7 @@ function initAutocomplete() {
     <div class="header-contact">
       📍 2 Pandora Road, Napier &nbsp;|&nbsp;
       📞 <a href="tel:068353350">06 835 3350</a> &nbsp;|&nbsp;
-      ✉️ <a href="/cdn-cgi/l/email-protection#d7beb9b1b897baaea1b6bba2b2a5f9b9b2a3f9b9ad"><span class="__cf_email__" data-cfemail="3b52555d547b56424d5a574e5e4915555e4f155541">[email&#160;protected]</span></a>
+      ✉️ <a href="mailto:info&#64;myvaluer.net.nz">info&#64;myvaluer&#46;net&#46;nz</a>
     </div>
   </div>
   </div>
@@ -1465,7 +3038,7 @@ function initAutocomplete() {
     </div>
     <div class="field" style="margin-bottom:16px;">
       <label style="font-size:14px;">To</label>
-      <input type="email" id="sendTo" value="info@myvaluer.net.nz" style="width:100%;font-size:16px;"/>
+      <input type="email" id="sendTo" value="" data-email="info" style="width:100%;font-size:16px;"/>
     </div>
     <div class="field" style="margin-bottom:28px;">
       <label style="font-size:14px;">Subject</label>
@@ -1480,1567 +3053,6 @@ function initAutocomplete() {
 
 </div><!-- end app -->
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-const today = new Date().toISOString().split("T")[0];
-document.getElementById("c_inst_date").value = today;
 
-function toggleCheck(cb) {
-  cb.closest(".check-item").classList.toggle("checked", cb.checked);
-}
-
-function calcFee() {
-  const f1 = parseFloat(document.getElementById("c_fee1").value)||0;
-  const f2 = parseFloat(document.getElementById("c_fee2").value)||0;
-  const total = (f1+f2)*1.15;
-  document.getElementById("c_total").textContent = "$" + total.toLocaleString("en-NZ",{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-
-function selectPropType(el) {
-  el.closest(".check-grid").querySelectorAll(".check-item").forEach(function(item) {
-    item.classList.remove("checked");
-  });
-  el.classList.add("checked");
-  const otherBox = document.getElementById("propTypeOther");
-  if (otherBox) {
-    otherBox.style.display = el.textContent.trim() === "Other" ? "block" : "none";
-    if (el.textContent.trim() !== "Other") document.getElementById("c_proptype_other").value = "";
-  }
-}
-
-function toggleAdditional() {
-  const isOn = document.getElementById('c_is_additional').checked;
-  document.getElementById('additionalFields').style.display = isOn ? 'block' : 'none';
-  if (!isOn) {
-    document.querySelectorAll('#additionalPurposeGrid .check-item').forEach(el => el.classList.remove('checked'));
-    document.getElementById('additionalPurposeOther').style.display = 'none';
-    document.getElementById('additionalPurposeBlurb').style.display = 'none';
-  }
-}
-
-function toggleAddlPurpose(el) {
-  el.closest('.check-grid').querySelectorAll('.check-item').forEach(i => i.classList.remove('checked'));
-  el.classList.add('checked');
-  const txt = el.textContent.trim();
-  const fullText = el.getAttribute('data-full') || '';
-  const otherBox  = document.getElementById('additionalPurposeOther');
-  const blurbBox  = document.getElementById('additionalPurposeBlurb');
-  const blurbArea = document.getElementById('c_additional_purpose_blurb');
-  if (txt === 'Other') {
-    if (otherBox)  otherBox.style.display  = 'block';
-    if (blurbBox)  blurbBox.style.display  = 'none';
-  } else {
-    if (otherBox)  otherBox.style.display  = 'none';
-    if (blurbBox)  blurbBox.style.display  = fullText ? 'block' : 'none';
-    if (blurbArea) blurbArea.value = fullText;
-  }
-}
-
-function getAdditionalPurpose() {
-  if (!document.getElementById('c_is_additional')?.checked) return '';
-  const checked = document.querySelector('#additionalPurposeGrid .check-item.checked');
-  if (!checked) return '';
-  if (checked.textContent.trim() === 'Other') {
-    return document.getElementById('c_additional_purpose_other')?.value?.trim() || '';
-  }
-  return document.getElementById('c_additional_purpose_blurb')?.value?.trim() ||
-    checked.getAttribute('data-full') || checked.textContent.trim();
-}
-
-function togglePurpose(el) {
-  el.closest(".check-grid").querySelectorAll(".check-item").forEach(function(item) {
-    item.classList.remove("checked");
-  });
-  el.classList.add("checked");
-
-  const txt = el.textContent.trim();
-  const fullText = el.getAttribute("data-full") || "";
-
-  // Other — show free text box, hide blurb
-  const otherBox  = document.getElementById("purposeOther");
-  const blurbBox  = document.getElementById("purposeBlurb");
-  const blurbArea = document.getElementById("c_purpose_blurb");
-
-  if (txt === "Other") {
-    if (otherBox)  otherBox.style.display  = "block";
-    if (blurbBox)  blurbBox.style.display  = "none";
-    if (blurbArea) blurbArea.value = "";
-    document.getElementById("c_purpose_other").value = "";
-  } else {
-    if (otherBox)  otherBox.style.display  = "none";
-    if (blurbBox)  blurbBox.style.display  = fullText ? "block" : "none";
-    if (blurbArea) blurbArea.value = fullText;
-  }
-}
-
-function getChecked(gridId) {
-  return Array.from(document.querySelectorAll("#" + gridId + " .check-item.checked"))
-    .map(el => {
-      const txt = el.textContent.trim();
-      if (txt === "Other") {
-        const otherId = gridId === "propTypeGrid" ? "c_proptype_other" : "c_purpose_other";
-        const val = document.getElementById(otherId)?.value?.trim();
-        return val ? val : "Other";
-      }
-      // For purpose grid, use the (possibly edited) blurb textarea
-      if (gridId === "purposeGrid") {
-        const blurb = document.getElementById("c_purpose_blurb")?.value?.trim();
-        if (blurb) return blurb;
-        return el.getAttribute("data-full") || txt;
-      }
-      return txt;
-    }).join(", ");
-}
-
-function buildPrompt() {
-  const f1 = parseFloat(document.getElementById("c_fee1").value)||0;
-  const f2 = parseFloat(document.getElementById("c_fee2").value)||0;
-  const gst = ((f1+f2)*0.15).toFixed(2);
-  const total = ((f1+f2)*1.15).toFixed(2);
-  const titles = [1,2,3,4,5,6].map(n=>document.getElementById("c_title"+n).value).filter(Boolean).join(", ");
-  return `You are the AI assistant for My Valuer Limited, a registered valuation firm at 2 Pandora Road, Napier (Phone: 06 835 3350). Generate a clean, professional ValuePro job entry summary. Format under clear headings. Include a one-sentence SCOPE NOTE at the top. Never refer to PINZ — always NZIV.
-
-INSTRUCTION FORM DATA:
-Instruction Date: ${document.getElementById("c_inst_date").value}
-Taken By: ${document.getElementById("c_taken_by").value||"—"}
-VOS Order No: ${document.getElementById("c_vos").value||"—"}
-Allocated To: ${document.getElementById("c_alloc").value||"—"}
-Prior Reference: ${document.getElementById("c_prior_ref").value||"—"}
-
-PROPERTY: ${document.getElementById("c_prop_addr").value||"—"}
-Identifier (Title No): ${document.getElementById("c_title_no").value||"—"}
-Estate: ${document.getElementById("c_estate").value||"—"}
-Area: ${document.getElementById("c_area").value||"—"}
-Legal Description: ${document.getElementById("c_legal_desc").value||"—"}
-Registered Owner: ${document.getElementById("c_owner").value||"—"}
-
-INSTRUCTOR: ${document.getElementById("c_inst_name").value||"—"} | Ph: ${document.getElementById("c_inst_phone").value||"—"}
-
-CLIENT: ${document.getElementById("c_client_name").value||"—"} | Ph: ${document.getElementById("c_client_phone").value||"—"}
-Address: ${document.getElementById("c_client_addr").value||"—"}
-Borrower: ${document.getElementById("c_borrower").value||"—"}
-Email: ${document.getElementById("c_email").value||"—"}
-
-REPORT TO: ${document.getElementById("c_report_name").value||"—"} | ${document.getElementById("c_report_addr").value||"—"}
-
-TERMS OF ENGAGEMENT: ${document.getElementById("c_toe_sel")?.value === "other" ? document.getElementById("c_toe_name")?.value||"—" : document.getElementById("c_client_name")?.value||"—"}
-Appointment: ${document.getElementById("c_appt_name").value||"—"} | Ph: ${document.getElementById("c_appt_phone").value||"—"} | ${(document.getElementById("c_appt_date").value ? new Date(document.getElementById("c_appt_date").value).toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) + (document.getElementById("c_appt_time").value ? ' at ' + document.getElementById("c_appt_time").value : '') : "—")}
-Due Date: ${document.getElementById("c_due_date").value||"—"}
-
-FEES: Market Report: $${f1.toFixed(2)} excl GST | Insurance: $${f2.toFixed(2)} excl GST | GST: $${gst} | TOTAL: $${total} incl GST
-Council File: ${document.getElementById("c_council_file").value} | Mileage: ${document.getElementById("c_mileage").value||"0"} km
-
-PROPERTY TYPE: ${getChecked("propTypeGrid")||"Not selected"}
-PURPOSE: ${getChecked("purposeGrid")||"Not selected"}
-
-VALUATION NOTES: ${document.getElementById("c_valn_notes").value||"None"}
-
-RATING VALUATION: Land: ${document.getElementById("c_rv_land").value||"—"} | Improvements: ${document.getElementById("c_rv_imp").value||"—"} | CV: ${document.getElementById("c_rv_cv").value||"—"}
-RATES: Council: ${document.getElementById("c_rates_council").value||"—"} | HBRC: ${document.getElementById("c_rates_hbrc").value||"—"}
-
-TITLE REFERENCES: ${titles||"—"}
-Legal Description: ${document.getElementById("c_legal_desc").value||"—"}`;
-}
-
-// Track current output mode
-let currentOutput = "summary";
-let lastSummary = "";
-let lastEmail = "";
-let lastQuote = "";
-
-function switchOutput(mode) {
-  currentOutput = mode;
-  const tabs = {
-    summary: document.getElementById("tabSummary"),
-    email:   document.getElementById("tabEmail"),
-    quote:   document.getElementById("tabQuote")
-  };
-  const emailBtn    = document.getElementById("emailBtn");
-  const quoteEmailBtn = document.getElementById("quoteEmailBtn");
-  const inactiveStyle = { bg: "rgba(255,255,255,0.07)", col: "rgba(255,255,255,0.6)" };
-
-  // Reset all tabs
-  Object.values(tabs).forEach(t => { if (t) { t.style.background = inactiveStyle.bg; t.style.color = inactiveStyle.col; } });
-
-  // Activate selected tab
-  if (tabs[mode]) { tabs[mode].style.background = "var(--blue)"; tabs[mode].style.color = "var(--white)"; }
-
-  // Show correct content and buttons
-  emailBtn.style.display    = "none";
-  if (quoteEmailBtn) quoteEmailBtn.style.display = "none";
-
-  if (mode === "summary") {
-    document.getElementById("outputText").textContent = lastSummary;
-    document.getElementById("outputReady").textContent = "✓ Ready for ValuePro";
-  } else if (mode === "email") {
-    document.getElementById("outputText").textContent = lastEmail;
-    document.getElementById("outputReady").textContent = "✓ Ready to Send";
-    emailBtn.style.display = "flex";
-  } else if (mode === "quote") {
-    document.getElementById("outputText").textContent = lastQuote;
-    document.getElementById("outputReady").textContent = "✓ Quote Ready to Send";
-    if (quoteEmailBtn) quoteEmailBtn.style.display = "flex";
-  }
-}
-
-function buildEmailPrompt() {
-  const f1 = parseFloat(document.getElementById("c_fee1").value)||0;
-  const f2 = parseFloat(document.getElementById("c_fee2").value)||0;
-  const total = ((f1+f2)*1.15).toFixed(2);
-
-  return `You are a professional assistant for My Valuer Limited, a registered NZIV valuation firm in Napier, New Zealand.
-
-Write a brief, professional internal email from a valuer to the office manager asking them to load a new job into ValuePro. Start with just "Hi," (no name). Keep it concise and friendly. Include all the job details below clearly formatted so they can be entered into ValuePro easily. Sign off as "${document.getElementById("c_alloc").value || "the valuer"}".
-
-JOB DETAILS:
-Property: ${document.getElementById("c_prop_addr").value||"—"}
-Title No: ${document.getElementById("c_title_no").value||"—"}
-Legal Description: ${document.getElementById("c_legal_desc").value||"—"}
-Area: ${document.getElementById("c_area").value||"—"}
-Estate: ${document.getElementById("c_estate").value||"—"}
-Registered Owner: ${document.getElementById("c_owner").value||"—"}
-Instructor: ${document.getElementById("c_inst_name").value||"—"} | Ph: ${document.getElementById("c_inst_phone").value||"—"}
-Client: ${document.getElementById("c_client_name").value||"—"} | Ph: ${document.getElementById("c_client_phone").value||"—"}
-Client Address: ${document.getElementById("c_client_addr").value||"—"}
-Borrower: ${document.getElementById("c_borrower").value||"—"}
-Email: ${document.getElementById("c_email").value||"—"}
-Appointment: ${document.getElementById("c_appt_name").value||"—"} | ${document.getElementById("c_appt_phone").value||"—"} | ${(document.getElementById("c_appt_date").value ? new Date(document.getElementById("c_appt_date").value).toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) + (document.getElementById("c_appt_time").value ? ' at ' + document.getElementById("c_appt_time").value : '') : "—")}
-Due Date: ${document.getElementById("c_due_date").value||"—"}
-Property Type: ${document.querySelector("#propTypeGrid .check-item.checked")?.textContent||"—"}
-Purpose: ${document.querySelector("#purposeGrid .check-item.checked")?.textContent||"—"}
-Market Report Fee: $${f1.toFixed(2)} excl GST
-Insurance Fee: $${f2.toFixed(2)} excl GST
-Total incl GST: $${total}
-Valuation Notes: ${document.getElementById("c_valn_notes").value||"None"}
-Title References: ${[1,2,3,4,5,6].map(n=>document.getElementById("c_title"+n).value).filter(Boolean).join(", ")||"—"}`;
-}
-
-function generateSummary() {
-  const btn = document.getElementById("genBtn");
-  btn.disabled = true;
-  btn.textContent = "Generating…";
-  document.getElementById("outputPlaceholder").style.display = "none";
-  document.getElementById("outputResult").classList.remove("visible");
-
-  // Build both outputs directly from form — no API needed
-  lastSummary = buildValueProSummary();
-  lastEmail   = buildEmail();
-
-  // Build quote email and show/hide tab
-  const isQuote = document.getElementById("c_is_quote")?.checked;
-  const quoteTab = document.getElementById("tabQuote");
-  if (isQuote) {
-    lastQuote = buildQuoteEmailText();
-    if (quoteTab) quoteTab.style.display = "flex";
-  } else {
-    lastQuote = "";
-    if (quoteTab) quoteTab.style.display = "none";
-    // If currently on quote tab, switch to summary
-    if (currentOutput === "quote") currentOutput = "summary";
-  }
-
-  document.getElementById("outputResult").classList.add("visible");
-  document.getElementById("printBtn").style.display = "flex";
-  switchOutput(currentOutput);
-
-  btn.disabled = false;
-  btn.textContent = "✦ Generate";
-
-  // Auto-save to SharePoint in background
-  if (document.getElementById('c_prop_addr').value) {
-    saveJobToSharePoint().catch(e => console.log('SP save:', e));
-  }
-}
-
-// Build ValuePro summary directly from form fields
-function buildValueProSummary() {
-  const prop    = document.getElementById("c_prop_addr").value || "—";
-  const instDate= document.getElementById("c_inst_date").value || "—";
-  const takenBy = document.getElementById("c_taken_by").value || "—";
-  const vos     = document.getElementById("c_vos").value || "—";
-  const alloc   = document.getElementById("c_alloc").value || "—";
-  const priorRef= document.getElementById("c_prior_ref").value || "—";
-  const titleNo = document.getElementById("c_title_no").value || "—";
-  const estate  = document.getElementById("c_estate").value || "—";
-  const area    = document.getElementById("c_area").value || "—";
-  const legal   = document.getElementById("c_legal_desc").value || "—";
-  const owner   = document.getElementById("c_owner").value || "—";
-  const instNm  = document.getElementById("c_inst_name").value || "—";
-  const instPh  = document.getElementById("c_inst_phone").value || "—";
-  const client  = document.getElementById("c_client_name").value || "—";
-  const clientPh= document.getElementById("c_client_phone").value || "—";
-  const clientAd= document.getElementById("c_client_addr").value || "—";
-  const borrower= document.getElementById("c_borrower").value || "—";
-  const email   = document.getElementById("c_email").value || "—";
-  const reptNm  = document.getElementById("c_report_name").value || "—";
-  const reptAd  = document.getElementById("c_report_addr").value || "—";
-  const getDelivery = (f) => {
-    const sel = document.getElementById('c_' + f + '_sel');
-    const primary = (!sel || sel.value === 'client') ? {
-      name:  document.getElementById('c_client_name').value || '—',
-      email: document.getElementById('c_email').value       || '—',
-      addr:  document.getElementById('c_client_addr').value || '—'
-    } : {
-      name:  document.getElementById('c_' + f + '_name').value  || '—',
-      email: document.getElementById('c_' + f + '_email').value || '—',
-      addr:  document.getElementById('c_' + f + '_addr').value  || '—'
-    };
-    return { primary, extras: [] };
-  };
-  const toeD = getDelivery('toe');
-  const rptD = getDelivery('rpt');
-  const invD = getDelivery('inv');
-  const fmtD = (d) => {
-    const all = [d.primary, ...d.extras];
-    return all.map(r => [r.name, r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ');
-  };
-  const apptNm  = document.getElementById("c_appt_name").value || "—";
-  const apptPh  = document.getElementById("c_appt_phone").value || "—";
-  const apptDate = document.getElementById("c_appt_date").value;
-  const apptTime = document.getElementById("c_appt_time").value;
-  const apptDay  = apptDate ? new Date(apptDate).toLocaleDateString('en-NZ',{weekday:'short',day:'numeric',month:'short',year:'numeric'}) + (apptTime ? ' at ' + apptTime : '') : "—";
-  const dueDate = document.getElementById("c_due_date").value || "—";
-  const propType= document.querySelector("#propTypeGrid .check-item.checked")?.textContent?.trim() || "—";
-  const purpose = getChecked("purposeGrid") || "—";
-  const f1      = parseFloat(document.getElementById("c_fee1").value)||0;
-  const f2      = parseFloat(document.getElementById("c_fee2").value)||0;
-  const gst     = ((f1+f2)*0.15).toFixed(2);
-  const total   = ((f1+f2)*1.15).toFixed(2);
-  const council = document.getElementById("c_council_file").value || "No";
-  const mileage = document.getElementById("c_mileage").value || "0";
-  const notes   = document.getElementById("c_valn_notes").value || "None";
-  const rvLand  = document.getElementById("c_rv_land").value || "—";
-  const rvImp   = document.getElementById("c_rv_imp").value || "—";
-  const rvCV    = document.getElementById("c_rv_cv").value || "—";
-  const rCouncil= document.getElementById("c_rates_council").value || "—";
-  const rHBRC   = document.getElementById("c_rates_hbrc").value || "—";
-  const titles  = [1,2,3,4,5,6].map(n=>document.getElementById("c_title"+n).value).filter(Boolean).join(", ") || "—";
-
-  return `MY VALUER LIMITED — VALUATION INSTRUCTION
-2 Pandora Road, Napier | Ph: 06 835 3350 | info@myvaluer.net.nz
-${"─".repeat(50)}
-
-SCOPE: ${propType} valuation of ${prop} for ${purpose}.
-
-JOB REFERENCE
-─────────────────────────────────────
-Instruction Date:     ${instDate}
-Taken By:             ${takenBy}
-VOS Order No:         ${vos}
-Allocated To:         ${alloc}
-Prior Reference:      ${priorRef}
-
-PROPERTY
-─────────────────────────────────────
-Address:              ${prop}
-Property Type:        ${propType}
-Identifier (Title):   ${titleNo}
-Estate:               ${estate}
-Area:                 ${area}
-Legal Description:    ${legal}
-Registered Owner:     ${owner}
-Title References:     ${titles}
-
-INSTRUCTOR
-─────────────────────────────────────
-Name:                 ${instNm}
-Phone:                ${instPh}
-
-CLIENT
-─────────────────────────────────────
-Name:                 ${client}
-Phone:                ${clientPh}
-Address:              ${clientAd}
-Borrower:             ${borrower}
-Email:                ${email}
-
-REPORT TO
-─────────────────────────────────────
-Name:                 ${reptNm}
-Address:              ${reptAd}
-
-TERMS OF ENGAGEMENT
-─────────────────────────────────────
-Terms of Engagement:  ${fmtD(toeD)}
-Report To:            ${fmtD(rptD)}
-Invoice To:           ${fmtD(invD)}
-Appointment:          ${apptNm} | ${apptPh} | ${apptDay}
-Valuation Due:        ${dueDate}
-
-PURPOSE OF VALUATION
-─────────────────────────────────────
-${purpose}
-
-FEES
-─────────────────────────────────────
-Market Report Fee:    $${f1.toFixed(2)} excl GST
-Insurance Fee:        $${f2.toFixed(2)} excl GST
-GST:                  $${gst}
-Total incl GST:       $${total}
-Council File:         ${council}
-Mileage:              ${mileage} km
-
-RATING VALUATION
-─────────────────────────────────────
-Land Value:           ${rvLand}
-Improvements:         ${rvImp}
-Capital Value:        ${rvCV}
-Council Rates:        ${rCouncil} p.a.
-HBRC Rates:           ${rHBRC} p.a.
-
-VALUATION NOTES
-─────────────────────────────────────
-${notes}`;
-}
-
-// Build email locally from form data — no API call needed
-function buildEmail() {
-  return buildEmailPlain();
-}
-
-function buildEmailPlain() {
-  const v = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
-
-  const prop     = v('c_prop_addr');
-  const sender   = getSenderName();
-  const legal    = v('c_legal_desc');
-  const valRef   = v('c_val_ref');
-  const insRef   = v('c_ins_ref');
-  const priorRef2 = v('c_prior_ref2');
-  const area     = v('c_area');
-  const instNm   = v('c_inst_name');
-  const instPh   = v('c_inst_phone');
-  const client   = v('c_client_name');
-  const clientPh = v('c_client_phone');
-  const clientAd = v('c_client_addr');
-  const borrower = v('c_borrower');
-  const poNum    = v('c_po_number');
-  const email    = v('c_email');
-  const apptNm   = v('c_appt_name');
-  const apptPh   = v('c_appt_phone');
-  const apptDate = v('c_appt_date');
-  const apptTime = v('c_appt_time');
-  const apptDay  = apptDate ? new Date(apptDate).toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + (apptTime ? ' at ' + apptTime : '') : '';
-  const dueDate  = v('c_due_date') ? new Date(v('c_due_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
-  const propType = document.querySelector('#propTypeGrid .check-item.checked')?.textContent?.trim() || '';
-  const purpose  = getChecked('purposeGrid') || '';
-  const f1       = parseFloat(v('c_fee1'))||0;
-  const f2       = parseFloat(v('c_fee2'))||0;
-  const gst      = ((f1+f2)*0.15).toFixed(2);
-  const total    = ((f1+f2)*1.15).toFixed(2);
-  const notes    = v('c_valn_notes');
-  const rvLand   = v('c_rv_land');
-  const rvImp    = v('c_rv_imp');
-  const rvCV     = v('c_rv_cv');
-  const rCouncil = v('c_rates_council');
-  const rHBRC    = v('c_rates_hbrc');
-  const takenBy  = v('c_taken_by');
-  const alloc    = v('c_alloc');
-  const vos      = v('c_vos');
-  const instDate = v('c_inst_date') ? new Date(v('c_inst_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
-
-  const getDelivery = (f) => {
-    const sel = document.getElementById('c_' + f + '_sel');
-    const primary = (!sel || sel.value === 'client')
-      ? { name: v('c_client_name'), email: v('c_email') }
-      : { name: v('c_' + f + '_name'), email: v('c_' + f + '_email') };
-    const extras = [];
-    const container = document.getElementById('c_' + f + '_extras');
-    if (container) {
-      container.querySelectorAll('div').forEach(div => {
-        const inputs = div.querySelectorAll('input');
-        if (inputs.length >= 2) {
-          const nm = inputs[0]?.value?.trim();
-          const em = inputs[1]?.value?.trim();
-          if (nm || em) extras.push({ name: nm || '', email: em || '' });
-        }
-      });
-    }
-    return { primary, extras };
-  };
-  const toeD = getDelivery('toe');
-  const rptD = getDelivery('rpt');
-  const invD = getDelivery('inv');
-
-  const row = (label, val) => val ? label + ': ' + val + '\n' : '';
-  const sep  = '─'.repeat(40);
-  const head = (title) => sep + '\n' + title + '\n' + sep + '\n';
-
-  const fmtD = (d) => {
-    const all = [d.primary, ...d.extras];
-    return all.map(r => [r.name, r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ');
-  };
-  const toeStr = fmtD(toeD);
-  const rptStr = fmtD(rptD);
-  const invStr = fmtD(invD);
-
-  const parts = ['Hi,\n\nPlease load the following new valuation instruction into ValuePro.'];
-
-  const jobRows = row('Instruction Date', instDate) + row('Taken By', takenBy) + row('Allocated To', alloc) + row('VOS Order No', vos);
-  if (jobRows) parts.push(head('JOB REFERENCE') + jobRows);
-
-  const propRows = row('Address', prop) + row('Property Type', propType) + row('Legal Description', legal) + row('Area', area);
-  if (propRows) parts.push(head('PROPERTY DETAILS') + propRows);
-
-  if (purpose) parts.push(head('PURPOSE OF VALUATION') + purpose);
-
-  const instRows = row('Name', instNm) + row('Phone', instPh);
-  if (instRows) parts.push(head('INSTRUCTOR') + instRows);
-
-  const clientRows = row('Name', client) + row('Email', email) + row('Phone', clientPh) + row('Address', clientAd) + row('Borrower', borrower);
-  if (clientRows) parts.push(head('CLIENT') + clientRows);
-
-  const delivRows = row('Terms of Engagement', toeStr) + row('Report To', rptStr) + row('Invoice To', invStr);
-  if (delivRows) parts.push(head('TERMS, REPORT & INVOICE') + delivRows);
-
-  const apptRows = row('Contact', apptNm) + row('Phone', apptPh) + row('Date & Time', apptDay) + row('Valuation Due', dueDate);
-  if (apptRows) parts.push(head('APPOINTMENT & DUE DATE') + apptRows);
-
-  const feeRows = (f1 ? row('Market Report Fee', '$' + f1.toFixed(2) + ' excl. GST') : '') +
-    (f2 ? row('Insurance Fee', '$' + f2.toFixed(2) + ' excl. GST') : '') +
-    ((f1||f2) ? row('GST (15%)', '$' + gst) + row('Total incl. GST', '$' + total) : '');
-  if (feeRows) parts.push(head('FEES') + feeRows);
-
-  const rvRows = row('Land Value', rvLand) + row('Improvements', rvImp) + row('Capital Value', rvCV) +
-    (rCouncil ? row('Council Rates', rCouncil + ' p.a.') : '') +
-    (rHBRC ? row('HBRC Rates', rHBRC + ' p.a.') : '');
-  if (rvRows) parts.push(head('RATING VALUATION') + rvRows);
-
-  const addlPurpose = getAdditionalPurpose();
-  if (addlPurpose) parts.push(head('ADDITIONAL INSTRUCTION') + addlPurpose);
-  if (notes) parts.push(head('VALUATION NOTES') + notes);
-
-  parts.push(sep + '\nKind regards,');
-
-  return parts.join('\n');
-}
-
-async function copyOutput() {
-  const text = document.getElementById("outputText").innerText;
-  await navigator.clipboard.writeText(text);
-  const btn = document.getElementById("copyBtn");
-  const orig = btn.innerHTML;
-  btn.innerHTML = "✓ Copied!";
-  btn.classList.add("copied");
-  setTimeout(()=>{btn.innerHTML=orig;btn.classList.remove("copied");},2000);
-}
-
-function openEmail() {
-  const prop = document.getElementById("c_prop_addr").value || "New Valuation Job";
-  // Pre-fill dialog
-  document.getElementById("sendFrom").value    = getSenderEmail();
-  document.getElementById("sendTo").value      = "info@myvaluer.net.nz";
-  // Strip postcode (4 digits) and ", New Zealand" from address for subject line
-  const propShort = prop.replace(/,?\s*\d{4}\s*,?/g, ',').replace(/,?\s*New Zealand\s*$/i, '').replace(/,\s*,/g, ',').replace(/,\s*$/,'').trim();
-  document.getElementById("sendSubject").value = "New Valuation Instruction | " + propShort;
-  // Show dialog
-  const dlg = document.getElementById("sendDialog");
-  dlg.style.display = "flex";
-}
-
-function closeSendDialog() {
-  document.getElementById("sendDialog").style.display = "none";
-}
-
-async function doSendEmail() {
-  const to      = document.getElementById("sendTo").value;
-  const subject = document.getElementById("sendSubject").value;
-  const body    = lastEmail || buildEmailPlain();
-  closeSendDialog();
-
-  if (!body || body.trim().length === 0) {
-    alert("No email content found. Please click Generate first.");
-    return;
-  }
-
-  openEmailPreview(to, subject, body, false);
-}
-
-function openEmailPreview(to, subject, body, isQuote) {
-  // Populate overlay
-  document.getElementById("previewTo").textContent      = "To: " + to;
-  document.getElementById("previewSubject").textContent = "Subject: " + subject;
-  document.getElementById("previewBody").textContent    = body;
-  document.getElementById("previewStatus").style.display = "none";
-
-  // Store for sending
-  window._previewTo   = to;
-  window._previewSub  = subject;
-  window._previewBody = body;
-
-  const btn = document.getElementById("previewSendBtn");
-  btn.disabled = false;
-  btn.textContent = "✓ Send Email";
-  btn.style.background = "#0f766e";
-
-  // Show overlay
-  const overlay = document.getElementById("emailPreviewOverlay");
-  overlay.style.display = "block";
-  overlay.scrollTop = 0;
-  document.body.style.overflow = "hidden";
-}
-
-function openArchive() {
-  document.getElementById("archiveOverlay").style.display = "block";
-  loadArchive();
-}
-
-function closeArchive() {
-  document.getElementById("archiveOverlay").style.display = "none";
-}
-
-async function loadArchive() {
-  const status = document.getElementById("archiveStatus");
-  const list   = document.getElementById("archiveList");
-  status.textContent = "Loading recent jobs…";
-  list.innerHTML = "";
-  try {
-    const jobs = await searchJobsInSharePoint("");
-    renderArchiveJobs(jobs);
-  } catch(err) {
-    status.textContent = "Could not load archive — " + err.message;
-  }
-}
-
-async function searchArchive() {
-  const query  = document.getElementById("archiveSearch").value.trim();
-  const status = document.getElementById("archiveStatus");
-  const list   = document.getElementById("archiveList");
-  status.textContent = "Searching…";
-  list.innerHTML = "";
-  try {
-    const jobs = await searchJobsInSharePoint(query);
-    renderArchiveJobs(jobs);
-  } catch(err) {
-    status.textContent = "Search failed — " + err.message;
-  }
-}
-
-function renderArchiveJobs(jobs) {
-  const status = document.getElementById("archiveStatus");
-  const list   = document.getElementById("archiveList");
-  if (!jobs.length) { status.textContent = "No jobs found."; return; }
-  status.textContent = jobs.length + " job" + (jobs.length !== 1 ? "s" : "") + " found";
-  list.innerHTML = "";
-  jobs.forEach(job => {
-    const f   = job.fields;
-    const div = document.createElement("div");
-    div.style.cssText = "padding:12px 16px;border:1.5px solid #dce4ee;border-radius:8px;cursor:pointer;transition:all 0.15s;";
-    div.onmouseover = () => div.style.background = "#f4f8fd";
-    div.onmouseout  = () => div.style.background = "";
-    div.innerHTML =
-      "<div style='font-weight:700;font-size:14px;color:#0e1c35;'>" + (f.Title || "No address") + "</div>" +
-      "<div style='font-size:12px;color:#888;margin-top:3px;'>" +
-        (f.TakenBy || "") + (f.InstructionDate ? " &nbsp;|&nbsp; " + f.InstructionDate : "") +
-        (f.ClientName ? " &nbsp;|&nbsp; " + f.ClientName : "") +
-      "</div>";
-    div.onclick = async () => {
-      try {
-        const fields = await loadJobFromSharePoint(job.id);
-        applyJobFields(fields);
-        closeArchive();
-        window.scrollTo({top:0,behavior:"smooth"});
-      } catch(e) { alert("Could not load job: " + e.message); }
-    };
-    list.appendChild(div);
-  });
-}
-
-function closeEmailPreview() {
-  document.getElementById("emailPreviewOverlay").style.display = "none";
-  document.body.style.overflow = "";
-}
-
-async function sendEmailFromPreview() {
-  const btn    = document.getElementById("previewSendBtn");
-  const status = document.getElementById("previewStatus");
-  const to     = window._previewTo;
-  const sub    = window._previewSub;
-  const body   = window._previewBody;
-
-  btn.disabled = true;
-  btn.textContent = "Sending...";
-
-  try {
-    await sendViaGraph(to, sub, body);
-    btn.textContent = "✓ Sent!";
-    btn.style.background = "#2d7a4f";
-    status.style.display = "block";
-    status.style.background = "#d1fae5";
-    status.style.color = "#065f46";
-    status.textContent = "Email sent successfully!";
-    setTimeout(() => closeEmailPreview(), 2500);
-  } catch(err) {
-    // Fallback to mailto
-    btn.disabled = false;
-    btn.textContent = "✓ Send Email";
-    const mailtoUrl = "mailto:" + encodeURIComponent(to) +
-      "?subject=" + encodeURIComponent(sub) +
-      "&body=" + encodeURIComponent(body);
-    window.location.href = mailtoUrl;
-    status.style.display = "block";
-    status.style.background = "#fef3c7";
-    status.style.color = "#92400e";
-    status.textContent = "Opening in Outlook as fallback — please click Send in Outlook.";
-  }
-}
-
-function buildQuoteEmailText() {
-  const prop       = document.getElementById("c_prop_addr").value || "";
-  const client     = document.getElementById("c_client_name").value || "Client";
-  const quoteFee   = parseFloat(document.getElementById("c_quote_fee").value)||0;
-  const quoteExpiry= document.getElementById("c_quote_expiry").value;
-  const sender     = getSenderName();
-  const senderEmail= getSenderEmail();
-  const gst        = (quoteFee * 0.15).toFixed(2);
-  const total      = (quoteFee * 1.15).toFixed(2);
-  const expiryStr  = quoteExpiry ? new Date(quoteExpiry).toLocaleDateString("en-NZ",{day:"numeric",month:"long",year:"numeric"}) : "14 days from today";
-  const purpose    = getChecked("purposeGrid") || "Valuation services as discussed";
-  const sep        = "─".repeat(36);
-
-  const acceptSubject = encodeURIComponent("RE: Valuation Quote — " + prop);
-  const acceptBody    = encodeURIComponent("Hi " + sender + ",\n\nI confirm I accept the quote and wish to proceed with the valuation of " + prop + ".\n\nPlease arrange access and proceed.\n\nKind regards,\n" + client);
-  const acceptLink    = "mailto:" + senderEmail + "?subject=" + acceptSubject + "&body=" + acceptBody;
-
-  return `Dear ${client},
-
-Thank you for your enquiry. Please find below our fee proposal for the above property.
-
-${sep}
-PROPERTY
-${sep}
-${prop}
-
-${sep}
-SCOPE OF WORK
-${sep}
-${purpose}
-
-${sep}
-FEE PROPOSAL
-${sep}
-Professional Fee:     $${quoteFee.toFixed(2)} excl. GST
-GST (15%):            $${gst}
-Total incl. GST:      $${total}
-
-This quote is valid until ${expiryStr}.
-
-${sep}
-
-Should you wish to proceed, click the link below or reply to this email confirming your instruction and we will arrange access and complete the valuation within our standard timeframe.
-
-  ✅ ACCEPT QUOTE & PROCEED → ${acceptLink}
-
-If you have any questions, please don't hesitate to contact us.
-
-Kind regards,
-${sender}
-My Valuer Limited
-2 Pandora Road, Napier
-Ph: 06 835 3350
-${senderEmail}`;
-}
-
-function openQuoteEmail() {
-  const prop        = document.getElementById("c_prop_addr").value || "Property";
-  const client      = document.getElementById("c_client_name").value || "";
-  const clientEmail = document.getElementById("c_email").value || "";
-  const quoteFee    = parseFloat(document.getElementById("c_quote_fee").value)||0;
-  const quoteExpiry = document.getElementById("c_quote_expiry").value;
-  const sender      = getSenderName();
-  const senderEmail = getSenderEmail();
-  const gst         = (quoteFee * 0.15).toFixed(2);
-  const total       = (quoteFee * 1.15).toFixed(2);
-  const expiryStr   = quoteExpiry ? new Date(quoteExpiry).toLocaleDateString("en-NZ",{day:"numeric",month:"long",year:"numeric"}) : "14 days from today";
-  const purpose     = getChecked("purposeGrid") || "Valuation services as discussed";
-
-  const acceptSubject = encodeURIComponent("RE: Valuation Quote — " + prop);
-  const acceptBody    = encodeURIComponent("Hi " + sender + ",\n\nI confirm I accept the quote and wish to proceed with the valuation of " + prop + ".\n\nPlease arrange access and proceed.\n\nKind regards,\n" + (client || "Client"));
-  const acceptLink    = "mailto:" + senderEmail + "?subject=" + acceptSubject + "&body=" + acceptBody;
-
-  // Plain text version for the mailto body
-  const plainText =
-    "Dear " + (client || "Client") + ",\n\n" +
-    "Thank you for your enquiry. Please find below our fee proposal for the above property.\n\n" +
-    "PROPERTY\n" + prop + "\n\n" +
-    "SCOPE OF WORK\n" + purpose + "\n\n" +
-    "FEE PROPOSAL\n" +
-    "Professional Fee (excl. GST): $" + quoteFee.toFixed(2) + "\n" +
-    "GST (15%): $" + gst + "\n" +
-    "Total (incl. GST): $" + total + "\n\n" +
-    "This quote is valid until " + expiryStr + ".\n\n" +
-    "To accept this quote, please reply to this email confirming your instruction to proceed.\n\n" +
-    "If you have any questions, please do not hesitate to contact us.\n\n" +
-    "Kind regards,\n" + sender + "\nMy Valuer Limited\n2 Pandora Road, Napier\nPh: 06 835 3350\n" + senderEmail;
-
-  // Strip postcode and country from address for subject line
-  const propShort = prop.replace(/,?\s*\d{4}\s*,?/g, ',').replace(/,?\s*New Zealand\s*$/i, '').replace(/,\s*,/g, ',').replace(/,\s*$/,'').trim();
-  const subject = "Valuation Quote | " + propShort;
-
-  // Update body with new wording
-  const finalText =
-    "Dear " + (client || "Client") + ",\n\n" +
-    "Thank you for your enquiry. Please find below our fee proposal for the above property.\n\n" +
-    "PROPERTY\n" + prop + "\n\n" +
-    "SCOPE OF WORK\n" + purpose + "\n\n" +
-    "FEE PROPOSAL\n" +
-    "Professional Fee (excl. GST): $" + quoteFee.toFixed(2) + "\n" +
-    "GST (15%): $" + gst + "\n" +
-    "Total (incl. GST): $" + total + "\n\n" +
-    "This quote is valid until " + expiryStr + ".\n\n" +
-    "We look forward to assisting you with this valuation. To get started, simply reply to this email confirming your instruction to proceed and we will be in touch to arrange access at your earliest convenience.\n\n" +
-    "If you have any questions, please do not hesitate to contact us.\n\n" +
-    "Kind regards,";
-
-  // Open preview window for valuer to review before sending
-  openEmailPreview(clientEmail, subject, finalText, true);
-}
-
-
-function printForm() {
-  refreshDeliveryDisplays();
-
-  // Helper to get field value
-  const v = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
-
-  // Get delivery recipient details
-  const getDelivery = (f) => {
-    const sel = document.getElementById('c_' + f + '_sel');
-    const primary = (!sel || sel.value === 'client')
-      ? { name: v('c_client_name'), email: v('c_email') }
-      : { name: v('c_' + f + '_name'), email: v('c_' + f + '_email') };
-    const extras = [];
-    const container = document.getElementById('c_' + f + '_extras');
-    if (container) {
-      container.querySelectorAll('div').forEach(div => {
-        const inputs = div.querySelectorAll('input');
-        if (inputs.length >= 2) {
-          const nm = inputs[0]?.value?.trim();
-          const em = inputs[1]?.value?.trim();
-          if (nm || em) extras.push({ name: nm || '', email: em || '' });
-        }
-      });
-    }
-    return { primary, extras };
-  };
-  const toeD = getDelivery('toe');
-  const rptD = getDelivery('rpt');
-  const invD = getDelivery('inv');
-
-  // Appointment
-  const apptDate = v('c_appt_date');
-  const apptTime = v('c_appt_time');
-  const apptStr  = apptDate ? new Date(apptDate).toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + (apptTime ? ' at ' + apptTime : '') : '';
-
-  // Due date
-  const dueDate = v('c_due_date');
-  const dueDateStr = dueDate ? new Date(dueDate).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
-
-  // Fees
-  const f1    = parseFloat(v('c_fee1'))||0;
-  const f2    = parseFloat(v('c_fee2'))||0;
-  const gst   = ((f1+f2)*0.15).toFixed(2);
-  const total = ((f1+f2)*1.15).toFixed(2);
-
-  // Purpose
-  const purpose = getChecked('purposeGrid') || '';
-  const propType = document.querySelector('#propTypeGrid .check-item.checked')?.textContent?.trim() || '';
-
-  // Titles
-  const titles = [1,2,3,4,5,6].map(n=>v('c_title'+n)).filter(Boolean).join(', ');
-
-  // Quote
-  const isQuote   = document.getElementById('c_is_quote')?.checked;
-  const quoteFee  = parseFloat(v('c_quote_fee'))||0;
-  const quoteExp  = v('c_quote_expiry');
-  const quoteExpStr = quoteExp ? new Date(quoteExp).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
-
-  // Row helper — only renders if value exists
-  const row = (label, val) => val ? `
-    <tr>
-      <td style="padding:5px 10px;width:38%;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;white-space:nowrap;">${label}</td>
-      <td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">${val}</td>
-    </tr>` : '';
-
-  // Section helper
-  const section = (num, title, rows) => {
-    const content = rows.filter(Boolean).join('');
-    if (!content) return '';
-    return `
-    <div style="break-inside:avoid;margin-bottom:14px;">
-      <div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-        <span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">${num}</span>
-        <span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">${title}</span>
-      </div>
-      <table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">
-        ${content}
-      </table>
-    </div>`;
-  };
-
-  // Build logo src from page
-  const logoSrc = document.querySelector('.header-logo img')?.src || '';
-
-  const html = `<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8"/>
-<title>Valuation Instruction — ${v('c_prop_addr') || 'My Valuer'}</title>
-<style>
-  @page { size: A4; margin: 12mm 12mm 12mm 12mm; }
-  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: white; }
-  .page { max-width: 100%; }
-  .col-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  }
-</style>
-</head>
-<body>
-<div class="page">
-
-  <!-- Header -->
-  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #7DA6D4;padding-bottom:8px;margin-bottom:16px;">
-    <img src="${logoSrc}" style="height:40px;" alt="My Valuer"/>
-    <div style="text-align:right;">
-      <div style="font-size:13pt;font-weight:800;color:#0e1c35;">Valuation Instruction Form</div>
-      <div style="font-size:8pt;color:#555;margin-top:2px;">2 Pandora Road, Napier &nbsp;|&nbsp; 06 835 3350 &nbsp;|&nbsp; info@myvaluer.net.nz</div>
-    </div>
-  </div>
-
-  <!-- Property address prominent at top -->
-  ${v('c_prop_addr') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:8px 14px;margin-bottom:16px;break-inside:avoid;">
-    <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:3px;">Property Address</div>
-    <div style="font-size:12pt;font-weight:700;color:#0e1c35;">${v('c_prop_addr')}</div>
-    ${propType ? `<div style="font-size:9pt;color:#555;margin-top:2px;">${propType}</div>` : ''}
-  </div>` : ''}
-
-  ${isQuote ? `<div style="background:#fff8e1;border:2px solid #c8a44a;border-radius:6px;padding:8px 14px;margin-bottom:16px;break-inside:avoid;">
-    <div style="font-size:10pt;font-weight:800;color:#5a3e00;">⚡ QUOTE</div>
-    <div style="font-size:9pt;color:#5a3e00;margin-top:2px;">Fee: $${quoteFee.toFixed(2)} excl. GST &nbsp;|&nbsp; Valid until: ${quoteExpStr}</div>
-  </div>` : ''}
-
-  <!-- Two column layout -->
-  <div class="col-wrap">
-    <div>
-      ${section(1, 'Job Reference', [
-        row('Instruction Date', v('c_inst_date') ? new Date(v('c_inst_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : ''),
-        row('Taken By', v('c_taken_by')),
-        row('VOS Order No.', v('c_vos')),
-        row('Valuation Allocated To', v('c_alloc')),
-        row('Prior Reference', v('c_prior_ref'))
-      ])}
-
-      ${section(2, 'Title Details', [
-        row('Title No.', v('c_title_no')),
-        row('Estate', v('c_estate')),
-        row('Area', v('c_area')),
-        row('Legal Description', v('c_legal_desc')),
-        row('Registered Owner', v('c_owner')),
-        row('Title References', titles)
-      ])}
-
-      ${section(3, 'Instructor', [
-        row('Name', v('c_inst_name')),
-        row('Phone', v('c_inst_phone'))
-      ])}
-
-      ${section(4, 'Client', [
-        row('Client Name', v('c_client_name')),
-        row('Email', v('c_email')),
-        row('Phone', v('c_client_phone')),
-        row('Borrower', v('c_borrower')),
-        row('Address', v('c_client_addr'))
-      ])}
-
-      ${section(5, 'Address Report To', [
-        row('Name', v('c_report_name')),
-        row('Address', v('c_report_addr'))
-      ])}
-
-      ${section(6, 'Terms, Report & Invoice Delivery', [
-        row('Terms of Engagement', [toeD.primary, ...toeD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
-        row('Report sent to', [rptD.primary, ...rptD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
-        row('Invoice sent to', [invD.primary, ...invD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; '))
-      ])}
-    </div>
-
-    <div>
-      ${section(7, 'Appointment', [
-        row('Name', v('c_appt_name')),
-        row('Phone', v('c_appt_phone')),
-        row('Date & Time', apptStr)
-      ])}
-
-      ${section(8, 'Valuation Due Date & Fee', [
-        row('Due Date', dueDateStr),
-        row('Market Report Fee', f1 ? '$' + f1.toFixed(2) + ' excl. GST' : ''),
-        row('Insurance Fee', f2 ? '$' + f2.toFixed(2) + ' excl. GST' : ''),
-        row('GST (15%)', (f1||f2) ? '$' + gst : ''),
-        row('Total incl. GST', (f1||f2) ? '$' + total : '')
-      ])}
-
-      ${section(9, 'Property Type', [
-        row('Type', propType)
-      ])}
-
-      ${section(10, 'Purpose of Valuation', [
-        row('Purpose', purpose)
-      ])}
-
-      ${section(11, 'Valuation Notes', [
-        row('Notes', v('c_valn_notes'))
-      ])}
-
-      ${section(12, 'Council Rates & Rating Valuation', [
-        row('Land Value', v('c_rv_land')),
-        row('Improvements', v('c_rv_imp')),
-        row('Capital Value', v('c_rv_cv')),
-        row('Council Rates', v('c_rates_council') ? v('c_rates_council') + ' p.a.' : ''),
-        row('HBRC Rates', v('c_rates_hbrc') ? v('c_rates_hbrc') + ' p.a.' : ''),
-        row('Council File', v('c_council_file')),
-        row('Mileage', v('c_mileage') ? v('c_mileage') + ' km' : '')
-      ])}
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <div style="margin-top:16px;border-top:1px solid #dce4ee;padding-top:8px;display:flex;justify-content:space-between;font-size:8pt;color:#888;">
-    <span>My Valuer Limited &nbsp;|&nbsp; 2 Pandora Road, Napier &nbsp;|&nbsp; 06 835 3350</span>
-    <span>Printed: ${new Date().toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'})}</span>
-  </div>
-
-</div>
-</body>
-</html>`;
-
-  // Write to a new window and print
-  const win = window.open('', '_blank');
-  if (win) {
-    try { win.moveTo(0,0); win.resizeTo(screen.availWidth, screen.availHeight); } catch(e) {}
-  win.document.write(html);
-    win.document.close();
-    win.onload = function() { win.print(); };
-  }
-}
-
-function resetForm() {
-  document.querySelectorAll("input[type=text],input[type=number],input[type=email],textarea").forEach(el=>el.value="");
-  document.querySelectorAll("input[type=date]").forEach(el=>el.value=today);
-  document.querySelectorAll(".check-item").forEach(el=>el.classList.remove("checked"));
-  document.querySelector("#propTypeGrid .check-item").classList.add("checked");
-  document.querySelector("#purposeGrid .check-item").classList.add("checked");
-  document.getElementById("c_total").textContent="$0.00";
-  ["c_legal_desc","c_title_no","c_estate","c_area"].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = "";
-  });
-  const ls = document.getElementById("linz_status");
-  if (ls) ls.style.display = "none";
-  document.getElementById("outputResult").classList.remove("visible");
-  document.getElementById("outputPlaceholder").style.display="flex";
-
-  // Reset all select dropdowns to their first option
-  document.querySelectorAll("select").forEach(el => el.selectedIndex = 0);
-
-  // Reset delivery displays
-  ["toe","rpt","inv"].forEach(f => handleDelivery(f, "client"));
-
-  // Reset quote
-  const quoteCheck = document.getElementById("c_is_quote");
-  if (quoteCheck) { quoteCheck.checked = false; }
-  const quoteFields = document.getElementById("quoteFields");
-  if (quoteFields) quoteFields.style.display = "none";
-  const qBtn = document.getElementById("quoteEmailBtn");
-  if (qBtn) qBtn.style.display = "none";
-
-  // Hide purpose/proptype Other boxes and blurb
-  const purposeOther = document.getElementById("purposeOther");
-  const purposeBlurb = document.getElementById("purposeBlurb");
-  const propTypeOther = document.getElementById("propTypeOther");
-  if (purposeOther)  purposeOther.style.display  = "none";
-  if (purposeBlurb)  purposeBlurb.style.display  = "none";
-  if (propTypeOther) propTypeOther.style.display = "none";
-}
-
-// ── STAFF EMAIL MAP ──────────────────────────────────────
-const STAFF_EMAILS = {
-  'Andrew White':   'andrew@myvaluer.net.nz',
-  'Paul Bibby':     'paul@myvaluer.net.nz',
-  'Dayna Campbell': 'dayna@myvaluer.net.nz',
-  'Bridget Ireland':'bridget@myvaluer.net.nz',
-  'Jody White':     'jody@myvaluer.net.nz'
-};
-
-function getSenderEmail() {
-  const takenBy = document.getElementById('c_taken_by').value;
-  return STAFF_EMAILS[takenBy] || 'info@myvaluer.net.nz';
-}
-
-function getSenderName() {
-  return document.getElementById('c_taken_by').value || 'The team';
-}
-
-// ── QUOTE TOGGLE ──────────────────────────────────────────
-function toggleQuote() {
-  const isQuote = document.getElementById('c_is_quote').checked;
-  document.getElementById('quoteFields').style.display = isQuote ? 'block' : 'none';
-  const qBtn = document.getElementById('quoteEmailBtn');
-  if (qBtn && isQuote && document.getElementById('outputResult').classList.contains('visible')) {
-    qBtn.style.display = 'flex';
-  } else if (qBtn) {
-    qBtn.style.display = 'none';
-  }
-}
-
-// ── DELIVERY SECTION ─────────────────────────────────────
-function getClientSummary() {
-  const name  = document.getElementById('c_client_name').value;
-  const email = document.getElementById('c_email').value;
-  const parts = [name, email].filter(Boolean);
-  return parts.length ? parts.join(' | ') : null;
-}
-
-function handleDelivery(field, val) {
-  const display   = document.getElementById('c_' + field + '_display');
-  const dispName  = document.getElementById('c_' + field + '_display_name');
-  const dispEmail = document.getElementById('c_' + field + '_display_email');
-  const other     = document.getElementById('c_' + field + '_other');
-  if (!val) {
-    // Nothing selected — hide both
-    display.style.display = 'none';
-    other.style.display   = 'none';
-  } else if (val === 'client') {
-    other.style.display   = 'none';
-    display.style.display = 'flex';
-    const name  = document.getElementById('c_client_name').value;
-    const email = document.getElementById('c_email').value;
-    dispName.textContent      = name  || '— enter client name above —';
-    dispName.style.fontStyle  = name  ? 'normal' : 'italic';
-    dispName.style.color      = name  ? 'var(--black)' : 'var(--grey,#888)';
-    dispEmail.textContent     = email || '— enter client email above —';
-    dispEmail.style.fontStyle = email ? 'normal' : 'italic';
-    dispEmail.style.color     = email ? 'var(--black)' : 'var(--grey,#888)';
-  } else {
-    display.style.display = 'none';
-    other.style.display   = 'block';
-  }
-}
-
-// Refresh all delivery displays when client fields change
-function refreshDeliveryDisplays() {
-  ['toe','rpt','inv'].forEach(f => {
-    const sel = document.getElementById('c_' + f + '_sel');
-    if (sel) handleDelivery(f, sel.value);
-  });
-}
-['c_client_name','c_email'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener('input', refreshDeliveryDisplays);
-});
-
-// Initialise immediately when DOM is ready
-window.addEventListener('load', function() {
-  setTimeout(refreshDeliveryDisplays, 100);
-});
-
-// ── ADDITIONAL DELIVERY RECIPIENTS ───────────────────────
-function addDeliveryRecipient(field) {
-  const container = document.getElementById('c_' + field + '_extras');
-  if (!container) return;
-  const idx = container.children.length + 1;
-  const div = document.createElement('div');
-  div.style.cssText = 'margin-top:8px;padding:10px;background:rgba(125,166,212,0.05);border:1.5px solid var(--border);border-radius:7px;position:relative;';
-  div.innerHTML =
-    '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--grey);margin-bottom:6px;">Additional Recipient ' + idx + '</div>' +
-    '<button type="button" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--grey);font-size:16px;cursor:pointer;line-height:1;">×</button>' +
-    '<div class="row2" style="margin-bottom:6px;">' +
-      '<div class="field" style="margin:0;"><label>Name</label><input type="text" placeholder="" style="width:100%;"/></div>' +
-      '<div class="field" style="margin:0;"><label>Email</label><input type="email" placeholder="" style="width:100%;"/></div>' +
-    '</div>';
-  container.appendChild(div);
-}
-
-// ── REPORT TO QUICK FILL ─────────────────────────────────
-function fillReportTo(val) {
-  if (!val) return;
-  if (val === 'same') {
-    document.getElementById('c_report_name').value = document.getElementById('c_client_name').value || '';
-    document.getElementById('c_report_addr').value = document.getElementById('c_client_addr').value || '';
-  } else {
-    const parts = val.split('|');
-    document.getElementById('c_report_name').value = parts[0] || '';
-    document.getElementById('c_report_addr').value = parts[1] || '';
-  }
-  // Reset preset dropdown
-  document.getElementById('c_report_preset').value = '';
-}
-
-// ── TERMS OF ENGAGEMENT EMAIL HELPERS ────────────────────
-function handleTermsEmail(field, val) {
-  const inputId   = field === 'report' ? 'c_terms_report_email'         : 'c_terms_email';
-  const displayId = field === 'report' ? 'c_terms_report_email_display'  : 'c_terms_email_display';
-  const input   = document.getElementById(inputId);
-  const display = document.getElementById(displayId);
-  const clientEmail = document.getElementById('c_email').value || '';
-
-  if (val === 'other') {
-    display.style.display = 'none';
-    input.style.display   = 'block';
-    input.value = '';
-    input.focus();
-  } else {
-    input.style.display   = 'none';
-    display.style.display = 'block';
-    input.value           = clientEmail;
-    display.textContent   = clientEmail || '— enter client email above —';
-    display.style.color   = clientEmail ? 'var(--black)' : 'var(--grey,#888)';
-    display.style.fontStyle = clientEmail ? 'normal' : 'italic';
-  }
-}
-
-// Sync display divs when client email changes
-document.addEventListener('input', function(e) {
-  if (e.target.id === 'c_email') {
-    const val = e.target.value;
-    [['c_terms_report_email_sel','c_terms_report_email','c_terms_report_email_display'],
-     ['c_terms_email_sel','c_terms_email','c_terms_email_display']].forEach(([selId, inputId, displayId]) => {
-      const sel = document.getElementById(selId);
-      if (sel && sel.value === 'same') {
-        document.getElementById(inputId).value       = val;
-        const d = document.getElementById(displayId);
-        d.textContent  = val || '— enter client email above —';
-        d.style.color  = val ? 'var(--black)' : 'var(--grey,#888)';
-        d.style.fontStyle = val ? 'normal' : 'italic';
-      }
-    });
-  }
-});
-
-
-
-// ── DRAFT MANAGER ────────────────────────────────────────
-const DRAFTS_KEY = 'myvaluer_drafts';
-
-function getAllDrafts() {
-  try { return JSON.parse(localStorage.getItem(DRAFTS_KEY)) || []; }
-  catch(e) { return []; }
-}
-
-function saveDraft() {
-  const prop = document.getElementById("c_prop_addr").value.trim();
-  if (!prop) { alert("Please enter a property address before saving a draft."); return; }
-
-  const data = {};
-  document.querySelectorAll('input[type=text],input[type=number],input[type=date],input[type=email],textarea,select').forEach(el => {
-    if (el.id) data[el.id] = el.value;
-  });
-  const propChecked = document.querySelector('#propTypeGrid .check-item.checked');
-  if (propChecked) data['_propType'] = propChecked.textContent.trim();
-  const purposeChecked = document.querySelector('#purposeGrid .check-item.checked');
-  if (purposeChecked) data['_purpose'] = purposeChecked.textContent.trim();
-
-  // Save additional delivery recipients
-  ['toe','rpt','inv'].forEach(f => {
-    const container = document.getElementById('c_' + f + '_extras');
-    if (!container) return;
-    const recipients = [];
-    container.querySelectorAll('div').forEach(div => {
-      const inputs = div.querySelectorAll('input');
-      if (inputs.length >= 2) {
-        const nm = inputs[0]?.value?.trim();
-        const em = inputs[1]?.value?.trim();
-        if (nm || em) recipients.push({ name: nm || '', email: em || '' });
-      }
-    });
-    data['_extras_' + f] = recipients;
-  });
-
-  const drafts = getAllDrafts();
-  const now = new Date();
-  const label = prop + ' — ' + now.toLocaleDateString('en-NZ', {day:'numeric',month:'short',year:'numeric'}) + ' ' + now.toLocaleTimeString('en-NZ', {hour:'2-digit',minute:'2-digit'});
-  const id = Date.now().toString();
-
-  drafts.unshift({ id, label, data, saved: now.toISOString() });
-  if (drafts.length > 10) drafts.pop();
-
-  localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
-  renderDraftDropdown();
-
-  const saveBtn = document.querySelector('#draftPanel button:last-child');
-  if (saveBtn) { const orig = saveBtn.textContent; saveBtn.textContent = '✓ Saved!'; saveBtn.style.background = '#2d7a4f'; setTimeout(() => { saveBtn.textContent = orig; saveBtn.style.background = 'var(--blue,#7da6d4)'; }, 1800); }
-}
-
-function loadDraft(id) {
-  const drafts = getAllDrafts();
-  const draft = drafts.find(d => d.id === id);
-  if (!draft) return;
-
-  // Clear form first
-  document.querySelectorAll('input[type=text],input[type=number],input[type=email],textarea').forEach(el => el.value = '');
-  document.querySelectorAll('input[type=date]').forEach(el => el.value = today);
-  document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
-
-  // Clear any existing extra recipients
-  ['toe','rpt','inv'].forEach(f => {
-    const container = document.getElementById('c_' + f + '_extras');
-    if (container) container.innerHTML = '';
-  });
-
-  // Restore values
-  Object.keys(draft.data).forEach(id => {
-    if (id.startsWith('_')) return;
-    const el = document.getElementById(id);
-    if (el) el.value = draft.data[id];
-  });
-  if (draft.data['_propType']) {
-    document.querySelectorAll('#propTypeGrid .check-item').forEach(el => {
-      el.classList.toggle('checked', el.textContent.trim() === draft.data['_propType']);
-    });
-  }
-  if (draft.data['_purpose']) {
-    document.querySelectorAll('#purposeGrid .check-item').forEach(el => {
-      el.classList.toggle('checked', el.textContent.trim() === draft.data['_purpose']);
-    });
-  }
-
-  // Restore additional delivery recipients
-  ['toe','rpt','inv'].forEach(f => {
-    const recipients = draft.data['_extras_' + f] || [];
-    recipients.forEach(r => {
-      addDeliveryRecipient(f);
-      const container = document.getElementById('c_' + f + '_extras');
-      if (!container) return;
-      const lastDiv = container.lastElementChild;
-      if (!lastDiv) return;
-      const inputs = lastDiv.querySelectorAll('input');
-      if (inputs[0]) inputs[0].value = r.name || '';
-      if (inputs[1]) inputs[1].value = r.email || '';
-    });
-  });
-
-  calcFee();
-  closeDraftPanel();
-  window.scrollTo({top:0, behavior:'smooth'});
-}
-
-function deleteDraft(id, event) {
-  event.stopPropagation();
-  if (!confirm('Delete this draft?')) return;
-  let drafts = getAllDrafts().filter(d => d.id !== id);
-  localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts));
-  renderDraftDropdown();
-}
-
-function renderDraftDropdown() {
-  const panel = document.getElementById('draftPanel');
-  const list = document.getElementById('draftList');
-  const badge = document.getElementById('draftBadge');
-  if (!list) return;
-
-  const drafts = getAllDrafts();
-  badge.textContent = drafts.length > 0 ? drafts.length : '';
-  badge.style.display = drafts.length > 0 ? 'inline-flex' : 'none';
-
-  if (drafts.length === 0) {
-    list.innerHTML = '<div style="padding:16px;text-align:center;color:var(--grey,#6b7280);font-size:13px;">No saved drafts yet.<br>Fill in a job and click <strong>Save Draft</strong>.</div>';
-    return;
-  }
-
-  list.innerHTML = drafts.map(d => `
-    <div onclick="loadDraft('${d.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border,#dce4ee);cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='rgba(125,166,212,0.08)'" onmouseout="this.style.background=''">
-      <div>
-        <div style="font-size:13px;font-weight:600;color:var(--black,#1a1a1a);">${d.label.split(' — ')[0]}</div>
-        <div style="font-size:11px;color:var(--grey,#6b7280);margin-top:2px;">${d.label.split(' — ').slice(1).join(' — ')}</div>
-      </div>
-      <button onclick="deleteDraft('${d.id}', event)" title="Delete draft" style="background:rgba(185,28,28,0.08);border:none;border-radius:5px;padding:4px 10px;font-size:11px;font-weight:700;color:#b91c1c;cursor:pointer;flex-shrink:0;margin-left:10px;">✕</button>
-    </div>`).join('');
-}
-
-function toggleDraftPanel() {
-  const panel = document.getElementById('draftPanel');
-  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-  if (panel.style.display === 'block') renderDraftDropdown();
-}
-
-function closeDraftPanel() {
-  const panel = document.getElementById('draftPanel');
-  if (panel) panel.style.display = 'none';
-}
-
-// Close panel if clicking outside
-document.addEventListener('click', function(e) {
-  const panel = document.getElementById('draftPanel');
-  const btn = document.getElementById('draftMenuBtn');
-  if (panel && btn && !panel.contains(e.target) && !btn.contains(e.target)) {
-    panel.style.display = 'none';
-  }
-});
-
-// Init badge on load
-window.addEventListener('load', function() {
-  renderDraftDropdown();
-  restoreAutosave();
-  // Pre-initialize MSAL so it's ready when needed
-  getMsalInstance().catch(e => console.log('MSAL pre-init:', e));
-});
-
-// ── AUTOSAVE ──────────────────────────────────────────────
-const AUTOSAVE_KEY = 'myvaluer_autosave';
-
-function collectFormData() {
-  const data = {};
-  document.querySelectorAll('input[type=text],input[type=number],input[type=date],input[type=email],textarea,select').forEach(el => {
-    if (el.id) data[el.id] = el.value;
-  });
-  const propChecked = document.querySelector('#propTypeGrid .check-item.checked');
-  if (propChecked) data['_propType'] = propChecked.textContent.trim();
-  const purposeChecked = document.querySelector('#purposeGrid .check-item.checked');
-  if (purposeChecked) data['_purpose'] = purposeChecked.textContent.trim();
-  // Save additional delivery recipients
-  ['toe','rpt','inv'].forEach(f => {
-    const container = document.getElementById('c_' + f + '_extras');
-    if (!container) return;
-    const recipients = [];
-    container.querySelectorAll('div').forEach(div => {
-      const inputs = div.querySelectorAll('input');
-      if (inputs.length >= 2) {
-        const nm = inputs[0]?.value?.trim();
-        const em = inputs[1]?.value?.trim();
-        if (nm || em) recipients.push({ name: nm || '', email: em || '' });
-      }
-    });
-    data['_extras_' + f] = recipients;
-  });
-  return data;
-}
-
-function applyFormData(data) {
-  Object.keys(data).forEach(id => {
-    if (id.startsWith('_')) return;
-    const el = document.getElementById(id);
-    if (el) el.value = data[id];
-  });
-  if (data['_propType']) {
-    document.querySelectorAll('#propTypeGrid .check-item').forEach(el => {
-      el.classList.toggle('checked', el.textContent.trim() === data['_propType']);
-    });
-  }
-  if (data['_purpose']) {
-    document.querySelectorAll('#purposeGrid .check-item').forEach(el => {
-      el.classList.toggle('checked', el.textContent.trim() === data['_purpose']);
-    });
-  }
-  // Restore additional delivery recipients
-  ['toe','rpt','inv'].forEach(f => {
-    const container = document.getElementById('c_' + f + '_extras');
-    if (container) container.innerHTML = '';
-    const recipients = data['_extras_' + f] || [];
-    recipients.forEach(r => {
-      addDeliveryRecipient(f);
-      const cont = document.getElementById('c_' + f + '_extras');
-      if (!cont) return;
-      const lastDiv = cont.lastElementChild;
-      if (!lastDiv) return;
-      const inputs = lastDiv.querySelectorAll('input');
-      if (inputs[0]) inputs[0].value = r.name || '';
-      if (inputs[1]) inputs[1].value = r.email || '';
-    });
-  });
-  calcFee();
-}
-
-function doAutosave() {
-  const data = collectFormData();
-  // Only autosave if there's something worth saving
-  const hasContent = data['c_prop_addr'] || data['c_client_name'] || data['c_inst_name'];
-  if (!hasContent) return;
-  data['_autosaved'] = new Date().toISOString();
-  localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(data));
-  // Show brief indicator
-  showAutosaveToast();
-}
-
-function restoreAutosave() {
-  try {
-    const saved = localStorage.getItem(AUTOSAVE_KEY);
-    if (!saved) return;
-    const data = JSON.parse(saved);
-    // Only restore if there's actual content
-    if (!data['c_prop_addr'] && !data['c_client_name'] && !data['c_inst_name']) return;
-    applyFormData(data);
-    showAutosaveBanner(data['_autosaved']);
-  } catch(e) { console.log('Autosave restore error:', e); }
-}
-
-function showAutosaveToast() {
-  const toast = document.getElementById('autosaveToast');
-  if (!toast) return;
-  toast.style.opacity = '1';
-  clearTimeout(window._autosaveToastTimer);
-  window._autosaveToastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 1800);
-}
-
-function showAutosaveBanner(isoDate) {
-  const banner = document.getElementById('autosaveBanner');
-  if (!banner) return;
-  let timeStr = '';
-  if (isoDate) {
-    const d = new Date(isoDate);
-    timeStr = ' — saved at ' + d.toLocaleTimeString('en-NZ', {hour:'2-digit', minute:'2-digit'});
-  }
-  banner.querySelector('#autosaveTime').textContent = timeStr;
-  banner.style.display = 'flex';
-}
-
-function dismissAutosave(keep) {
-  const banner = document.getElementById('autosaveBanner');
-  if (banner) banner.style.display = 'none';
-  if (!keep) {
-    localStorage.removeItem(AUTOSAVE_KEY);
-    // Clear form
-    document.querySelectorAll('input[type=text],input[type=number],input[type=email],textarea').forEach(el => el.value = '');
-    document.querySelectorAll('input[type=date]').forEach(el => el.value = today);
-    document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
-    document.querySelectorAll('.check-item').forEach(el => el.classList.remove('checked'));
-    document.querySelector('#propTypeGrid .check-item')?.classList.add('checked');
-    document.querySelector('#purposeGrid .check-item')?.classList.add('checked');
-    calcFee();
-  }
-}
-
-// Autosave every 5 seconds while there's content
-let _autosaveTimer = null;
-document.addEventListener('input', function() {
-  clearTimeout(_autosaveTimer);
-  _autosaveTimer = setTimeout(doAutosave, 5000);
-  // Auto-regenerate if output is already visible
-  clearTimeout(window._regenTimer);
-  window._regenTimer = setTimeout(function() {
-    if (document.getElementById('outputResult').classList.contains('visible')) {
-      generateSummary();
-    }
-  }, 800);
-});
-document.addEventListener('change', function() {
-  clearTimeout(_autosaveTimer);
-  _autosaveTimer = setTimeout(doAutosave, 5000);
-  // Auto-regenerate if output is already visible
-  clearTimeout(window._regenTimer);
-  window._regenTimer = setTimeout(function() {
-    if (document.getElementById('outputResult').classList.contains('visible')) {
-      generateSummary();
-    }
-  }, 800);
-});
-
-// Clear drafts on new job (don't auto-delete, just reset form)
-const origReset = resetForm;
-resetForm = function() {
-  origReset();
-  closeDraftPanel();
-  localStorage.removeItem(AUTOSAVE_KEY);
-  const ab = document.getElementById('autosaveBanner');
-  if (ab) ab.style.display = 'none';
-};
-</script>
 </body>
 </html>
