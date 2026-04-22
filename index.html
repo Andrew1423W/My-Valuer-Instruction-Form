@@ -1803,12 +1803,12 @@ function printForm() {
         row('Prior Reference', v('c_prior_ref2'))
       ])}
 
-      ${section(3, 'Instructor', [
+      ${section(2, 'Instructor', [
         row('Name', v('c_inst_name')),
         row('Phone', v('c_inst_phone'))
       ])}
 
-      ${section(4, 'Client', [
+      ${section(3, 'Client', [
         row('Client Name', v('c_client_name')),
         row('Email', v('c_email')),
         row('Phone', v('c_client_phone')),
@@ -1816,30 +1816,24 @@ function printForm() {
         row('Address', v('c_client_addr'))
       ])}
 
-      ${section(5, 'Address Report To', [
+      ${section(4, 'Address Report To', [
         row('Name', v('c_report_name')),
         row('Address', v('c_report_addr'))
       ])}
 
-      ${section(7, 'Appointment', [
+      ${section(5, 'Appointment', [
         row('Name', v('c_appt_name')),
         row('Phone', v('c_appt_phone')),
         row('Date & Time', apptStr)
       ])}
 
-      ${section(2, 'Title Details', [
+      ${section(6, 'Title Details', [
         row('Title No.', v('c_title_no')),
         row('Estate', v('c_estate')),
         row('Area', v('c_area')),
         row('Legal Description', v('c_legal_desc')),
         row('Registered Owner', v('c_owner')),
         row('Title References', titles)
-      ])}
-
-      ${section(6, 'Terms, Report & Invoice Delivery', [
-        row('Terms of Engagement', [toeD.primary, ...toeD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
-        row('Report sent to', [rptD.primary, ...rptD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
-        row('Invoice sent to', [invD.primary, ...invD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; '))
       ])}
     </div>
 
@@ -1859,7 +1853,7 @@ function printForm() {
           purposeRows += '<tr><td style="padding:5px 10px;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">' + addlLabel + '</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + addlBlurbVal + '</td></tr>';
         }
 
-        return '<div style="break-inside:avoid;margin-bottom:14px;"><div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">9-10</span><span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Property Type &amp; Purpose</span></div><table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
+        return '<div style="break-inside:avoid;margin-bottom:14px;"><div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">8</span><span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Property Type &amp; Purpose</span></div><table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
           '<tr><td style="padding:5px 10px;width:38%;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">Property Type</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + propType + '</td></tr>' +
           purposeRows +
           '</table></div>';
@@ -1901,17 +1895,17 @@ function printForm() {
 
         return '<div style="break-inside:avoid;margin-bottom:14px;">' +
           '<div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">' +
-          '<span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">8</span>' +
+          '<span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">9</span>' +
           '<span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Valuation Fee</span></div>' +
           '<table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
           rows + '</table></div>';
       })()}
 
-      ${section(11, 'Valuation Notes', [
+      ${section(10, 'Valuation Notes', [
         row('Notes', v('c_valn_notes'))
       ])}
 
-      ${section(12, 'Council Rates & Rating Valuation', [
+      ${section(11, 'Council Rates & Rating Valuation', [
         row('Land Value', v('c_rv_land')),
         row('Improvements', v('c_rv_imp')),
         row('Capital Value', v('c_rv_cv')),
@@ -1919,6 +1913,13 @@ function printForm() {
         row('HBRC Rates', v('c_rates_hbrc') ? v('c_rates_hbrc') + ' p.a.' : ''),
         row('Council File', v('c_council_file')),
         row('Mileage', v('c_mileage') ? v('c_mileage') + ' km' : '')
+      ])}
+
+
+      ${section(7, 'Terms, Report & Invoice Delivery', [
+        row('Terms of Engagement', [toeD.primary, ...toeD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
+        row('Report sent to', [rptD.primary, ...rptD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
+        row('Invoice sent to', [invD.primary, ...invD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; '))
       ])}
     </div>
   </div>
