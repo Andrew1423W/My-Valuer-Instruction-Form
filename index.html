@@ -1927,14 +1927,15 @@ function printForm() {
 <meta charset="UTF-8"/>
 <title>Valuation Instruction — ${v('c_prop_addr') || 'My Valuer'}</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
   @page { size: A4; margin: 14mm 14mm 14mm 14mm; }
-  * { font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; box-sizing: border-box; }
-  body { margin: 0; padding: 0; background: white; font-size: 9.5pt; color: #1a1a2e; font-weight: 400; line-height: 1.4; }
+  * { font-family: 'Inter', Helvetica, Arial, sans-serif; box-sizing: border-box; }
+  body { margin: 0; padding: 0; background: white; font-size: 9.5pt; color: #1a1a2e; font-weight: 400; line-height: 1.5; }
   .page { max-width: 100%; }
   .col-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  td, th { font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif; }
+  td, th { font-family: 'Inter', Helvetica, Arial, sans-serif; }
   @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; -webkit-font-smoothing: antialiased; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 </style>
 </head>
