@@ -1899,8 +1899,8 @@ function printForm() {
   // Row helper — only renders if value exists
   const row = (label, val) => val ? `
     <tr>
-      <td style="padding:5px 10px;width:38%;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;white-space:nowrap;">${label}</td>
-      <td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">${val}</td>
+      <td style="padding:6px 12px;width:38%;font-weight:600;color:#444;font-size:10.5pt;border-bottom:1px solid #eef2f8;white-space:nowrap;">${label}</td>
+      <td style="padding:6px 12px;font-size:10.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">${val}</td>
     </tr>` : '';
 
   // Section helper
@@ -1909,8 +1909,8 @@ function printForm() {
     if (!content) return '';
     return `
     <div style="break-inside:avoid;margin-bottom:14px;">
-      <div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-        <span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">${title}</span>
+      <div style="background:#0e1c35;color:#fff;padding:7px 14px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+        <span style="font-size:10pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">${title}</span>
       </div>
       <table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">
         ${content}
@@ -1927,10 +1927,10 @@ function printForm() {
 <meta charset="UTF-8"/>
 <title>Valuation Instruction — ${v('c_prop_addr') || 'My Valuer'}</title>
 <style>
-  @page { size: A4; margin: 8mm 8mm 8mm 8mm; }
-  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: white; }
+  @page { size: A4; margin: 14mm 14mm 14mm 14mm; }
+  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: white; font-size: 10pt; }
   .page { max-width: 100%; }
-  .col-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .col-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
@@ -1943,7 +1943,7 @@ function printForm() {
   <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #7DA7D9;padding-bottom:8px;margin-bottom:16px;">
     <img src="${logoSrc}" style="height:40px;" alt="My Valuer"/>
     <div style="text-align:right;">
-      <div style="font-size:13pt;font-weight:800;color:#0e1c35;">Valuation Instruction Form</div>
+      <div style="font-size:15pt;font-weight:800;color:#0e1c35;">Valuation Instruction Form</div>
       <div style="font-size:8pt;color:#555;margin-top:2px;">2 Pandora Road, Napier &nbsp;|&nbsp; 06 835 3350 &nbsp;|&nbsp; info​@myvaluer.net.nz</div>
     </div>
   </div>
@@ -1952,16 +1952,16 @@ function printForm() {
   <div style="margin-bottom:16px;break-inside:avoid;">
     <div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:8px 14px;margin-bottom:8px;">
       <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:3px;">Property Address</div>
-      <div style="font-size:12pt;font-weight:700;color:#0e1c35;">${v('c_prop_addr') || ''}</div>
+      <div style="font-size:14pt;font-weight:800;color:#0e1c35;">${v('c_prop_addr') || ''}</div>
       ${propType ? `<div style="font-size:9pt;color:#555;margin-top:2px;">${propType}</div>` : ''}
     </div>
     ${ (function(){
       const refCols = dueDateStr ? '1fr 1fr 1fr 1fr' : '1fr 1fr 1fr';
-      const dueDateCell = dueDateStr ? '<div style="background:#b91c1c;border-radius:6px;padding:7px 12px;min-height:42px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.8);margin-bottom:4px;">Valuation Due Date</div><div style="font-size:10pt;font-weight:800;color:#fff;">' + dueDateStr + '</div></div>' : '';
+      const dueDateCell = dueDateStr ? '<div style="background:#b91c1c;border-radius:6px;padding:7px 12px;min-height:42px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.8);margin-bottom:4px;">Valuation Due Date</div><div style="font-size:12pt;font-weight:800;color:#fff;">' + dueDateStr + '</div></div>' : '';
       return '<div style="display:grid;grid-template-columns:' + refCols + ';gap:8px;">' +
-        '<div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:4px;">Valuation Reference</div><div style="font-size:10pt;font-weight:700;color:#0e1c35;">' + (v('c_val_ref')||'') + '</div></div>' +
-        '<div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:4px;">Insurance Reference</div><div style="font-size:10pt;font-weight:700;color:#0e1c35;">' + (v('c_ins_ref')||'') + '</div></div>' +
-        '<div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:4px;">Prior Reference</div><div style="font-size:10pt;font-weight:700;color:#0e1c35;">' + (v('c_prior_ref2')||'') + '</div></div>' +
+        '<div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:4px;">Valuation Reference</div><div style="font-size:11pt;font-weight:700;color:#0e1c35;">' + (v('c_val_ref')||'') + '</div></div>' +
+        '<div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:4px;">Insurance Reference</div><div style="font-size:11pt;font-weight:700;color:#0e1c35;">' + (v('c_ins_ref')||'') + '</div></div>' +
+        '<div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:4px;">Prior Reference</div><div style="font-size:11pt;font-weight:700;color:#0e1c35;">' + (v('c_prior_ref2')||'') + '</div></div>' +
         dueDateCell +
         '</div>';
     })() }
@@ -2035,7 +2035,7 @@ function printForm() {
           purposeRows += '<tr><td style="padding:5px 10px;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">' + addlLabel + '</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + addlBlurbVal + '</td></tr>';
         }
 
-        return '<div style="break-inside:avoid;margin-bottom:14px;"><div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><span style="background:#7DA7D9;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">8</span><span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Property Type &amp; Purpose</span></div><table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
+        return '<div style="break-inside:avoid;margin-bottom:14px;"><div style="background:#0e1c35;color:#fff;padding:7px 14px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><span style="background:#7DA7D9;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">8</span><span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Property Type &amp; Purpose</span></div><table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
           '<tr><td style="padding:5px 10px;width:38%;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">Property Type</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + propType + '</td></tr>' +
           purposeRows +
           '</table></div>';
@@ -2076,7 +2076,7 @@ function printForm() {
         }).join('');
 
         return '<div style="break-inside:avoid;margin-bottom:14px;">' +
-          '<div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">' +
+          '<div style="background:#0e1c35;color:#fff;padding:7px 14px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">' +
           '<span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Valuation Fee</span></div>' +
           '<table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
           rows + '</table></div>';
