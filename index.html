@@ -828,7 +828,10 @@ function initAutocomplete() {
 })();
 
 const today = new Date().toISOString().split("T")[0];
-document.getElementById("c_inst_date").value = today;
+document.addEventListener('DOMContentLoaded', function() {
+  const el = document.getElementById("c_inst_date");
+  if (el) el.value = today;
+});
 
 function toggleCheck(cb) {
   cb.closest(".check-item").classList.toggle("checked", cb.checked);
