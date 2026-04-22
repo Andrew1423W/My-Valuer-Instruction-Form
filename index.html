@@ -1103,9 +1103,9 @@ function generateSummary() {
   btn.disabled = false;
   btn.textContent = "✦ Generate";
 
-  // Auto-save to SharePoint in background
+  // Auto-save to SharePoint in background (silent — only if SP is configured)
   if (document.getElementById('c_prop_addr').value) {
-    saveJobToSharePoint().catch(e => console.log('SP save:', e));
+    saveJobToSharePoint().catch(() => {});
   }
 }
 
@@ -1765,12 +1765,32 @@ function printForm() {
     </div>
   </div>
 
-  <!-- Property address prominent at top -->
-  ${v('c_prop_addr') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:8px 14px;margin-bottom:16px;break-inside:avoid;">
-    <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:3px;">Property Address</div>
-    <div style="font-size:12pt;font-weight:700;color:#0e1c35;">${v('c_prop_addr')}</div>
-    ${propType ? `<div style="font-size:9pt;color:#555;margin-top:2px;">${propType}</div>` : ''}
-  </div>` : ''}
+  <!-- Property address + references + due date at top -->
+  <div style="margin-bottom:16px;break-inside:avoid;">
+    ${v('c_prop_addr') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:8px 14px;margin-bottom:8px;">
+      <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:3px;">Property Address</div>
+      <div style="font-size:12pt;font-weight:700;color:#0e1c35;">${v('c_prop_addr')}</div>
+      ${propType ? `<div style="font-size:9pt;color:#555;margin-top:2px;">${propType}</div>` : ''}
+    </div>` : ''}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;">
+      ${v('c_val_ref') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;">
+        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:2px;">Valuation Reference</div>
+        <div style="font-size:10pt;font-weight:700;color:#0e1c35;">${v('c_val_ref')}</div>
+      </div>` : ''}
+      ${v('c_ins_ref') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;">
+        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:2px;">Insurance Reference</div>
+        <div style="font-size:10pt;font-weight:700;color:#0e1c35;">${v('c_ins_ref')}</div>
+      </div>` : ''}
+      ${v('c_prior_ref2') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;">
+        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:2px;">Prior Reference</div>
+        <div style="font-size:10pt;font-weight:700;color:#0e1c35;">${v('c_prior_ref2')}</div>
+      </div>` : ''}
+      ${dueDateStr ? `<div style="background:#b91c1c;border-radius:6px;padding:7px 12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.8);margin-bottom:2px;">Valuation Due Date</div>
+        <div style="font-size:10pt;font-weight:800;color:#fff;">${dueDateStr}</div>
+      </div>` : ''}
+    </div>
+  </div>
 
   ${isQuote ? `<div style="background:#fff8e1;border:2px solid #c8a44a;border-radius:6px;padding:8px 14px;margin-bottom:16px;break-inside:avoid;">
     <div style="font-size:10pt;font-weight:800;color:#5a3e00;">⚡ QUOTE</div>
@@ -1786,15 +1806,6 @@ function printForm() {
         row('VOS Order No.', v('c_vos')),
         row('Valuation Allocated To', v('c_alloc')),
         row('Prior Reference', v('c_prior_ref'))
-      ])}
-
-      ${section(2, 'Title Details', [
-        row('Title No.', v('c_title_no')),
-        row('Estate', v('c_estate')),
-        row('Area', v('c_area')),
-        row('Legal Description', v('c_legal_desc')),
-        row('Registered Owner', v('c_owner')),
-        row('Title References', titles)
       ])}
 
       ${section(3, 'Instructor', [
@@ -1815,6 +1826,21 @@ function printForm() {
         row('Address', v('c_report_addr'))
       ])}
 
+      ${section(7, 'Appointment', [
+        row('Name', v('c_appt_name')),
+        row('Phone', v('c_appt_phone')),
+        row('Date & Time', apptStr)
+      ])}
+
+      ${section(2, 'Title Details', [
+        row('Title No.', v('c_title_no')),
+        row('Estate', v('c_estate')),
+        row('Area', v('c_area')),
+        row('Legal Description', v('c_legal_desc')),
+        row('Registered Owner', v('c_owner')),
+        row('Title References', titles)
+      ])}
+
       ${section(6, 'Terms, Report & Invoice Delivery', [
         row('Terms of Engagement', [toeD.primary, ...toeD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
         row('Report sent to', [rptD.primary, ...rptD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
@@ -1823,22 +1849,6 @@ function printForm() {
     </div>
 
     <div>
-      ${section(7, 'Appointment', [
-        row('Name', v('c_appt_name')),
-        row('Phone', v('c_appt_phone')),
-        row('Date & Time', apptStr)
-      ])}
-
-      ${dueDateStr ? `<div style="break-inside:avoid;margin-bottom:14px;">
-        <div style="background:#b91c1c;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-          <span style="background:rgba(255,255,255,0.25);color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">8</span>
-          <span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Valuation Due Date</span>
-        </div>
-        <div style="border:2px solid #b91c1c;border-top:none;border-radius:0 0 4px 4px;padding:12px 16px;background:#fff8f8;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-          <div style="font-size:16pt;font-weight:800;color:#b91c1c;">${dueDateStr}</div>
-        </div>
-      </div>` : ''}
-
       ${section('8b', 'Valuation Fee', [
         row('Market Report Fee', f1 ? '$' + f1.toFixed(2) + ' excl. GST' : ''),
         row('Insurance Fee', f2 ? '$' + f2.toFixed(2) + ' excl. GST' : ''),
@@ -2382,24 +2392,6 @@ let _autosaveTimer = null;
 document.addEventListener('input', function() {
   clearTimeout(_autosaveTimer);
   _autosaveTimer = setTimeout(doAutosave, 5000);
-  // Auto-regenerate if output is already visible
-  clearTimeout(window._regenTimer);
-  window._regenTimer = setTimeout(function() {
-    if (document.getElementById('outputResult').classList.contains('visible')) {
-      generateSummary();
-    }
-  }, 800);
-});
-document.addEventListener('change', function() {
-  clearTimeout(_autosaveTimer);
-  _autosaveTimer = setTimeout(doAutosave, 5000);
-  // Auto-regenerate if output is already visible
-  clearTimeout(window._regenTimer);
-  window._regenTimer = setTimeout(function() {
-    if (document.getElementById('outputResult').classList.contains('visible')) {
-      generateSummary();
-    }
-  }, 800);
 });
 
 // Clear drafts on new job (don't auto-delete, just reset form)
