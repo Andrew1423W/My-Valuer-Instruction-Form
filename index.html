@@ -1254,47 +1254,144 @@ ${notes}`;
 function buildEmail() {
   return buildEmailPlain();
 }
+function buildEmailHTML() {
+  const v = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
+  const prop       = v('c_prop_addr');
+  const propType   = document.querySelector('#propTypeGrid .check-item.checked')?.textContent?.trim() || '';
+  const valRef     = v('c_val_ref');
+  const insRef     = v('c_ins_ref');
+  const priorRef   = v('c_prior_ref2');
+  const instDate   = v('c_inst_date') ? new Date(v('c_inst_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
+  const takenBy    = v('c_taken_by');
+  const vos        = v('c_vos');
+  const alloc      = v('c_alloc');
+  const dueDate    = v('c_due_date') ? new Date(v('c_due_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
+  const sender     = getSenderName();
+  const senderEmail= getSenderEmail();
+  const purposeLabel = document.querySelector('#purposeGrid .check-item.checked')?.textContent?.trim() || '';
+  const purposeBlurb = v('c_purpose_blurb') || purposeLabel;
+  const addlLabel  = getAdditionalPurpose() ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || '') : '';
+  const addlBlurb  = v('c_additional_purpose_blurb') || addlLabel;
+  const instNm     = v('c_inst_name');
+  const instPh     = v('c_inst_phone');
+  const client     = v('c_client_name');
+  const clientEm   = v('c_email');
+  const clientPh   = v('c_client_phone');
+  const borrower   = v('c_borrower');
+  const clientAd   = v('c_client_addr');
+  const apptNm     = v('c_appt_name');
+  const apptPh     = v('c_appt_phone');
+  const apptDate   = v('c_appt_date');
+  const apptTime   = v('c_appt_time');
+  const apptStr    = apptDate ? new Date(apptDate).toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + (apptTime ? ' at ' + apptTime : '') : '';
+  const f1         = parseFloat(v('c_fee1'))||0;
+  const f2         = parseFloat(v('c_fee2'))||0;
+  const gst        = ((f1+f2)*0.15).toFixed(2);
+  const total      = ((f1+f2)*1.15).toFixed(2);
+  const council    = v('c_council_file');
+  const mileage    = v('c_mileage');
+  const fTitles    = v('c_fee_titles');
+  const rvLand     = v('c_rv_land');
+  const rvImp      = v('c_rv_imp');
+  const rvCV       = v('c_rv_cv');
+  const rCouncil   = v('c_rates_council');
+  const rHBRC      = v('c_rates_hbrc');
+  const notes      = v('c_valn_notes');
+  const getDelivery = (f) => {
+    const sel = document.getElementById('c_' + f + '_sel');
+    const primary = (!sel || sel.value === 'client') ? { name: v('c_client_name'), email: v('c_email') } : { name: v('c_' + f + '_name'), email: v('c_' + f + '_email') };
+    const extras = [];
+    const container = document.getElementById('c_' + f + '_extras');
+    if (container) { container.querySelectorAll('div').forEach(d => { const inp = d.querySelectorAll('input'); if (inp.length >= 2) { const nm = inp[0]?.value?.trim(); const em = inp[1]?.value?.trim(); if (nm||em) extras.push({name:nm||'',email:em||''}); } }); }
+    return { primary, extras };
+  };
+  const toeD = getDelivery('toe'); const rptD = getDelivery('rpt'); const invD = getDelivery('inv');
+  const fmtD = (d) => [d.primary,...d.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('<br>');
+  const B = '#7DA7D9';
+  const sec = (title, rows) => { const c = rows.filter(Boolean).join(''); if (!c) return ''; return '<div style="margin-bottom:20px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:'+B+';border-bottom:2px solid '+B+';padding-bottom:5px;margin-bottom:10px;">'+title+'</div><table style="width:100%;border-collapse:collapse;">'+c+'</table></div>'; };
+  const row = (lbl, val) => val ? '<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;width:170px;vertical-align:top;">'+lbl+'</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;">'+val+'</td></tr>' : '';
+
+  return '<div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;">'
+    + '<p style="font-size:14px;color:#1a1a2e;line-height:1.7;margin-bottom:20px;">Hi,<br><br>Please load the following new valuation instruction into ValuePro.</p>'
+    + '<div style="background:#f0f5fb;border:1.5px solid '+B+';border-radius:8px;padding:14px 18px;margin-bottom:16px;">'
+    + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:'+B+';margin-bottom:4px;">Property Address</div>'
+    + '<div style="font-size:16px;font-weight:800;color:#0e1c35;">'+(prop||'—')+'</div>'
+    + (propType ? '<div style="font-size:12px;color:#6b7280;margin-top:3px;">'+propType+'</div>' : '')
+    + '<div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">'
+    + '<div style="background:#fff;border:1px solid #dce4ee;border-radius:6px;padding:7px 12px;flex:1;min-width:100px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:'+B+';margin-bottom:2px;">Valuation Ref</div><div style="font-size:12px;font-weight:700;color:#0e1c35;">'+(valRef||'—')+'</div></div>'
+    + '<div style="background:#fff;border:1px solid #dce4ee;border-radius:6px;padding:7px 12px;flex:1;min-width:100px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:'+B+';margin-bottom:2px;">Insurance Ref</div><div style="font-size:12px;font-weight:700;color:#0e1c35;">'+(insRef||'—')+'</div></div>'
+    + '<div style="background:#fff;border:1px solid #dce4ee;border-radius:6px;padding:7px 12px;flex:1;min-width:100px;"><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:'+B+';margin-bottom:2px;">Prior Ref</div><div style="font-size:12px;font-weight:700;color:#0e1c35;">'+(priorRef||'—')+'</div></div>'
+    + '</div></div>'
+    + (dueDate ? '<div style="background:#b91c1c;border-radius:8px;padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;"><div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:rgba(255,255,255,0.7);">Valuation Due Date</div><div style="font-size:18px;font-weight:800;color:#fff;margin-top:2px;">'+dueDate+'</div></div><div style="text-align:right;"><div style="color:rgba(255,255,255,0.6);font-size:11px;">Allocated To</div><div style="color:#fff;font-weight:700;font-size:13px;">'+(alloc||'—')+'</div></div></div>' : '')
+    + sec('Job Reference', [row('Instruction Date',instDate),row('Taken By',takenBy),row('VOS Order No.',vos)])
+    + sec('Purpose of Valuation', [row(purposeLabel||'Purpose',purposeBlurb), addlLabel?row(addlLabel,addlBlurb):''])
+    + sec('Instructor', [row('Name',instNm),row('Phone',instPh)])
+    + sec('Client', [row('Name',client),row('Email',clientEm),row('Phone',clientPh),row('Borrower',borrower),row('Address',clientAd)])
+    + sec('Terms, Report & Invoice Delivery', [row('Terms of Engagement',fmtD(toeD)),row('Report To',fmtD(rptD)),row('Invoice To',fmtD(invD))])
+    + ((apptNm||apptStr) ? sec('Appointment',[row('Contact',apptNm),row('Phone',apptPh),row('Date & Time',apptStr)]) : '')
+    + ((f1||f2) ? '<div style="margin-bottom:20px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:'+B+';border-bottom:2px solid '+B+';padding-bottom:5px;margin-bottom:10px;">Valuation Fee</div><table style="width:100%;border-collapse:collapse;">'
+    + (f1?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;width:170px;">Market Report Fee</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;text-align:right;width:16px;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;width:80px;">'+f1.toFixed(2)+'</td><td style="padding:5px 0;font-size:11px;color:#9ca3af;padding-left:8px;">excl. GST</td></tr>':'')
+    + (f2?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">Insurance Fee</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;text-align:right;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;">'+f2.toFixed(2)+'</td><td style="padding:5px 0;font-size:11px;color:#9ca3af;padding-left:8px;">excl. GST</td></tr>':'')
+    + '<tr><td colspan="4" style="padding:2px 0;"><hr style="border:none;border-top:1px solid #e5e7eb;margin:0;"/></td></tr>'
+    + '<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">GST (15%)</td><td style="padding:5px 0;font-size:12px;text-align:right;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;">'+gst+'</td><td></td></tr>'
+    + '<tr style="border-top:2px solid #0e1c35;"><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;">TOTAL incl. GST</td><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;text-align:right;">$</td><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;text-align:right;">'+total+'</td><td></td></tr>'
+    + (council?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">Council File</td><td colspan="3" style="padding:5px 0;font-size:12px;color:#1a1a2e;">'+council+'</td></tr>':'')
+    + (mileage?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">Mileage</td><td colspan="3" style="padding:5px 0;font-size:12px;color:#1a1a2e;">'+mileage+' km</td></tr>':'')
+    + (fTitles?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">Titles</td><td colspan="3" style="padding:5px 0;font-size:12px;color:#1a1a2e;">'+fTitles+'</td></tr>':'')
+    + '</table></div>' : '')
+    + ((rvLand||rvCV||rCouncil) ? sec('Council Rates & Rating Valuation',[row('Land Value',rvLand),row('Improvements',rvImp),row('Capital Value',rvCV),row('Council Rates',rCouncil?rCouncil+' p.a.':''),row('HBRC Rates',rHBRC?rHBRC+' p.a.':'')]) : '')
+    + (notes ? '<div style="margin-bottom:20px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:'+B+';border-bottom:2px solid '+B+';padding-bottom:5px;margin-bottom:10px;">Valuation Notes</div><div style="background:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;padding:10px 14px;font-size:13px;color:#1a1a2e;line-height:1.7;">'+notes+'</div></div>' : '')
+    + '<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;"/>'
+    + '<p style="font-size:13px;color:#6b7280;line-height:1.7;margin:0;">Kind regards,<br><strong style="color:#0e1c35;">'+sender+'</strong><br>My Valuer Limited &nbsp;&middot;&nbsp; 2 Pandora Road, Napier &nbsp;&middot;&nbsp; 06 835 3350<br>'+senderEmail+'</p>'
+    + '</div>';
+}
+
 
 function buildEmailPlain() {
   const v = (id) => { const el = document.getElementById(id); return el ? el.value.trim() : ''; };
 
-  const prop     = v('c_prop_addr');
-  const sender   = getSenderName();
-  const legal    = v('c_legal_desc');
-  const valRef   = v('c_val_ref');
-  const insRef   = v('c_ins_ref');
-  const priorRef2 = v('c_prior_ref2');
-  const area     = v('c_area');
-  const instNm   = v('c_inst_name');
-  const instPh   = v('c_inst_phone');
-  const client   = v('c_client_name');
-  const clientPh = v('c_client_phone');
-  const clientAd = v('c_client_addr');
-  const borrower = v('c_borrower');
-  const poNum    = v('c_po_number');
-  const email    = v('c_email');
-  const apptNm   = v('c_appt_name');
-  const apptPh   = v('c_appt_phone');
-  const apptDate = v('c_appt_date');
-  const apptTime = v('c_appt_time');
-  const apptDay  = apptDate ? new Date(apptDate).toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + (apptTime ? ' at ' + apptTime : '') : '';
-  const dueDate  = v('c_due_date') ? new Date(v('c_due_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
-  const propType = document.querySelector('#propTypeGrid .check-item.checked')?.textContent?.trim() || '';
-  const purpose  = getChecked('purposeGrid') || '';
-  const f1       = parseFloat(v('c_fee1'))||0;
-  const f2       = parseFloat(v('c_fee2'))||0;
-  const gst      = ((f1+f2)*0.15).toFixed(2);
-  const total    = ((f1+f2)*1.15).toFixed(2);
-  const notes    = v('c_valn_notes');
-  const rvLand   = v('c_rv_land');
-  const rvImp    = v('c_rv_imp');
-  const rvCV     = v('c_rv_cv');
-  const rCouncil = v('c_rates_council');
-  const rHBRC    = v('c_rates_hbrc');
-  const takenBy  = v('c_taken_by');
-  const alloc    = v('c_alloc');
-  const vos      = v('c_vos');
-  const instDate = v('c_inst_date') ? new Date(v('c_inst_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
+  const prop      = v('c_prop_addr');
+  const sender    = getSenderName();
+  const senderEmail = getSenderEmail();
+  const propType  = document.querySelector('#propTypeGrid .check-item.checked')?.textContent?.trim() || '';
+  const valRef    = v('c_val_ref');
+  const insRef    = v('c_ins_ref');
+  const priorRef  = v('c_prior_ref2');
+  const instDate  = v('c_inst_date') ? new Date(v('c_inst_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
+  const takenBy   = v('c_taken_by');
+  const vos       = v('c_vos');
+  const alloc     = v('c_alloc');
+  const dueDate   = v('c_due_date') ? new Date(v('c_due_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
+  const purposeLabel = document.querySelector('#purposeGrid .check-item.checked')?.textContent?.trim() || '';
+  const purposeBlurb = v('c_purpose_blurb') || purposeLabel;
+  const addlLabel = getAdditionalPurpose() ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || '') : '';
+  const addlBlurb = v('c_additional_purpose_blurb') || addlLabel;
+  const instNm    = v('c_inst_name');
+  const instPh    = v('c_inst_phone');
+  const client    = v('c_client_name');
+  const clientEm  = v('c_email');
+  const clientPh  = v('c_client_phone');
+  const borrower  = v('c_borrower');
+  const clientAd  = v('c_client_addr');
+  const apptNm    = v('c_appt_name');
+  const apptPh    = v('c_appt_phone');
+  const apptDate  = v('c_appt_date');
+  const apptTime  = v('c_appt_time');
+  const apptStr   = apptDate ? new Date(apptDate).toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + (apptTime ? ' at ' + apptTime : '') : '';
+  const f1        = parseFloat(v('c_fee1'))||0;
+  const f2        = parseFloat(v('c_fee2'))||0;
+  const gst       = ((f1+f2)*0.15).toFixed(2);
+  const total     = ((f1+f2)*1.15).toFixed(2);
+  const council   = v('c_council_file');
+  const mileage   = v('c_mileage');
+  const titles    = v('c_fee_titles');
+  const rvLand    = v('c_rv_land');
+  const rvImp     = v('c_rv_imp');
+  const rvCV      = v('c_rv_cv');
+  const rCouncil  = v('c_rates_council');
+  const rHBRC     = v('c_rates_hbrc');
+  const notes     = v('c_valn_notes');
+  const div       = '\u2501'.repeat(40);
 
   const getDelivery = (f) => {
     const sel = document.getElementById('c_' + f + '_sel');
@@ -1318,59 +1415,137 @@ function buildEmailPlain() {
   const toeD = getDelivery('toe');
   const rptD = getDelivery('rpt');
   const invD = getDelivery('inv');
+  const fmtD = (d) => [d.primary, ...d.extras].map(r => [r.name, r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ');
 
-  const row = (label, val) => val ? label + ': ' + val + '\n' : '';
-  const sep  = '─'.repeat(40);
-  const head = (title) => sep + '\n' + title + '\n' + sep + '\n';
+  const pad = (label, val, width=22) => (label + ':').padEnd(width) + (val || '—');
 
-  const fmtD = (d) => {
-    const all = [d.primary, ...d.extras];
-    return all.map(r => [r.name, r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ');
-  };
-  const toeStr = fmtD(toeD);
-  const rptStr = fmtD(rptD);
-  const invStr = fmtD(invD);
+  let lines = [];
+  lines.push('Hi,');
+  lines.push('');
+  lines.push('Please load the following new valuation instruction into ValuePro.');
+  lines.push('');
 
-  const parts = ['Hi,\n\nPlease load the following new valuation instruction into ValuePro.'];
+  // PROPERTY
+  lines.push(div);
+  lines.push('PROPERTY');
+  lines.push(div);
+  if (prop)      lines.push(pad('Address', prop));
+  if (propType)  lines.push(pad('Property Type', propType));
+  if (valRef)    lines.push(pad('Valuation Reference', valRef));
+  if (insRef)    lines.push(pad('Insurance Reference', insRef));
+  if (priorRef)  lines.push(pad('Prior Reference', priorRef));
+  lines.push('');
 
-  const jobRows = row('Instruction Date', instDate) + row('Taken By', takenBy) + row('Allocated To', alloc) + row('VOS Order No', vos);
-  if (jobRows) parts.push(head('JOB REFERENCE') + jobRows);
+  // JOB REFERENCE
+  lines.push(div);
+  lines.push('JOB REFERENCE');
+  lines.push(div);
+  if (instDate)  lines.push(pad('Instruction Date', instDate));
+  if (takenBy)   lines.push(pad('Taken By', takenBy));
+  if (vos)       lines.push(pad('VOS Order No.', vos));
+  if (alloc)     lines.push(pad('Allocated To', alloc));
+  if (dueDate)   lines.push(pad('Valuation Due', dueDate));
+  lines.push('');
 
-  const propRows = row('Address', prop) + row('Property Type', propType) + row('Legal Description', legal) + row('Area', area);
-  if (propRows) parts.push(head('PROPERTY DETAILS') + propRows);
+  // PURPOSE
+  lines.push(div);
+  lines.push('PURPOSE OF VALUATION');
+  lines.push(div);
+  if (purposeLabel) lines.push(pad(purposeLabel, purposeBlurb));
+  if (addlLabel)    lines.push(pad(addlLabel, addlBlurb));
+  lines.push('');
 
-  if (purpose) parts.push(head('PURPOSE OF VALUATION') + purpose);
+  // INSTRUCTOR
+  if (instNm || instPh) {
+    lines.push(div);
+    lines.push('INSTRUCTOR');
+    lines.push(div);
+    if (instNm) lines.push(pad('Name', instNm));
+    if (instPh) lines.push(pad('Phone', instPh));
+    lines.push('');
+  }
 
-  const instRows = row('Name', instNm) + row('Phone', instPh);
-  if (instRows) parts.push(head('INSTRUCTOR') + instRows);
+  // CLIENT
+  lines.push(div);
+  lines.push('CLIENT');
+  lines.push(div);
+  if (client)   lines.push(pad('Name', client));
+  if (clientEm) lines.push(pad('Email', clientEm));
+  if (clientPh) lines.push(pad('Phone', clientPh));
+  if (borrower) lines.push(pad('Borrower', borrower));
+  if (clientAd) lines.push(pad('Address', clientAd));
+  lines.push('');
 
-  const clientRows = row('Name', client) + row('Email', email) + row('Phone', clientPh) + row('Address', clientAd) + row('Borrower', borrower);
-  if (clientRows) parts.push(head('CLIENT') + clientRows);
+  // TERMS, REPORT & INVOICE
+  lines.push(div);
+  lines.push('TERMS, REPORT & INVOICE DELIVERY');
+  lines.push(div);
+  lines.push(pad('Terms of Engagement', fmtD(toeD)));
+  lines.push(pad('Report To', fmtD(rptD)));
+  lines.push(pad('Invoice To', fmtD(invD)));
+  lines.push('');
 
-  const delivRows = row('Terms of Engagement', toeStr) + row('Report To', rptStr) + row('Invoice To', invStr);
-  if (delivRows) parts.push(head('TERMS, REPORT & INVOICE') + delivRows);
+  // APPOINTMENT
+  if (apptNm || apptStr) {
+    lines.push(div);
+    lines.push('APPOINTMENT');
+    lines.push(div);
+    if (apptNm)  lines.push(pad('Contact', apptNm));
+    if (apptPh)  lines.push(pad('Phone', apptPh));
+    if (apptStr) lines.push(pad('Date & Time', apptStr));
+    lines.push('');
+  }
 
-  const apptRows = row('Contact', apptNm) + row('Phone', apptPh) + row('Date & Time', apptDay) + row('Valuation Due', dueDate);
-  if (apptRows) parts.push(head('APPOINTMENT & DUE DATE') + apptRows);
+  // VALUATION FEE
+  lines.push(div);
+  lines.push('VALUATION FEE');
+  lines.push(div);
+  if (f1) lines.push(pad('Market Report Fee', '$' + f1.toFixed(2) + '  excl. GST'));
+  if (f2) lines.push(pad('Insurance Fee',     '$' + f2.toFixed(2) + '  excl. GST'));
+  if (f1||f2) {
+    lines.push('                      ' + '\u2500'.repeat(18));
+    lines.push(pad('GST (15%)',         '$' + gst));
+    lines.push(pad('TOTAL incl. GST',   '$' + total));
+  }
+  if (council)  lines.push(pad('Council File', council));
+  if (mileage)  lines.push(pad('Mileage', mileage + ' km'));
+  if (titles)   lines.push(pad('Titles', titles));
+  lines.push('');
 
-  const feeRows = (f1 ? row('Market Report Fee', '$' + f1.toFixed(2) + ' excl. GST') : '') +
-    (f2 ? row('Insurance Fee', '$' + f2.toFixed(2) + ' excl. GST') : '') +
-    ((f1||f2) ? row('GST (15%)', '$' + gst) + row('Total incl. GST', '$' + total) : '');
-  if (feeRows) parts.push(head('FEES') + feeRows);
+  // RATING VALUATION
+  if (rvLand || rvCV || rCouncil) {
+    lines.push(div);
+    lines.push('COUNCIL RATES & RATING VALUATION');
+    lines.push(div);
+    if (rvLand)   lines.push(pad('Land Value', rvLand));
+    if (rvImp)    lines.push(pad('Improvements', rvImp));
+    if (rvCV)     lines.push(pad('Capital Value', rvCV));
+    if (rCouncil) lines.push(pad('Council Rates', rCouncil + ' p.a.'));
+    if (rHBRC)    lines.push(pad('HBRC Rates', rHBRC + ' p.a.'));
+    lines.push('');
+  }
 
-  const rvRows = row('Land Value', rvLand) + row('Improvements', rvImp) + row('Capital Value', rvCV) +
-    (rCouncil ? row('Council Rates', rCouncil + ' p.a.') : '') +
-    (rHBRC ? row('HBRC Rates', rHBRC + ' p.a.') : '');
-  if (rvRows) parts.push(head('RATING VALUATION') + rvRows);
+  // NOTES
+  if (notes) {
+    lines.push(div);
+    lines.push('VALUATION NOTES');
+    lines.push(div);
+    lines.push(notes);
+    lines.push('');
+  }
 
-  const addlPurpose = getAdditionalPurpose();
-  if (addlPurpose) parts.push(head('ADDITIONAL INSTRUCTION') + addlPurpose);
-  if (notes) parts.push(head('VALUATION NOTES') + notes);
+  lines.push(div);
+  lines.push('');
+  lines.push('Kind regards,');
+  lines.push(sender);
+  lines.push('My Valuer Limited');
+  lines.push('2 Pandora Road, Napier');
+  lines.push('Ph: 06 835 3350');
+  lines.push(senderEmail);
 
-  parts.push(sep + '\nKind regards,');
-
-  return parts.join('\n');
+  return lines.join('\n');
 }
+
 
 async function copyOutput() {
   const text = document.getElementById("outputText").innerText;
@@ -1400,30 +1575,38 @@ function closeSendDialog() {
 }
 
 async function doSendEmail() {
-  const to      = document.getElementById("sendTo").value;
-  const subject = document.getElementById("sendSubject").value;
-  const body    = lastEmail || buildEmailPlain();
+  const to        = document.getElementById("sendTo").value;
+  const subject   = document.getElementById("sendSubject").value;
+  const plainBody = buildEmailPlain();
+  const htmlBody  = buildEmailHTML();
   closeSendDialog();
-
-  if (!body || body.trim().length === 0) {
+  if (!plainBody || plainBody.trim().length === 0) {
     alert("No email content found. Please click Generate first.");
     return;
   }
-
-  openEmailPreview(to, subject, body, false);
+  openEmailPreview(to, subject, htmlBody, false, plainBody);
 }
 
-function openEmailPreview(to, subject, body, isQuote) {
+function openEmailPreview(to, subject, body, isQuote, plainTextBody) {
   // Populate overlay
   document.getElementById("previewTo").textContent      = "To: " + to;
   document.getElementById("previewSubject").textContent = "Subject: " + subject;
-  document.getElementById("previewBody").textContent    = body;
   document.getElementById("previewStatus").style.display = "none";
-
-  // Store for sending
+  // Render HTML or plain text in preview
+  const previewBodyEl = document.getElementById("previewBody");
+  if (body && body.trim().startsWith('<')) {
+    previewBodyEl.innerHTML = body;
+    previewBodyEl.style.whiteSpace = 'normal';
+    previewBodyEl.style.padding = '24px 32px';
+  } else {
+    previewBodyEl.textContent = body;
+    previewBodyEl.style.whiteSpace = 'pre-wrap';
+    previewBodyEl.style.padding = '32px';
+  }
+  // Store plain text for actual sending
   window._previewTo   = to;
   window._previewSub  = subject;
-  window._previewBody = body;
+  window._previewBody = plainTextBody || body;
 
   const btn = document.getElementById("previewSendBtn");
   btn.disabled = false;
