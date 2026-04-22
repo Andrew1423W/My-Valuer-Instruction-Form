@@ -1928,11 +1928,13 @@ function printForm() {
 <title>Valuation Instruction — ${v('c_prop_addr') || 'My Valuer'}</title>
 <style>
   @page { size: A4; margin: 14mm 14mm 14mm 14mm; }
-  body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: white; font-size: 9pt; }
+  * { font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif; -webkit-font-smoothing: antialiased; box-sizing: border-box; }
+  body { margin: 0; padding: 0; background: white; font-size: 9.5pt; color: #1a1a2e; font-weight: 400; line-height: 1.4; }
   .page { max-width: 100%; }
   .col-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  td, th { font-family: Helvetica, 'Helvetica Neue', Arial, sans-serif; }
   @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; -webkit-font-smoothing: antialiased; }
   }
 </style>
 </head>
