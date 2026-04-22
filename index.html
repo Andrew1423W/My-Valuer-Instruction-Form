@@ -1768,11 +1768,11 @@ function printForm() {
 
   <!-- Property address + references + due date at top -->
   <div style="margin-bottom:16px;break-inside:avoid;">
-    ${v('c_prop_addr') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:8px 14px;margin-bottom:8px;">
+    <div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:8px 14px;margin-bottom:8px;">
       <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:3px;">Property Address</div>
-      <div style="font-size:12pt;font-weight:700;color:#0e1c35;">${v('c_prop_addr')}</div>
+      <div style="font-size:12pt;font-weight:700;color:#0e1c35;">${v('c_prop_addr') || ''}</div>
       ${propType ? `<div style="font-size:9pt;color:#555;margin-top:2px;">${propType}</div>` : ''}
-    </div>` : ''}
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr${dueDateStr ? ' 1fr' : ''};gap:8px;">
       <div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;min-height:42px;">
         <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:4px;">Valuation Reference</div>
@@ -1871,7 +1871,8 @@ function printForm() {
       ])}
 
       ${addlPurpose ? section('10b', 'Additional Instruction', [
-        row('Additional Purpose', addlPurpose)
+        row('Additional Purpose', addlPurpose),
+        row('Additional Fee', v('c_additional_fee') ? '$' + parseFloat(v('c_additional_fee')).toFixed(2) + ' excl. GST' : '&nbsp;')
       ]) : ''}
 
       ${section(11, 'Valuation Notes', [
@@ -2904,6 +2905,12 @@ resetForm = function() {
             <div id="additionalPurposeBlurb" style="display:none;margin-top:8px;">
               <label style="font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:0.06em;">Additional purpose statement — edit if required</label>
               <textarea id="c_additional_purpose_blurb" style="width:100%;min-height:72px;resize:vertical;margin-top:4px;font-size:13px;line-height:1.5;"></textarea>
+            </div>
+            <div style="margin-top:10px;">
+              <div class="row2">
+                <div class="field"><label>Additional Fee (excl. GST)</label><input type="number" id="c_additional_fee" placeholder="0.00" step="0.01"/></div>
+                <div class="field"></div>
+              </div>
             </div>
           </div>
         </div>
