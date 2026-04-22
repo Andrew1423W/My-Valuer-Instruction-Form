@@ -1909,10 +1909,10 @@ function printForm() {
     if (!content) return '';
     return `
     <div style="break-inside:avoid;margin-bottom:14px;">
-      <div style="background:#fff;color:#1a1a2e;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;border:1.5px solid #1a1a2e;border-bottom:none;">
+      <div style="background:#fff;color:#1a1a2e;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;border-bottom:2px solid #1a1a2e;">
         <span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">${title}</span>
       </div>
-      <table style="width:100%;border-collapse:collapse;border:1.5px solid #1a1a2e;border-top:none;border-radius:0 0 4px 4px;">
+      <table style="width:100%;border-collapse:collapse;border-top:none;border-bottom:1.5px solid #1a1a2e;border-radius:0;">
         ${content}
       </table>
     </div>`;
@@ -2035,7 +2035,7 @@ function printForm() {
           purposeRows += '<tr><td style="padding:5px 10px;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">' + addlLabel + '</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + addlBlurbVal + '</td></tr>';
         }
 
-        return '<div style="break-inside:avoid;margin-bottom:14px;"><div style="background:#fff;color:#1a1a2e;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;border:1.5px solid #1a1a2e;border-bottom:none;"><span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Property Type &amp; Purpose</span></div><table style="width:100%;border-collapse:collapse;border:1.5px solid #1a1a2e;border-top:none;border-radius:0 0 4px 4px;">' +
+        return '<div style="break-inside:avoid;margin-bottom:14px;"><div style="background:#fff;color:#1a1a2e;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;border-bottom:2px solid #1a1a2e;"><span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Property Type &amp; Purpose</span></div><table style="width:100%;border-collapse:collapse;border-top:none;border-bottom:1.5px solid #1a1a2e;border-radius:0;">' +
           '<tr><td style="padding:5px 10px;width:38%;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">Property Type</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + propType + '</td></tr>' +
           purposeRows +
           '</table></div>';
@@ -2076,9 +2076,9 @@ function printForm() {
         }).join('');
 
         return '<div style="break-inside:avoid;margin-bottom:14px;">' +
-          '<div style="background:#fff;color:#1a1a2e;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;border:1.5px solid #1a1a2e;border-bottom:none;">' +
+          '<div style="background:#fff;color:#1a1a2e;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;border-bottom:2px solid #1a1a2e;">' +
           '<span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Valuation Fee</span></div>' +
-          '<table style="width:100%;border-collapse:collapse;border:1.5px solid #1a1a2e;border-top:none;border-radius:0 0 4px 4px;">' +
+          '<table style="width:100%;border-collapse:collapse;border-top:none;border-bottom:1.5px solid #1a1a2e;border-radius:0;">' +
           rows + '</table></div>';
       })()}
 
@@ -2087,9 +2087,9 @@ function printForm() {
       ])}
 
       ${section(11, 'Council Rates & Rating Valuation', [
-        row('Land Value', v('c_rv_land')),
-        row('Improvements', v('c_rv_imp')),
-        row('Capital Value', v('c_rv_cv')),
+        row('Land Value', v('c_rv_land') ? '$' + v('c_rv_land') : ''),
+        row('Improvements', v('c_rv_imp') ? '$' + v('c_rv_imp') : ''),
+        row('Capital Value', v('c_rv_cv') ? '$' + v('c_rv_cv') : ''),
         row('Council Rates', v('c_rates_council') ? v('c_rates_council') + ' p.a.' : ''),
         row('HBRC Rates', v('c_rates_hbrc') ? v('c_rates_hbrc') + ' p.a.' : ''),
         row('Mileage', v('c_mileage') ? v('c_mileage') + ' km' : '')
