@@ -2298,8 +2298,6 @@ window.addEventListener('load', function() {
   renderDraftDropdown();
   restoreAutosave();
   // Restore email field (obfuscated to prevent CF injection)
-  const st = document.getElementById('sendTo');
-  if (st && st.dataset.email) st.value = st.dataset.email + '@' + 'myvaluer.net.nz';
   // Pre-initialize MSAL so it's ready when needed
   getMsalInstance().catch(e => console.log('MSAL pre-init:', e));
 });
@@ -3083,7 +3081,7 @@ resetForm = function() {
     </div>
     <div class="field" style="margin-bottom:16px;">
       <label style="font-size:14px;">To</label>
-      <input type="email" id="sendTo" value="" data-email="info" style="width:100%;font-size:16px;"/>
+      <input type="email" id="sendTo" value="" style="width:100%;font-size:16px;"/>
     </div>
     <div class="field" style="margin-bottom:28px;">
       <label style="font-size:14px;">Subject</label>
