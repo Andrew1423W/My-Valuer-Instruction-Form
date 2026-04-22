@@ -1853,10 +1853,10 @@ function printForm() {
         const addlFeeVal = v('c_additional_fee') ? '$' + parseFloat(v('c_additional_fee')).toFixed(2) + ' excl. GST' : '&nbsp;';
 
         let purposeRows = '';
-        // Header row
-        purposeRows += '<tr><td style="padding:5px 10px;width:38%;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">Purpose</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + purposeBlurbVal + '</td></tr>';
+        // Use the selected tab name as the row label
+        purposeRows += '<tr><td style="padding:5px 10px;width:38%;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">' + (purposeLabel || 'Purpose') + '</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + purposeBlurbVal + '</td></tr>';
         if (addlLabel) {
-          purposeRows += '<tr><td style="padding:5px 10px;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">Additional Instruction</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + addlBlurbVal + '</td></tr>';
+          purposeRows += '<tr><td style="padding:5px 10px;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">' + addlLabel + '</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + addlBlurbVal + '</td></tr>';
         }
 
         return '<div style="break-inside:avoid;margin-bottom:14px;"><div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">9-10</span><span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Property Type &amp; Purpose</span></div><table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
