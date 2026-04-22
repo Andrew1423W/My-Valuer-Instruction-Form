@@ -1701,6 +1701,7 @@ function printForm() {
 
   // Purpose
   const purpose = getChecked('purposeGrid') || '';
+  const addlPurpose = getAdditionalPurpose() || '';
   const propType = document.querySelector('#propTypeGrid .check-item.checked')?.textContent?.trim() || '';
 
   // Titles
@@ -1772,21 +1773,21 @@ function printForm() {
       <div style="font-size:12pt;font-weight:700;color:#0e1c35;">${v('c_prop_addr')}</div>
       ${propType ? `<div style="font-size:9pt;color:#555;margin-top:2px;">${propType}</div>` : ''}
     </div>` : ''}
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;">
-      ${v('c_val_ref') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;">
-        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:2px;">Valuation Reference</div>
-        <div style="font-size:10pt;font-weight:700;color:#0e1c35;">${v('c_val_ref')}</div>
-      </div>` : ''}
-      ${v('c_ins_ref') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;">
-        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:2px;">Insurance Reference</div>
-        <div style="font-size:10pt;font-weight:700;color:#0e1c35;">${v('c_ins_ref')}</div>
-      </div>` : ''}
-      ${v('c_prior_ref2') ? `<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;">
-        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:2px;">Prior Reference</div>
-        <div style="font-size:10pt;font-weight:700;color:#0e1c35;">${v('c_prior_ref2')}</div>
-      </div>` : ''}
-      ${dueDateStr ? `<div style="background:#b91c1c;border-radius:6px;padding:7px 12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.8);margin-bottom:2px;">Valuation Due Date</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr${dueDateStr ? ' 1fr' : ''};gap:8px;">
+      <div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;min-height:42px;">
+        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:4px;">Valuation Reference</div>
+        <div style="font-size:10pt;font-weight:700;color:#0e1c35;">${v('c_val_ref') || ''}</div>
+      </div>
+      <div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;min-height:42px;">
+        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:4px;">Insurance Reference</div>
+        <div style="font-size:10pt;font-weight:700;color:#0e1c35;">${v('c_ins_ref') || ''}</div>
+      </div>
+      <div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;min-height:42px;">
+        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:4px;">Prior Reference</div>
+        <div style="font-size:10pt;font-weight:700;color:#0e1c35;">${v('c_prior_ref2') || ''}</div>
+      </div>
+      ${dueDateStr ? `<div style="background:#b91c1c;border-radius:6px;padding:7px 12px;min-height:42px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
+        <div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.8);margin-bottom:4px;">Valuation Due Date</div>
         <div style="font-size:10pt;font-weight:800;color:#fff;">${dueDateStr}</div>
       </div>` : ''}
     </div>
@@ -1805,7 +1806,9 @@ function printForm() {
         row('Taken By', v('c_taken_by')),
         row('VOS Order No.', v('c_vos')),
         row('Valuation Allocated To', v('c_alloc')),
-        row('Prior Reference', v('c_prior_ref'))
+        row('Valuation Reference', v('c_val_ref')),
+        row('Insurance Reference', v('c_ins_ref')),
+        row('Prior Reference', v('c_prior_ref2'))
       ])}
 
       ${section(3, 'Instructor', [
@@ -1850,10 +1853,13 @@ function printForm() {
 
     <div>
       ${section('8b', 'Valuation Fee', [
-        row('Market Report Fee', f1 ? '$' + f1.toFixed(2) + ' excl. GST' : ''),
-        row('Insurance Fee', f2 ? '$' + f2.toFixed(2) + ' excl. GST' : ''),
-        row('GST (15%)', (f1||f2) ? '$' + gst : ''),
-        row('Total incl. GST', (f1||f2) ? '$' + total : '')
+        row('Market Report Fee', f1 ? '$' + f1.toFixed(2) + ' excl. GST' : '&nbsp;'),
+        row('Insurance Fee', f2 ? '$' + f2.toFixed(2) + ' excl. GST' : '&nbsp;'),
+        row('GST (15%)', (f1||f2) ? '$' + gst : '&nbsp;'),
+        row('Total incl. GST', (f1||f2) ? '$' + total : '&nbsp;'),
+        row('Council File', v('c_council_file') || '&nbsp;'),
+        row('Mileage', v('c_mileage') ? v('c_mileage') + ' km' : '&nbsp;'),
+        row('Titles', v('c_fee_titles') || '&nbsp;')
       ])}
 
       ${section(9, 'Property Type', [
@@ -1863,6 +1869,10 @@ function printForm() {
       ${section(10, 'Purpose of Valuation', [
         row('Purpose', purpose)
       ])}
+
+      ${addlPurpose ? section('10b', 'Additional Instruction', [
+        row('Additional Purpose', addlPurpose)
+      ]) : ''}
 
       ${section(11, 'Valuation Notes', [
         row('Notes', v('c_valn_notes'))
