@@ -13,7 +13,7 @@
   font-weight: 400;
 }
 :root {
-  --blue: #7DA6D4;
+  --blue: #7DA7D9;
   --blue-dark: #5A8BBD;
   --blue-light: #A8C5E2;
   --blue-pale: rgba(125,166,212,0.10);
@@ -1727,7 +1727,6 @@ function printForm() {
     return `
     <div style="break-inside:avoid;margin-bottom:14px;">
       <div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">
-        <span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">${num}</span>
         <span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">${title}</span>
       </div>
       <table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">
@@ -1758,7 +1757,7 @@ function printForm() {
 <div class="page">
 
   <!-- Header -->
-  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #7DA6D4;padding-bottom:8px;margin-bottom:16px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid #7DA7D9;padding-bottom:8px;margin-bottom:16px;">
     <img src="${logoSrc}" style="height:40px;" alt="My Valuer"/>
     <div style="text-align:right;">
       <div style="font-size:13pt;font-weight:800;color:#0e1c35;">Valuation Instruction Form</div>
@@ -1768,8 +1767,8 @@ function printForm() {
 
   <!-- Property address + references + due date at top -->
   <div style="margin-bottom:16px;break-inside:avoid;">
-    <div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:8px 14px;margin-bottom:8px;">
-      <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:3px;">Property Address</div>
+    <div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:8px 14px;margin-bottom:8px;">
+      <div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:3px;">Property Address</div>
       <div style="font-size:12pt;font-weight:700;color:#0e1c35;">${v('c_prop_addr') || ''}</div>
       ${propType ? `<div style="font-size:9pt;color:#555;margin-top:2px;">${propType}</div>` : ''}
     </div>
@@ -1777,9 +1776,9 @@ function printForm() {
       const refCols = dueDateStr ? '1fr 1fr 1fr 1fr' : '1fr 1fr 1fr';
       const dueDateCell = dueDateStr ? '<div style="background:#b91c1c;border-radius:6px;padding:7px 12px;min-height:42px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:rgba(255,255,255,0.8);margin-bottom:4px;">Valuation Due Date</div><div style="font-size:10pt;font-weight:800;color:#fff;">' + dueDateStr + '</div></div>' : '';
       return '<div style="display:grid;grid-template-columns:' + refCols + ';gap:8px;">' +
-        '<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:4px;">Valuation Reference</div><div style="font-size:10pt;font-weight:700;color:#0e1c35;">' + (v('c_val_ref')||'') + '</div></div>' +
-        '<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:4px;">Insurance Reference</div><div style="font-size:10pt;font-weight:700;color:#0e1c35;">' + (v('c_ins_ref')||'') + '</div></div>' +
-        '<div style="background:#f4f8fd;border:1.5px solid #7DA6D4;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA6D4;margin-bottom:4px;">Prior Reference</div><div style="font-size:10pt;font-weight:700;color:#0e1c35;">' + (v('c_prior_ref2')||'') + '</div></div>' +
+        '<div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:4px;">Valuation Reference</div><div style="font-size:10pt;font-weight:700;color:#0e1c35;">' + (v('c_val_ref')||'') + '</div></div>' +
+        '<div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:4px;">Insurance Reference</div><div style="font-size:10pt;font-weight:700;color:#0e1c35;">' + (v('c_ins_ref')||'') + '</div></div>' +
+        '<div style="background:#f4f8fd;border:1.5px solid #7DA7D9;border-radius:6px;padding:7px 12px;min-height:42px;"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7DA7D9;margin-bottom:4px;">Prior Reference</div><div style="font-size:10pt;font-weight:700;color:#0e1c35;">' + (v('c_prior_ref2')||'') + '</div></div>' +
         dueDateCell +
         '</div>';
     })() }
@@ -1853,7 +1852,7 @@ function printForm() {
           purposeRows += '<tr><td style="padding:5px 10px;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">' + addlLabel + '</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + addlBlurbVal + '</td></tr>';
         }
 
-        return '<div style="break-inside:avoid;margin-bottom:14px;"><div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">8</span><span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Property Type &amp; Purpose</span></div><table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
+        return '<div style="break-inside:avoid;margin-bottom:14px;"><div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"><span style="background:#7DA7D9;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">8</span><span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Property Type &amp; Purpose</span></div><table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
           '<tr><td style="padding:5px 10px;width:38%;font-weight:600;color:#444;font-size:9.5pt;border-bottom:1px solid #eef2f8;">Property Type</td><td style="padding:5px 10px;font-size:9.5pt;color:#1a1a2e;border-bottom:1px solid #eef2f8;">' + propType + '</td></tr>' +
           purposeRows +
           '</table></div>';
@@ -1895,7 +1894,6 @@ function printForm() {
 
         return '<div style="break-inside:avoid;margin-bottom:14px;">' +
           '<div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">' +
-          '<span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">9</span>' +
           '<span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Valuation Fee</span></div>' +
           '<table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
           rows + '</table></div>';
@@ -1911,12 +1909,11 @@ function printForm() {
         row('Capital Value', v('c_rv_cv')),
         row('Council Rates', v('c_rates_council') ? v('c_rates_council') + ' p.a.' : ''),
         row('HBRC Rates', v('c_rates_hbrc') ? v('c_rates_hbrc') + ' p.a.' : ''),
-        row('Council File', v('c_council_file')),
         row('Mileage', v('c_mileage') ? v('c_mileage') + ' km' : '')
       ])}
 
 
-      ${section(7, 'Terms, Report & Invoice Delivery', [
+      ${section(12, 'Terms, Report & Invoice Delivery', [
         row('Terms of Engagement', [toeD.primary, ...toeD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
         row('Report sent to', [rptD.primary, ...rptD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; ')),
         row('Invoice sent to', [invD.primary, ...invD.extras].map(r=>[r.name,r.email].filter(Boolean).join(' | ')).filter(Boolean).join('; '))
@@ -2187,7 +2184,7 @@ function saveDraft() {
   renderDraftDropdown();
 
   const saveBtn = document.querySelector('#draftPanel button:last-child');
-  if (saveBtn) { const orig = saveBtn.textContent; saveBtn.textContent = '✓ Saved!'; saveBtn.style.background = '#2d7a4f'; setTimeout(() => { saveBtn.textContent = orig; saveBtn.style.background = 'var(--blue,#7da6d4)'; }, 1800); }
+  if (saveBtn) { const orig = saveBtn.textContent; saveBtn.textContent = '✓ Saved!'; saveBtn.style.background = '#2d7a4f'; setTimeout(() => { saveBtn.textContent = orig; saveBtn.style.background = 'var(--blue,#7DA7D9)'; }, 1800); }
 }
 
 function loadDraft(id) {
@@ -2504,7 +2501,7 @@ resetForm = function() {
   <div style="display:flex;align-items:center;gap:10px;">
     <div style="position:relative;">
       <button id="draftMenuBtn" onclick="toggleDraftPanel()" style="background:rgba(125,166,212,0.15);border:1.5px solid rgba(125,166,212,0.35);border-radius:7px;padding:7px 14px;font-family:inherit;font-size:12px;font-weight:600;color:var(--white,#fff);cursor:pointer;display:flex;align-items:center;gap:7px;">
-        📂 Drafts <span id="draftBadge" style="display:none;background:var(--blue,#7da6d4);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;"></span>
+        📂 Drafts <span id="draftBadge" style="display:none;background:var(--blue,#7DA7D9);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px;"></span>
       </button>
       <div id="draftPanel" style="display:none;position:absolute;top:calc(100% + 6px);right:0;width:320px;background:var(--white,#fff);border:1.5px solid var(--border,#dce4ee);border-radius:10px;box-shadow:0 8px 24px rgba(14,28,53,0.12);z-index:1000;overflow:hidden;">
         <div style="padding:10px 16px;background:var(--navy,#0e1c35);display:flex;align-items:center;justify-content:space-between;">
@@ -2513,7 +2510,7 @@ resetForm = function() {
         </div>
         <div id="draftList"></div>
         <div style="padding:10px 16px;border-top:1px solid var(--border,#dce4ee);">
-          <button onclick="saveDraft()" style="width:100%;padding:9px;background:var(--blue,#7da6d4);color:#fff;border:none;border-radius:7px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">💾 Save Current Job as Draft</button>
+          <button onclick="saveDraft()" style="width:100%;padding:9px;background:var(--blue,#7DA7D9);color:#fff;border:none;border-radius:7px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">💾 Save Current Job as Draft</button>
         </div>
       </div>
     </div>
@@ -2528,14 +2525,14 @@ resetForm = function() {
   </div>
 </div>
 
-<div id="autosaveBanner" style="display:none;background:#f0f7ff;border-bottom:2px solid #7DA6D4;padding:10px 24px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+<div id="autosaveBanner" style="display:none;background:#f0f7ff;border-bottom:2px solid #7DA7D9;padding:10px 24px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
   <span style="font-size:13px;font-weight:600;color:#1a3a5c;">💾 Previous session restored<span id="autosaveTime"></span> — would you like to continue where you left off?</span>
   <div style="display:flex;gap:8px;">
-    <button onclick="dismissAutosave(true)" style="background:var(--blue,#7da6d4);border:none;border-radius:6px;padding:6px 16px;font-family:inherit;font-size:12px;font-weight:700;color:#fff;cursor:pointer;">✓ Continue</button>
-    <button onclick="dismissAutosave(false)" style="background:transparent;border:1.5px solid #7DA6D4;border-radius:6px;padding:6px 14px;font-family:inherit;font-size:12px;font-weight:600;color:#1a3a5c;cursor:pointer;">✕ Start Fresh</button>
+    <button onclick="dismissAutosave(true)" style="background:var(--blue,#7DA7D9);border:none;border-radius:6px;padding:6px 16px;font-family:inherit;font-size:12px;font-weight:700;color:#fff;cursor:pointer;">✓ Continue</button>
+    <button onclick="dismissAutosave(false)" style="background:transparent;border:1.5px solid #7DA7D9;border-radius:6px;padding:6px 14px;font-family:inherit;font-size:12px;font-weight:600;color:#1a3a5c;cursor:pointer;">✕ Start Fresh</button>
   </div>
 </div>
-<div id="autosaveToast" style="position:fixed;bottom:20px;right:20px;background:var(--navy,#0e1c35);color:rgba(255,255,255,0.85);font-family:inherit;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;border-left:3px solid var(--blue,#7da6d4);opacity:0;transition:opacity 0.4s;pointer-events:none;z-index:9999;">
+<div id="autosaveToast" style="position:fixed;bottom:20px;right:20px;background:var(--navy,#0e1c35);color:rgba(255,255,255,0.85);font-family:inherit;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;border-left:3px solid var(--blue,#7DA7D9);opacity:0;transition:opacity 0.4s;pointer-events:none;z-index:9999;">
   💾 Autosaved
 </div>
 <div id="restoreBanner" style="display:none;background:#fff8e1;border-bottom:2px solid #c8a44a;padding:10px 36px;align-items:center;justify-content:space-between;gap:12px;">
