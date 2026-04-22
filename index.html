@@ -1865,16 +1865,47 @@ function printForm() {
           '</table></div>';
       })()}
 
-      ${section('8b', 'Valuation Fee', [
-        row('Market Report Fee', f1 ? '$' + f1.toFixed(2) + ' excl. GST' : '&nbsp;'),
-        row('Insurance Fee', f2 ? '$' + f2.toFixed(2) + ' excl. GST' : '&nbsp;'),
-        row('GST (15%)', (f1||f2) ? '$' + gst : '&nbsp;'),
-        row('Total incl. GST', (f1||f2) ? '$' + total : '&nbsp;'),
-        row('Council File', v('c_council_file') || '&nbsp;'),
-        row('Mileage', v('c_mileage') ? v('c_mileage') + ' km' : '&nbsp;'),
-        row('Titles', v('c_fee_titles') || '&nbsp;'),
-        getAdditionalPurpose() ? row('Additional Fee', v('c_additional_fee') ? '$' + parseFloat(v('c_additional_fee')).toFixed(2) + ' excl. GST' : '&nbsp;') : ''
-      ])}
+      ${(function(){
+        const addlFee = getAdditionalPurpose() && v('c_additional_fee') ? parseFloat(v('c_additional_fee')) : 0;
+        const feeRows = [
+          { label: 'Market Report Fee',  val: f1 ? f1.toFixed(2) : '',   suffix: 'excl. GST' },
+          { label: 'Insurance Fee',      val: f2 ? f2.toFixed(2) : '',   suffix: 'excl. GST' },
+          getAdditionalPurpose() ? { label: 'Additional Fee', val: addlFee ? addlFee.toFixed(2) : '', suffix: 'excl. GST' } : null,
+          { label: 'GST (15%)',          val: (f1||f2||addlFee) ? ((f1+f2+addlFee)*0.15).toFixed(2) : '', suffix: '' },
+          { label: 'TOTAL incl. GST',    val: (f1||f2||addlFee) ? ((f1+f2+addlFee)*1.15).toFixed(2) : '', suffix: '', bold: true },
+          { label: 'Council File',       val: v('c_council_file') || '', suffix: '', plain: true },
+          { label: 'Mileage',            val: v('c_mileage') ? v('c_mileage') + ' km' : '', suffix: '', plain: true },
+          { label: 'Titles',             val: v('c_fee_titles') || '', suffix: '', plain: true },
+        ].filter(Boolean);
+
+        const rows = feeRows.map((r, i) => {
+          const isTotal = r.bold;
+          const isLast = i === feeRows.length - 1;
+          const border = isLast ? '' : 'border-bottom:1px solid #eef2f8;';
+          const topBorder = isTotal ? 'border-top:2px solid #0e1c35;' : '';
+          const labelStyle = 'padding:5px 10px;font-size:9pt;font-weight:' + (isTotal ? '800' : '600') + ';color:' + (isTotal ? '#0e1c35' : '#444') + ';' + border + topBorder;
+          const dollarStyle = 'padding:5px 10px;font-size:9pt;text-align:right;color:#555;' + border + topBorder + 'white-space:nowrap;width:30px;';
+          const amtStyle = 'padding:5px 10px;font-size:9pt;text-align:right;font-weight:' + (isTotal ? '800' : '600') + ';color:' + (isTotal ? '#0e1c35' : '#1a1a2e') + ';' + border + topBorder + 'white-space:nowrap;width:80px;';
+          const suffStyle = 'padding:5px 10px;font-size:8pt;color:#888;' + border + topBorder;
+
+          if (r.plain) {
+            return '<tr><td style="' + labelStyle + '">' + r.label + '</td><td colspan="3" style="padding:5px 10px;font-size:9pt;color:#1a1a2e;' + border + '">' + r.val + '</td></tr>';
+          }
+          return '<tr>' +
+            '<td style="' + labelStyle + '">' + r.label + '</td>' +
+            '<td style="' + dollarStyle + '">' + (r.val ? '$' : '') + '</td>' +
+            '<td style="' + amtStyle + '">' + r.val + '</td>' +
+            '<td style="' + suffStyle + '">' + r.suffix + '</td>' +
+            '</tr>';
+        }).join('');
+
+        return '<div style="break-inside:avoid;margin-bottom:14px;">' +
+          '<div style="background:#0e1c35;color:#fff;padding:5px 12px;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:8px;-webkit-print-color-adjust:exact;print-color-adjust:exact;">' +
+          '<span style="background:#7DA6D4;color:#fff;border-radius:50%;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;font-size:8pt;font-weight:700;flex-shrink:0;">8</span>' +
+          '<span style="font-size:9pt;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;">Valuation Fee</span></div>' +
+          '<table style="width:100%;border-collapse:collapse;border:1px solid #dce4ee;border-top:none;border-radius:0 0 4px 4px;">' +
+          rows + '</table></div>';
+      })()}
 
       ${section(11, 'Valuation Notes', [
         row('Notes', v('c_valn_notes'))
