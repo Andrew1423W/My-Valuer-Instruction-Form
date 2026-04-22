@@ -2400,9 +2400,9 @@ document.addEventListener('change', function() {
 });
 
 // Clear drafts on new job (don't auto-delete, just reset form)
-const origReset = resetForm;
+const _origResetForm = resetForm;
 resetForm = function() {
-  origReset();
+  _origResetForm();
   closeDraftPanel();
   localStorage.removeItem(AUTOSAVE_KEY);
   const ab = document.getElementById('autosaveBanner');
