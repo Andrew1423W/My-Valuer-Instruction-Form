@@ -838,10 +838,13 @@ function toggleCheck(cb) {
 }
 
 function calcFee() {
-  const f1 = parseFloat(document.getElementById("c_fee1").value)||0;
-  const f2 = parseFloat(document.getElementById("c_fee2").value)||0;
+  const f1El = document.getElementById("c_fee1");
+  const f2El = document.getElementById("c_fee2");
+  const f1 = f1El ? (parseFloat(f1El.value)||0) : 0;
+  const f2 = f2El ? (parseFloat(f2El.value)||0) : 0;
   const total = (f1+f2)*1.15;
-  document.getElementById("c_total").textContent = "$" + total.toLocaleString("en-NZ",{minimumFractionDigits:2,maximumFractionDigits:2});
+  const tot = document.getElementById("c_total");
+  if (tot) tot.textContent = "$" + total.toLocaleString("en-NZ",{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
 function selectPropType(el) {
@@ -1270,8 +1273,9 @@ function buildEmailHTML() {
   const senderEmail= getSenderEmail();
   const purposeLabel = document.querySelector('#purposeGrid .check-item.checked')?.textContent?.trim() || '';
   const purposeBlurb = v('c_purpose_blurb') || purposeLabel;
-  const addlLabel  = getAdditionalPurpose() ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || '') : '';
-  const addlBlurb  = v('c_additional_purpose_blurb') || addlLabel;
+  const _addlFull  = getAdditionalPurpose();
+  const addlLabel  = _addlFull ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || '') : '';
+  const addlBlurb  = _addlFull || v('c_additional_purpose_blurb') || addlLabel;
   const instNm     = v('c_inst_name');
   const instPh     = v('c_inst_phone');
   const client     = v('c_client_name');
@@ -1364,7 +1368,8 @@ function buildEmailPlain() {
   const dueDate   = v('c_due_date') ? new Date(v('c_due_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
   const purposeLabel = document.querySelector('#purposeGrid .check-item.checked')?.textContent?.trim() || '';
   const purposeBlurb = v('c_purpose_blurb') || purposeLabel;
-  const addlLabel = getAdditionalPurpose() ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || '') : '';
+  const _addlFull = getAdditionalPurpose();
+  const addlLabel = _addlFull ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || '') : '';
   const addlBlurb = v('c_additional_purpose_blurb') || addlLabel;
   const instNm    = v('c_inst_name');
   const instPh    = v('c_inst_phone');
@@ -1500,8 +1505,8 @@ function buildEmailPlain() {
   lines.push(div);
   lines.push('VALUATION FEE');
   lines.push(div);
-  if (f1) lines.push(pad('Market Report Fee', '$' + f1.toFixed(2) + '  excl. GST'));
-  if (f2) lines.push(pad('Insurance Fee',     '$' + f2.toFixed(2) + '  excl. GST'));
+  if (f1) lines.push(pad(purposeLabel || 'Market Report Fee', '$' + f1.toFixed(2) + '  excl. GST'));
+  if (f2) lines.push(pad(addlLabel || 'Additional Fee',       '$' + f2.toFixed(2) + '  excl. GST'));
   if (f1||f2) {
     lines.push('                      ' + '\u2500'.repeat(18));
     lines.push(pad('GST (15%)',         '$' + gst));
@@ -2044,8 +2049,8 @@ function printForm() {
       ${(function(){
         const addlFee = getAdditionalPurpose() && v('c_additional_fee') ? parseFloat(v('c_additional_fee')) : 0;
         const feeRows = [
-          { label: 'Market Report Fee',  val: f1 ? f1.toFixed(2) : '',   suffix: 'excl. GST' },
-          { label: 'Insurance Fee',      val: f2 ? f2.toFixed(2) : '',   suffix: 'excl. GST' },
+          { label: purposeLabel || 'Market Report Fee',  val: f1 ? f1.toFixed(2) : '',   suffix: 'excl. GST' },
+          { label: addlLabel || 'Additional Fee',      val: f2 ? f2.toFixed(2) : '',   suffix: 'excl. GST' },
           getAdditionalPurpose() ? { label: 'Additional Fee', val: addlFee ? addlFee.toFixed(2) : '', suffix: 'excl. GST' } : null,
           { label: 'GST (15%)',          val: (f1||f2||addlFee) ? ((f1+f2+addlFee)*0.15).toFixed(2) : '', suffix: '' },
           { label: 'TOTAL incl. GST',    val: (f1||f2||addlFee) ? ((f1+f2+addlFee)*1.15).toFixed(2) : '', suffix: '', bold: true },
@@ -3003,15 +3008,10 @@ resetForm = function() {
             <div class="field"><label>Valuation Due Date</label><input type="date" id="c_due_date"/></div>
             <div></div>
           </div>
-          <div class="fee-grid">
-            <div class="field" style="margin:0;"><label>1. Market Report Fee (excl. GST)</label><input type="number" id="c_fee1" placeholder="0.00" step="0.01" oninput="calcFee()"/></div>
-            <div class="field" style="margin:0;"><label>2. Insurance Report Fee (excl. GST)</label><input type="number" id="c_fee2" placeholder="0.00" step="0.01" oninput="calcFee()"/></div>
-            <div>
-              <div class="fee-total-box">
-                <span class="fee-total-label">Total incl. GST</span>
-                <div class="fee-total-val" id="c_total">$0.00</div>
-              </div>
-            </div>
+          <div class="fee-grid" style="display:none;">
+            <input type="number" id="c_fee1" style="display:none;" oninput="calcFee()"/>
+            <input type="number" id="c_fee2" style="display:none;" oninput="calcFee()"/>
+            <div id="c_total" style="display:none;">$0.00</div>
           </div>
           <div class="row2" style="margin-top:12px;">
             <div class="field"><label>Council File Purchased?</label><select id="c_council_file"><option value="No">No</option><option value="Yes">Yes</option></select></div>
@@ -3024,9 +3024,11 @@ resetForm = function() {
         </div>
       </div>
 
-      <div class="section">
-        <div class="section-head"><div class="section-num">9</div><h3>Property Type</h3></div>
-        <div class="section-body">
+      <div class="section" style="border:none;background:transparent;box-shadow:none;margin-bottom:8px;">
+        <div style="padding:6px 0 4px 0;border-bottom:1.5px solid var(--border);margin-bottom:10px;">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--grey);">9 &nbsp;·&nbsp; Property Type</span>
+        </div>
+        <div class="section-body" style="padding:0;">
           <div class="check-grid" id="propTypeGrid">
             <div class="check-item checked" onclick="selectPropType(this)">Residential</div>
             <div class="check-item" onclick="selectPropType(this)">Commercial</div>
@@ -3043,9 +3045,11 @@ resetForm = function() {
         </div>
       </div>
 
-      <div class="section">
-        <div class="section-head"><div class="section-num">10</div><h3>Purpose of Valuation</h3></div>
-        <div class="section-body">
+      <div class="section" style="border:none;background:transparent;box-shadow:none;margin-bottom:8px;">
+        <div style="padding:6px 0 4px 0;border-bottom:1.5px solid var(--border);margin-bottom:10px;">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--grey);">Purpose of Valuation</span>
+        </div>
+        <div class="section-body" style="padding:0;">
           <div class="check-grid" id="purposeGrid">
             <div class="check-item checked" onclick="togglePurpose(this)" data-full="To provide a valuation of the property for Mortgage Security purposes">CMV for Mortgage</div>
             <div class="check-item" onclick="togglePurpose(this)" data-full="To provide a valuation of the property for sale purposes">CMV for Sale</div>
@@ -3068,17 +3072,27 @@ resetForm = function() {
           </div>
           <div id="purposeOther" style="display:none;margin-top:8px;">
             <textarea id="c_purpose_other" placeholder="Please specify purpose…" style="width:100%;min-height:70px;resize:vertical;"></textarea>
+            <div class="row2" style="margin-top:8px;">
+              <div class="field"><label>Fee for this valuation (excl. GST)</label><input type="number" id="c_fee1_other" placeholder="0.00" step="0.01" oninput="document.getElementById('c_fee1').value=this.value;calcFee()"/></div>
+              <div class="field"></div>
+            </div>
           </div>
           <div id="purposeBlurb" style="display:none;margin-top:8px;">
             <label style="font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:0.06em;">Purpose statement — edit if required</label>
             <textarea id="c_purpose_blurb" style="width:100%;min-height:72px;resize:vertical;margin-top:4px;font-size:13px;line-height:1.5;" placeholder=""></textarea>
+          </div>
+          <div style="margin-top:10px;">
+            <div class="row2">
+              <div class="field"><label>Fee for this valuation (excl. GST)</label><input type="number" id="c_fee1" placeholder="0.00" step="0.01" oninput="calcFee()"/></div>
+              <div class="field"></div>
+            </div>
           </div>
         </div>
       </div>
 
 
       <div class="section">
-        <div class="section-head"><div class="section-num">10b</div><h3>Additional Instruction</h3></div>
+        <div class="section-head"><div class="section-num">9</div><h3>Additional Instruction</h3></div>
         <div class="section-body">
           <div style="margin-bottom:10px;">
             <label for="c_is_additional" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(125,166,212,0.1);border:2px solid rgba(125,166,212,0.4);border-radius:10px;cursor:pointer;user-select:none;" onmouseover="this.style.background='rgba(125,166,212,0.18)'" onmouseout="this.style.background='rgba(125,166,212,0.1)'">
@@ -3117,18 +3131,24 @@ resetForm = function() {
               <label style="font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:0.06em;">Additional purpose statement — edit if required</label>
               <textarea id="c_additional_purpose_blurb" style="width:100%;min-height:72px;resize:vertical;margin-top:4px;font-size:13px;line-height:1.5;"></textarea>
             </div>
+            <div style="margin-top:10px;">
+              <div class="row2">
+                <div class="field"><label>Fee for this additional valuation (excl. GST)</label><input type="number" id="c_fee2" placeholder="0.00" step="0.01" oninput="calcFee()"/></div>
+                <div class="field"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
       <div class="section">
-        <div class="section-head"><div class="section-num">11</div><h3>Valuation Notes</h3></div>
+        <div class="section-head"><div class="section-num">10</div><h3>Valuation Notes</h3></div>
         <div class="section-body">
           <div class="field"><label>Notes</label><textarea id="c_valn_notes" placeholder="Special instructions, access details, urgency, consented improvements, known issues…" style="min-height:90px;"></textarea></div>
         </div>
       </div>
 
       <div class="section">
-        <div class="section-head"><div class="section-num">12</div><h3>Council Rates &amp; Rating Valuation</h3></div>
+        <div class="section-head"><div class="section-num">11</div><h3>Council Rates &amp; Rating Valuation</h3></div>
         <div class="section-body">
           <div class="rating-grid">
             <span class="rating-label">Land Value</span>
@@ -3146,7 +3166,7 @@ resetForm = function() {
       </div>
 
       <div class="section">
-        <div class="section-head"><div class="section-num">13</div><h3>Title References</h3></div>
+        <div class="section-head"><div class="section-num">12</div><h3>Title References</h3></div>
         <div class="section-body">
           <div class="title-grid">
             <div class="field"><label>Title 1</label><input type="text" id="c_title1" placeholder="e.g. HBK3/456"/></div>
