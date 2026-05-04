@@ -1334,8 +1334,8 @@ function buildEmailHTML() {
     + sec('Terms, Report & Invoice Delivery', [row('Terms of Engagement',fmtD(toeD)),row('Report To',fmtD(rptD)),row('Invoice To',fmtD(invD))])
     + ((apptNm||apptStr) ? sec('Appointment',[row('Contact',apptNm),row('Phone',apptPh),row('Date & Time',apptStr)]) : '')
     + ((f1||f2) ? '<div style="margin-bottom:20px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:'+B+';border-bottom:2px solid '+B+';padding-bottom:5px;margin-bottom:10px;">Valuation Fee</div><table style="width:100%;border-collapse:collapse;">'
-    + (f1?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;width:170px;">Market Report Fee</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;text-align:right;width:16px;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;width:80px;">'+f1.toFixed(2)+'</td><td style="padding:5px 0;font-size:11px;color:#9ca3af;padding-left:8px;">excl. GST</td></tr>':'')
-    + (f2?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">Insurance Fee</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;text-align:right;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;">'+f2.toFixed(2)+'</td><td style="padding:5px 0;font-size:11px;color:#9ca3af;padding-left:8px;">excl. GST</td></tr>':'')
+    + (f1?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;width:170px;">'+(purposeLabel||'Valuation Fee')+'</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;text-align:right;width:16px;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;width:80px;">'+f1.toFixed(2)+'</td><td style="padding:5px 0;font-size:11px;color:#9ca3af;padding-left:8px;">excl. GST</td></tr>':'')
+    + (f2?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">'+(addlLabel||'Additional Fee')+'</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;text-align:right;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;">'+f2.toFixed(2)+'</td><td style="padding:5px 0;font-size:11px;color:#9ca3af;padding-left:8px;">excl. GST</td></tr>':'')
     + '<tr><td colspan="4" style="padding:2px 0;"><hr style="border:none;border-top:1px solid #e5e7eb;margin:0;"/></td></tr>'
     + '<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">GST (15%)</td><td style="padding:5px 0;font-size:12px;text-align:right;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;">'+gst+'</td><td></td></tr>'
     + '<tr style="border-top:2px solid #0e1c35;"><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;">TOTAL incl. GST</td><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;text-align:right;">$</td><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;text-align:right;">'+total+'</td><td></td></tr>'
@@ -1890,6 +1890,8 @@ function printForm() {
   // Purpose
   const purpose = getChecked('purposeGrid') || '';
   const addlPurpose = getAdditionalPurpose() || '';
+  const purposeLabel = document.querySelector('#purposeGrid .check-item.checked')?.textContent?.trim() || 'Valuation Fee';
+  const addlLabel = addlPurpose ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || 'Additional Fee') : '';
   const propType = document.querySelector('#propTypeGrid .check-item.checked')?.textContent?.trim() || '';
 
   // Titles
@@ -2027,8 +2029,7 @@ function printForm() {
     <div>
       ${(function(){
         // Purpose section — compact, always shown
-        const purposeLabel = document.querySelector('#purposeGrid .check-item.checked')?.textContent?.trim() || '';
-        const addlLabel = getAdditionalPurpose() ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || 'Additional') : '';
+        // purposeLabel and addlLabel available from outer scope
         const purposeBlurbVal = v('c_purpose_blurb') || purposeLabel;
         const addlBlurbVal = v('c_additional_purpose_blurb') || addlLabel;
         const addlFeeVal = v('c_additional_fee') ? '$' + parseFloat(v('c_additional_fee')).toFixed(2) + ' excl. GST' : '&nbsp;';
@@ -2119,14 +2120,22 @@ function printForm() {
 </body>
 </html>`;
 
-  // Write to a new window and print
-  const win = window.open('', '_blank');
-  if (win) {
-    try { win.moveTo(0,0); win.resizeTo(screen.availWidth, screen.availHeight); } catch(e) {}
-  win.document.write(html);
-    win.document.close();
-    win.onload = function() { win.print(); };
-  }
+  // Write to a hidden iframe and print (avoids popup blockers)
+  let iframe = document.getElementById('_printFrame');
+  if (iframe) iframe.remove();
+  iframe = document.createElement('iframe');
+  iframe.id = '_printFrame';
+  iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;';
+  document.body.appendChild(iframe);
+  iframe.contentDocument.open();
+  iframe.contentDocument.write(html);
+  iframe.contentDocument.close();
+  iframe.onload = function() {
+    setTimeout(function() {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    }, 500);
+  };
 }
 
 function resetForm() {
