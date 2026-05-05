@@ -1932,7 +1932,7 @@ function printForm() {
 <html>
 <head>
 <meta charset="UTF-8"/>
-<title>Valuation Instruction — ${v('c_prop_addr') || 'My Valuer'}</title>
+<title>${(v('c_prop_addr') || 'Valuation Instruction').replace(/,?\s*\d{4}\s*,?/g,',').replace(/,?\s*New Zealand\s*$/i,'').replace(/,\s*,/g,',').replace(/,\s*$/,'').trim()}</title>
 <style>
   @page { size: A4; margin: 8mm 8mm 8mm 8mm; }
   body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: white; }
@@ -2144,7 +2144,7 @@ function resetForm() {
   document.querySelectorAll(".check-item").forEach(el=>el.classList.remove("checked"));
   document.querySelector("#propTypeGrid .check-item").classList.add("checked");
   document.querySelector("#purposeGrid .check-item").classList.add("checked");
-  document.getElementById("c_total").textContent="$0.00";
+  const totEl = document.getElementById("c_total"); if(totEl) totEl.textContent="$0.00";
   ["c_legal_desc","c_title_no","c_estate","c_area"].forEach(id => {
     const el = document.getElementById(id); if (el) el.value = "";
   });
@@ -2156,8 +2156,29 @@ function resetForm() {
   // Reset all select dropdowns to their first option
   document.querySelectorAll("select").forEach(el => el.selectedIndex = 0);
 
-  // Reset delivery displays
-  ["toe","rpt","inv"].forEach(f => handleDelivery(f, "client"));
+  // Reset delivery displays and clear any extra recipients
+  ["toe","rpt","inv"].forEach(f => {
+    // Clear extra recipient divs
+    const extras = document.getElementById('c_' + f + '_extras');
+    if (extras) extras.innerHTML = '';
+    // Reset "other" fields
+    const nameEl  = document.getElementById('c_' + f + '_name');
+    const emailEl = document.getElementById('c_' + f + '_email');
+    const addrEl  = document.getElementById('c_' + f + '_addr');
+    if (nameEl)  nameEl.value  = '';
+    if (emailEl) emailEl.value = '';
+    if (addrEl)  addrEl.value  = '';
+    // Reset select to "client" and refresh display
+    const sel = document.getElementById('c_' + f + '_sel');
+    if (sel) sel.selectedIndex = 0;
+    handleDelivery(f, 'client');
+  });
+
+  // Reset Additional Instruction
+  const addlCheck = document.getElementById('c_is_additional');
+  if (addlCheck) { addlCheck.checked = false; }
+  const addlFields = document.getElementById('additionalFields');
+  if (addlFields) addlFields.style.display = 'none';
 
   // Reset quote
   const quoteCheck = document.getElementById("c_is_quote");
