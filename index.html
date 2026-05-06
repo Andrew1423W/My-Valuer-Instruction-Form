@@ -911,17 +911,26 @@ function togglePurpose(el) {
   const otherBox  = document.getElementById("purposeOther");
   const blurbBox  = document.getElementById("purposeBlurb");
   const blurbArea = document.getElementById("c_purpose_blurb");
+  const otherArea = document.getElementById("c_purpose_other");
 
   if (txt === "Other") {
     if (otherBox)  otherBox.style.display  = "block";
     if (blurbBox)  blurbBox.style.display  = "none";
-    if (blurbArea) blurbArea.value = "";
-    document.getElementById("c_purpose_other").value = "";
+    // Mirror any existing Other text into the blurb so PDF builders pick it up.
+    if (blurbArea) blurbArea.value = otherArea ? (otherArea.value || "") : "";
   } else {
     if (otherBox)  otherBox.style.display  = "none";
     if (blurbBox)  blurbBox.style.display  = fullText ? "block" : "none";
     if (blurbArea) blurbArea.value = fullText;
   }
+}
+
+// Keeps c_purpose_blurb in sync with c_purpose_other while user types,
+// so the "Other" detail flows through to all PDF/email builders that read c_purpose_blurb.
+function syncPurposeOther() {
+  const otherArea = document.getElementById("c_purpose_other");
+  const blurbArea = document.getElementById("c_purpose_blurb");
+  if (otherArea && blurbArea) blurbArea.value = otherArea.value || "";
 }
 
 function getChecked(gridId) {
@@ -3097,11 +3106,7 @@ resetForm = function() {
             <div class="check-item" onclick="togglePurpose(this)">Other</div>
           </div>
           <div id="purposeOther" style="display:none;margin-top:8px;">
-            <textarea id="c_purpose_other" placeholder="Please specify purpose…" style="width:100%;min-height:70px;resize:vertical;"></textarea>
-            <div class="row2" style="margin-top:8px;">
-              <div class="field"><label>Fee for this valuation (excl. GST)</label><input type="number" id="c_fee1_other" placeholder="0.00" step="0.01" oninput="document.getElementById('c_fee1').value=this.value;calcFee()"/></div>
-              <div class="field"></div>
-            </div>
+            <textarea id="c_purpose_other" placeholder="Please specify purpose…" style="width:100%;min-height:70px;resize:vertical;" oninput="syncPurposeOther()"></textarea>
           </div>
           <div id="purposeBlurb" style="display:none;margin-top:8px;">
             <label style="font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:0.06em;">Purpose statement — edit if required</label>
