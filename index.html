@@ -2629,8 +2629,12 @@ document.addEventListener('click', function(e) {
 // Init badge on load
 window.addEventListener('load', function() {
   renderDraftDropdown();
-  restoreAutosave();
-  // Restore email field (obfuscated to prevent CF injection)
+  // Always start with a fresh, blank form — clear any leftover autosave so the
+  // previous job is not reloaded. Use the Drafts panel or Job Archive to reopen
+  // a saved job deliberately.
+  localStorage.removeItem(AUTOSAVE_KEY);
+  const ab = document.getElementById('autosaveBanner');
+  if (ab) ab.style.display = 'none';
   // Pre-initialize MSAL so it's ready when needed
   getMsalInstance().catch(e => console.log('MSAL pre-init:', e));
 });
@@ -2759,12 +2763,10 @@ function dismissAutosave(keep) {
   }
 }
 
-// Autosave every 5 seconds while there's content
+// Autosave disabled — the form now starts blank on every visit, so there is no
+// session to restore. Deliberate saving is handled by the Drafts panel and the
+// Job Archive instead.
 let _autosaveTimer = null;
-document.addEventListener('input', function() {
-  clearTimeout(_autosaveTimer);
-  _autosaveTimer = setTimeout(doAutosave, 5000);
-});
 
 // Clear drafts on new job (don't auto-delete, just reset form)
 const _origResetForm = resetForm;
