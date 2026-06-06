@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="description" content="My Valuer Limited — valuation instruction intake form for staff. Capture property, client and title details, generate ValuePro summaries, emails and quotes."/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%237DA7D9'/%3E%3Ctext x='16' y='22' font-family='Arial,sans-serif' font-size='18' font-weight='700' text-anchor='middle' fill='%23fff'%3EMV%3C/text%3E%3C/svg%3E"/>
 <script src="https://unpkg.com/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://teams.microsoft.com https://*.teams.microsoft.com https://*.skype.com https://*.sharepoint.com https://*.office.com"/>
 <title>My Valuer — Valuation Instruction Form</title>
@@ -191,6 +193,7 @@ body{
   color:var(--black);
 }
 .check-item:hover{border-color:var(--blue);}
+.check-item:focus-visible{outline:2px solid var(--blue-dark);outline-offset:2px;}
 .check-item.checked{border-color:var(--blue-dark);background:var(--blue);color:var(--white);}
 .check-item input[type=checkbox]{display:none;}
 
@@ -1091,7 +1094,49 @@ Valuation Notes: ${document.getElementById("c_valn_notes").value||"None"}
 Title References: ${[1,2,3,4,5,6].map(n=>document.getElementById("c_title"+n).value).filter(Boolean).join(", ")||"—"}`;
 }
 
+// ── VALIDATION ───────────────────────────────────────────
+function isValidEmail(v) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || '').trim());
+}
+
+// Returns an array of human-readable problems. Empty array means the form is OK.
+function validateForm() {
+  const problems = [];
+  if (!document.getElementById("c_prop_addr").value.trim()) {
+    problems.push("Property Address is required.");
+  }
+  if (!document.querySelector("#purposeGrid .check-item.checked")) {
+    problems.push("Select a Purpose of Valuation.");
+  }
+  // Any email field that has been filled in must be a valid address.
+  [["c_email", "Client email"],
+   ["c_toe_email", "Terms of Engagement email"],
+   ["c_rpt_email", "Report email"],
+   ["c_inv_email", "Invoice email"]].forEach(([id, label]) => {
+    const el = document.getElementById(id);
+    if (el && el.value.trim() && !isValidEmail(el.value)) {
+      problems.push(label + " is not a valid email address.");
+    }
+  });
+  // Additional recipients with an email entered must also be valid.
+  ['toe', 'rpt', 'inv'].forEach(f => {
+    const container = document.getElementById('c_' + f + '_extras');
+    if (!container) return;
+    container.querySelectorAll('input[type=email]').forEach(inp => {
+      if (inp.value.trim() && !isValidEmail(inp.value)) {
+        problems.push("An additional recipient email is not valid: " + inp.value.trim());
+      }
+    });
+  });
+  return problems;
+}
+
 function generateSummary() {
+  const problems = validateForm();
+  if (problems.length) {
+    alert("Please check the following before generating:\n\n• " + problems.join("\n• "));
+    return;
+  }
   const btn = document.getElementById("genBtn");
   btn.disabled = true;
   btn.textContent = "Generating…";
@@ -1161,7 +1206,19 @@ function buildValueProSummary() {
       email: document.getElementById('c_' + f + '_email').value || '—',
       addr:  document.getElementById('c_' + f + '_addr').value  || '—'
     };
-    return { primary, extras: [] };
+    const extras = [];
+    const container = document.getElementById('c_' + f + '_extras');
+    if (container) {
+      container.querySelectorAll('div').forEach(d => {
+        const inp = d.querySelectorAll('input');
+        if (inp.length >= 2) {
+          const nm = inp[0]?.value?.trim();
+          const em = inp[1]?.value?.trim();
+          if (nm || em) extras.push({ name: nm || '', email: em || '' });
+        }
+      });
+    }
+    return { primary, extras };
   };
   const toeD = getDelivery('toe');
   const rptD = getDelivery('rpt');
@@ -1598,6 +1655,10 @@ function closeSendDialog() {
 async function doSendEmail() {
   const to        = document.getElementById("sendTo").value;
   const subject   = document.getElementById("sendSubject").value;
+  if (!isValidEmail(to)) {
+    alert("Please enter a valid recipient email address before sending.");
+    return;
+  }
   const plainBody = buildEmailPlain();
   const htmlBody  = buildEmailHTML();
   closeSendDialog();
@@ -1812,6 +1873,10 @@ function openQuoteEmail() {
   const prop        = document.getElementById("c_prop_addr").value || "Property";
   const client      = document.getElementById("c_client_name").value || "";
   const clientEmail = document.getElementById("c_email").value || "";
+  if (!isValidEmail(clientEmail)) {
+    alert("Please enter a valid Client email address before sending a quote.");
+    return;
+  }
   const quoteFee    = parseFloat(document.getElementById("c_quote_fee").value)||0;
   const quoteExpiry = document.getElementById("c_quote_expiry").value;
   const sender      = getSenderName();
@@ -2299,6 +2364,34 @@ function refreshDeliveryDisplays() {
 window.addEventListener('load', function() {
   setTimeout(refreshDeliveryDisplays, 100);
 });
+
+// ── ACCESSIBILITY: make .check-item chips keyboard-operable ──
+// The chips are <div onclick> elements; expose them as buttons and let
+// Enter/Space activate them so the form is usable without a mouse.
+function initChipAccessibility() {
+  document.querySelectorAll('.check-item').forEach(el => {
+    if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+    if (!el.hasAttribute('role'))     el.setAttribute('role', 'button');
+    el.setAttribute('aria-pressed', el.classList.contains('checked') ? 'true' : 'false');
+  });
+}
+// Delegated keydown — works for any chip, including those added later.
+document.addEventListener('keydown', function(e) {
+  if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') &&
+      e.target.classList && e.target.classList.contains('check-item')) {
+    e.preventDefault();
+    e.target.click();
+  }
+});
+// Keep aria-pressed in sync after any chip is clicked.
+document.addEventListener('click', function(e) {
+  const chip = e.target.closest && e.target.closest('.check-item');
+  if (!chip) return;
+  const grid = chip.closest('.check-grid');
+  if (grid) grid.querySelectorAll('.check-item').forEach(c =>
+    c.setAttribute('aria-pressed', c.classList.contains('checked') ? 'true' : 'false'));
+});
+window.addEventListener('load', initChipAccessibility);
 
 // ── ADDITIONAL DELIVERY RECIPIENTS ───────────────────────
 function addDeliveryRecipient(field) {
@@ -3136,7 +3229,7 @@ resetForm = function() {
 
 
       <div class="section">
-        <div class="section-head"><div class="section-num">9</div><h3>Additional Instruction</h3></div>
+        <div class="section-head"><div class="section-num">10</div><h3>Additional Instruction</h3></div>
         <div class="section-body">
           <div style="margin-bottom:10px;">
             <label for="c_is_additional" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(125,166,212,0.1);border:2px solid rgba(125,166,212,0.4);border-radius:10px;cursor:pointer;user-select:none;" onmouseover="this.style.background='rgba(125,166,212,0.18)'" onmouseout="this.style.background='rgba(125,166,212,0.1)'">
@@ -3185,14 +3278,14 @@ resetForm = function() {
         </div>
       </div>
       <div class="section">
-        <div class="section-head"><div class="section-num">10</div><h3>Valuation Notes</h3></div>
+        <div class="section-head"><div class="section-num">11</div><h3>Valuation Notes</h3></div>
         <div class="section-body">
           <div class="field"><label>Notes</label><textarea id="c_valn_notes" placeholder="Special instructions, access details, urgency, consented improvements, known issues…" style="min-height:90px;"></textarea></div>
         </div>
       </div>
 
       <div class="section">
-        <div class="section-head"><div class="section-num">11</div><h3>Council Rates &amp; Rating Valuation</h3></div>
+        <div class="section-head"><div class="section-num">12</div><h3>Council Rates &amp; Rating Valuation</h3></div>
         <div class="section-body">
           <div class="rating-grid">
             <span class="rating-label">Land Value</span>
@@ -3210,7 +3303,7 @@ resetForm = function() {
       </div>
 
       <div class="section">
-        <div class="section-head"><div class="section-num">12</div><h3>Title References</h3></div>
+        <div class="section-head"><div class="section-num">13</div><h3>Title References</h3></div>
         <div class="section-body">
           <div class="title-grid">
             <div class="field"><label>Title 1</label><input type="text" id="c_title1" placeholder="e.g. HBK3/456"/></div>
