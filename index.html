@@ -456,6 +456,18 @@ async function getGraphToken() {
   return result.accessToken;
 }
 
+// Silent-only token — returns null instead of showing a login popup.
+// Used by the returning-client lookup so it never interrupts data entry.
+async function getGraphTokenSilent() {
+  try {
+    const msal = await getMsalInstance();
+    const accounts = msal.getAllAccounts();
+    if (!accounts.length) return null;
+    const result = await msal.acquireTokenSilent({ scopes: GRAPH_SCOPES, account: accounts[0] });
+    return result.accessToken;
+  } catch (e) { return null; }
+}
+
 async function sendViaGraph(to, subject, body, cc) {
   const token = await getGraphToken();
   const message = {
@@ -494,9 +506,9 @@ const SP_LIST_NAME = 'Valuation Instructions';
 let _spSiteId = null;
 let _spListId = null;
 
-async function getSPIds() {
+async function getSPIds(token) {
   if (_spSiteId && _spListId) return { siteId: _spSiteId, listId: _spListId };
-  const token = await getGraphToken();
+  if (!token) token = await getGraphToken();
   const headers = { 'Authorization': 'Bearer ' + token };
 
   // Get site ID
@@ -534,6 +546,7 @@ async function saveJobToSharePoint() {
       ClientName:       v('c_client_name'),
       ClientEmail:      v('c_email'),
       ClientPhone:      v('c_client_phone'),
+      ClientAddress:    v('c_client_addr'),
       Borrower:         v('c_borrower'),
       LegalDescription: v('c_legal_desc'),
       TitleNo:          v('c_title_no'),
@@ -550,12 +563,20 @@ async function saveJobToSharePoint() {
       IsQuote:          document.getElementById('c_is_quote')?.checked ? 'Yes' : 'No'
     };
 
-    const resp = await fetch('https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId + '/items', {
+    const url = 'https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId + '/items';
+    const post = (body) => fetch(url, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields })
+      body: JSON.stringify({ fields: body })
     });
 
+    let resp = await post(fields);
+    if (!resp.ok) {
+      // A newer optional column (e.g. ClientAddress) may not exist in the list yet —
+      // retry without it so the job still archives.
+      const { ClientAddress, ...core } = fields;
+      resp = await post(core);
+    }
     if (!resp.ok) throw new Error(await resp.text());
     return true;
   } catch(err) {
@@ -578,6 +599,92 @@ async function searchJobsInSharePoint(query) {
   const data = await resp.json();
   return data.value || [];
 }
+
+// ── RETURNING-CLIENT LOOKUP ──────────────────────────────
+// Finds past jobs for the same client by name OR phone. Uses a silent token
+// only, so it never triggers a Microsoft login popup during data entry.
+async function findClientMatches(name, phone) {
+  const token = await getGraphTokenSilent();
+  if (!token) return [];                        // not signed in — skip quietly
+  const { siteId, listId } = await getSPIds(token);
+  const esc = s => String(s).replace(/'/g, "''");
+  const clauses = [];
+  if (name)  clauses.push("fields/ClientName eq '"  + esc(name)  + "'");
+  if (phone) clauses.push("fields/ClientPhone eq '" + esc(phone) + "'");
+  if (!clauses.length) return [];
+  const url = 'https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId +
+              '/items?expand=fields&$top=25&$filter=' + encodeURIComponent(clauses.join(' or '));
+  const resp = await fetch(url, { headers: {
+    'Authorization': 'Bearer ' + token,
+    // Allow filtering on non-indexed columns (small lists)
+    'Prefer': 'HonorNonIndexedQueriesWarningMayFailRandomly'
+  }});
+  if (!resp.ok) throw new Error('Client lookup failed (' + resp.status + ')');
+  const data = await resp.json();
+  const items = data.value || [];
+  items.sort((a, b) => new Date(b.createdDateTime) - new Date(a.createdDateTime));
+  return items;
+}
+
+let _lastClientLookup = '';
+let _pendingClientMatch = null;
+
+// Triggered when the user leaves the Client Name or Phone field.
+async function checkReturningClient() {
+  const name  = (document.getElementById('c_client_name')?.value  || '').trim();
+  const phone = (document.getElementById('c_client_phone')?.value || '').trim();
+  // Need something substantial to match on
+  if (name.length < 3 && phone.replace(/\D/g, '').length < 6) return;
+  const key = name.toLowerCase() + '|' + phone;
+  if (key === _lastClientLookup) return;        // already checked this combo
+  _lastClientLookup = key;
+  try {
+    const matches = await findClientMatches(name, phone);
+    if (!matches.length) return;
+    _pendingClientMatch = matches[0].fields;    // most recent
+    showClientPrompt(_pendingClientMatch);
+  } catch (e) { console.log('Returning-client lookup skipped:', e.message); }
+}
+
+function showClientPrompt(f) {
+  const banner = document.getElementById('clientMatchBanner');
+  if (!banner) return;
+  document.getElementById('clientMatchText').textContent =
+    "We've worked with " + (f.ClientName || 'this client') +
+    " before — fill in their saved contact details?";
+  banner.style.display = 'flex';
+}
+
+function dismissClientPrompt() {
+  const b = document.getElementById('clientMatchBanner');
+  if (b) b.style.display = 'none';
+}
+
+// Fill only the fields that are still empty, so nothing the user typed is lost.
+function fillClientFromPast() {
+  const f = _pendingClientMatch;
+  if (!f) { dismissClientPrompt(); return; }
+  const fill = (id, val) => {
+    const el = document.getElementById(id);
+    if (el && val && !el.value.trim()) el.value = val;
+  };
+  fill('c_client_name',  f.ClientName);
+  fill('c_email',        f.ClientEmail);
+  fill('c_client_phone', f.ClientPhone);
+  fill('c_client_addr',  f.ClientAddress);
+  fill('c_borrower',     f.Borrower);
+  fill('c_inst_name',    f.InstructorName);
+  fill('c_inst_phone',   f.InstructorPhone);
+  if (typeof refreshDeliveryDisplays === 'function') refreshDeliveryDisplays();
+  dismissClientPrompt();
+}
+
+// Robust binding via capture (blur does not bubble).
+document.addEventListener('blur', function (e) {
+  if (e.target && (e.target.id === 'c_client_name' || e.target.id === 'c_client_phone')) {
+    checkReturningClient();
+  }
+}, true);
 
 async function loadJobFromSharePoint(itemId) {
   const { siteId, listId } = await getSPIds();
@@ -2868,6 +2975,13 @@ resetForm = function() {
 </div>
 <div id="autosaveToast" style="position:fixed;bottom:20px;right:20px;background:var(--navy,#0e1c35);color:rgba(255,255,255,0.85);font-family:inherit;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;border-left:3px solid var(--blue,#7DA7D9);opacity:0;transition:opacity 0.4s;pointer-events:none;z-index:9999;">
   💾 Autosaved
+</div>
+<div id="clientMatchBanner" style="display:none;background:#eef6ee;border-bottom:2px solid #2d7a4f;padding:10px 24px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+  <span id="clientMatchText" style="font-size:13px;font-weight:700;color:#1d4d31;">👤 Returning client found.</span>
+  <div style="display:flex;gap:8px;">
+    <button onclick="fillClientFromPast()" style="background:#2d7a4f;border:none;border-radius:6px;padding:6px 16px;font-family:inherit;font-size:12px;font-weight:700;color:#fff;cursor:pointer;">✓ Fill details</button>
+    <button onclick="dismissClientPrompt()" style="background:transparent;border:1.5px solid #2d7a4f;border-radius:6px;padding:6px 14px;font-family:inherit;font-size:12px;font-weight:600;color:#1d4d31;cursor:pointer;">✕ Dismiss</button>
+  </div>
 </div>
 <div id="restoreBanner" style="display:none;background:#fff8e1;border-bottom:2px solid #c8a44a;padding:10px 36px;align-items:center;justify-content:space-between;gap:12px;">
   <span style="font-size:13px;font-weight:600;color:#5a3e00;">💾 Unsaved draft restored — your previous job entry has been reloaded.</span>
