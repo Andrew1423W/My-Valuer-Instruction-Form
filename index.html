@@ -660,23 +660,30 @@ async function saveJobToSharePoint() {
       toSend = fields; // couldn't read columns — send as-is and rely on fallback
     }
 
-    const url = 'https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId + '/items';
-    const post = (body) => fetch(url, {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fields: body })
-    });
+    const base = 'https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId;
+    const hdr = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' };
 
-    let resp = await post(toSend);
-    if (!resp.ok) {
-      // Fallback: retry with only text-type columns (plus Title) so a single
-      // mis-typed/strict column never blocks the whole save.
-      const safe = { Title: toSend.Title };
-      if (cols) Object.keys(toSend).forEach(k => { if (cols.get(k) === 'text') safe[k] = toSend[k]; });
-      resp = await post(safe);
+    // 1) Try to create the whole row in one go.
+    let resp = await fetch(base + '/items', { method: 'POST', headers: hdr, body: JSON.stringify({ fields: toSend }) });
+    if (resp.ok) return { skipped: [] };
+
+    // 2) It failed — create the row with just the property address, then add
+    //    each field individually, skipping (and recording) any column that the
+    //    list rejects. This guarantees the job saves and shows which column is
+    //    the troublemaker.
+    const createResp = await fetch(base + '/items', { method: 'POST', headers: hdr, body: JSON.stringify({ fields: { Title: toSend.Title } }) });
+    if (!createResp.ok) throw new Error(await createResp.text());
+    const itemId = (await createResp.json()).id;
+
+    const skipped = [];
+    for (const k of Object.keys(toSend)) {
+      if (k === 'Title') continue;
+      const r = await fetch(base + '/items/' + itemId + '/fields', {
+        method: 'PATCH', headers: hdr, body: JSON.stringify({ [k]: toSend[k] })
+      });
+      if (!r.ok) skipped.push(k);
     }
-    if (!resp.ok) throw new Error(await resp.text());
-    return true;
+    return { skipped };
   } catch(err) {
     console.error('SharePoint save error:', err);
     throw err;
@@ -1551,7 +1558,13 @@ function generateSummary() {
   if (document.getElementById('c_prop_addr').value) {
     showSPStatus('☁ Saving job to SharePoint…', 'info');
     saveJobToSharePoint()
-      .then(() => showSPStatus('✓ Job saved to SharePoint', 'ok'))
+      .then(res => {
+        if (res && res.skipped && res.skipped.length) {
+          showSPStatus('✓ Job saved, but these columns were rejected (likely wrong type — should be "Single line of text"): ' + res.skipped.join(', '), 'err');
+        } else {
+          showSPStatus('✓ Job saved to SharePoint', 'ok');
+        }
+      })
       .catch(err => showSPStatus('⚠ SharePoint save failed: ' + (err && err.message ? err.message : 'unknown error') + ' — try the "Connect SharePoint" button.', 'err'));
   }
 }
