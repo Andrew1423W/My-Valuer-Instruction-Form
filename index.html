@@ -627,7 +627,8 @@ async function findClientMatches(name, phone) {
 }
 
 let _lastClientLookup = '';
-let _pendingClientMatch = null;
+let _pendingClientMatch = null;   // default client fields (most recent job)
+let _clientProps = [];            // distinct past properties for this client
 
 // Triggered when the user leaves the Client Name or Phone field.
 async function checkReturningClient() {
@@ -641,17 +642,51 @@ async function checkReturningClient() {
   try {
     const matches = await findClientMatches(name, phone);
     if (!matches.length) return;
-    _pendingClientMatch = matches[0].fields;    // most recent
-    showClientPrompt(_pendingClientMatch);
+    showClientPrompt(matches);
   } catch (e) { console.log('Returning-client lookup skipped:', e.message); }
 }
 
-function showClientPrompt(f) {
+function _escAttr(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// matches: array of list items (each with .fields), newest first.
+function showClientPrompt(matches) {
   const banner = document.getElementById('clientMatchBanner');
   if (!banner) return;
-  document.getElementById('clientMatchText').textContent =
-    "We've worked with " + (f.ClientName || 'this client') +
-    " before — fill in their saved contact details?";
+  // Reduce to distinct properties (by address), keeping the newest job per property.
+  const byProp = {};
+  matches.forEach(m => {
+    const f = m.fields || m;
+    const k = (f.Title || '').trim().toLowerCase();
+    if (!(k in byProp)) byProp[k] = f;
+  });
+  _clientProps = Object.values(byProp);
+  _pendingClientMatch = _clientProps[0];
+  const clientName = _pendingClientMatch.ClientName || 'this client';
+  const txt = document.getElementById('clientMatchText');
+  const propBox = document.getElementById('clientMatchProps');
+
+  if (_clientProps.length <= 1) {
+    txt.textContent = "We've worked with " + clientName + " before — fill in their saved details?";
+    propBox.style.display = 'none';
+    propBox.innerHTML = '';
+  } else {
+    txt.textContent = clientName + " has " + _clientProps.length +
+      " properties on file — choose one to load, or fill client details only:";
+    let opts = '<option value="">— Client details only —</option>';
+    _clientProps.forEach((f, i) => {
+      let label = f.Title || 'No address';
+      if (f.InstructionDate) label += '  ·  ' + f.InstructionDate;
+      opts += '<option value="' + i + '">' + _escAttr(label) + '</option>';
+    });
+    propBox.innerHTML =
+      '<select id="clientMatchPropSelect" style="width:100%;max-width:520px;padding:7px 10px;' +
+      'border:1.5px solid #2d7a4f;border-radius:6px;font-family:inherit;font-size:13px;' +
+      'background:#fff;color:#1d4d31;font-weight:600;">' + opts + '</select>';
+    propBox.style.display = 'block';
+  }
   banner.style.display = 'flex';
 }
 
@@ -662,12 +697,17 @@ function dismissClientPrompt() {
 
 // Fill only the fields that are still empty, so nothing the user typed is lost.
 function fillClientFromPast() {
-  const f = _pendingClientMatch;
+  let f = _pendingClientMatch;
+  const sel = document.getElementById('clientMatchPropSelect');
+  const propChosen = sel && sel.value !== '';
+  if (propChosen) f = _clientProps[parseInt(sel.value, 10)] || f;
   if (!f) { dismissClientPrompt(); return; }
+
   const fill = (id, val) => {
     const el = document.getElementById(id);
     if (el && val && !el.value.trim()) el.value = val;
   };
+  // Client contact details (always)
   fill('c_client_name',  f.ClientName);
   fill('c_email',        f.ClientEmail);
   fill('c_client_phone', f.ClientPhone);
@@ -675,7 +715,23 @@ function fillClientFromPast() {
   fill('c_borrower',     f.Borrower);
   fill('c_inst_name',    f.InstructorName);
   fill('c_inst_phone',   f.InstructorPhone);
+
+  // Property details — only when a specific property was chosen from the list.
+  if (propChosen) {
+    fill('c_prop_addr',     f.Title);
+    fill('c_title_no',      f.TitleNo);
+    fill('c_legal_desc',    f.LegalDescription);
+    fill('c_area',          f.Area);
+    fill('c_rv_land',       f.LandValue);
+    fill('c_rv_cv',         f.CapitalValue);
+    fill('c_rates_council', f.CouncilRates);
+    if (f.TitleNo) {
+      f.TitleNo.split(',').map(t => t.trim()).filter(Boolean)
+        .forEach((t, i) => fill('c_title' + (i + 1), t));
+    }
+  }
   if (typeof refreshDeliveryDisplays === 'function') refreshDeliveryDisplays();
+  if (typeof calcFee === 'function') calcFee();
   dismissClientPrompt();
 }
 
@@ -2977,7 +3033,10 @@ resetForm = function() {
   💾 Autosaved
 </div>
 <div id="clientMatchBanner" style="display:none;background:#eef6ee;border-bottom:2px solid #2d7a4f;padding:10px 24px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-  <span id="clientMatchText" style="font-size:13px;font-weight:700;color:#1d4d31;">👤 Returning client found.</span>
+  <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:240px;">
+    <span id="clientMatchText" style="font-size:13px;font-weight:700;color:#1d4d31;">👤 Returning client found.</span>
+    <div id="clientMatchProps" style="display:none;"></div>
+  </div>
   <div style="display:flex;gap:8px;">
     <button onclick="fillClientFromPast()" style="background:#2d7a4f;border:none;border-radius:6px;padding:6px 16px;font-family:inherit;font-size:12px;font-weight:700;color:#fff;cursor:pointer;">✓ Fill details</button>
     <button onclick="dismissClientPrompt()" style="background:transparent;border:1.5px solid #2d7a4f;border-radius:6px;padding:6px 14px;font-family:inherit;font-size:12px;font-weight:600;color:#1d4d31;cursor:pointer;">✕ Dismiss</button>
