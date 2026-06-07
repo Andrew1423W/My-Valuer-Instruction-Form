@@ -845,7 +845,7 @@ function showMatchPrompt(entity, matches) {
       opts += '<option value="' + i + '">' + _escAttr(lab) + '</option>';
     });
     propBox.innerHTML =
-      '<select id="clientMatchPropSelect" style="width:100%;max-width:520px;padding:7px 10px;' +
+      '<select id="clientMatchPropSelect" onchange="if(this.value!==\'\')fillClientFromPast()" style="width:100%;max-width:520px;padding:7px 10px;' +
       'border:1.5px solid #2d7a4f;border-radius:6px;font-family:inherit;font-size:13px;' +
       'background:#fff;color:#1d4d31;font-weight:600;">' + opts + '</select>';
     propBox.style.display = 'block';
