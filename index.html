@@ -732,8 +732,61 @@ async function findClientMatches(name, phone) {
 }
 
 let _lastClientLookup = '';
-let _pendingClientMatch = null;   // default client fields (most recent job)
-let _clientProps = [];            // distinct past properties for this client
+let _matchEntity = 'client';      // 'client' | 'instructor'
+let _matchDefault = null;         // most-recent matching job's fields
+let _clientProps = [];            // distinct past properties (with an address)
+
+// Generic exact-match lookup on a column (silent token — never shows a popup).
+async function findMatchesByColumn(column, value) {
+  const token = await getGraphTokenSilent();
+  if (!token) return [];
+  const { siteId, listId } = await getSPIds(token);
+  const cols = await getSPColumns(token);
+  if (cols && !cols.has(column)) return [];
+  const esc = String(value).replace(/'/g, "''");
+  const url = 'https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId +
+    '/items?expand=fields&$top=50&$filter=' + encodeURIComponent("fields/" + column + " eq '" + esc + "'");
+  const resp = await fetch(url, { headers: {
+    'Authorization': 'Bearer ' + token,
+    'Prefer': 'HonorNonIndexedQueriesWarningMayFailRandomly'
+  }});
+  if (!resp.ok) return [];
+  const data = await resp.json();
+  const items = data.value || [];
+  items.sort((a, b) => new Date(b.createdDateTime) - new Date(a.createdDateTime));
+  return items;
+}
+
+// Field fillers — only fill blank fields so nothing already typed is overwritten.
+function _fillField(id, val) {
+  const el = document.getElementById(id);
+  if (el && val && !el.value.trim()) el.value = val;
+}
+function fillClientContact(f) {
+  if (!f) return;
+  _fillField('c_client_name',  f.ClientName);
+  _fillField('c_email',        f.ClientEmail);
+  _fillField('c_client_phone', f.ClientPhone);
+  _fillField('c_client_addr',  f.ClientAddress);
+  _fillField('c_borrower',     f.Borrower);
+}
+function fillInstructorContact(f) {
+  if (!f) return;
+  _fillField('c_inst_name',  f.InstructorName);
+  _fillField('c_inst_phone', f.InstructorPhone);
+}
+function fillPropertyFields(f) {
+  if (!f) return;
+  _fillField('c_prop_addr',     f.Title);
+  _fillField('c_title_no',      f.TitleNo);
+  _fillField('c_legal_desc',    f.LegalDescription);
+  _fillField('c_area',          f.Area);
+  _fillField('c_rv_land',       f.LandValue);
+  _fillField('c_rv_cv',         f.CapitalValue);
+  _fillField('c_rates_council', f.CouncilRates);
+  if (f.TitleNo) f.TitleNo.split(',').map(t => t.trim()).filter(Boolean)
+    .forEach((t, i) => _fillField('c_title' + (i + 1), t));
+}
 
 // Triggered when the user leaves the Client Name or Phone field.
 async function checkReturningClient() {
@@ -747,7 +800,7 @@ async function checkReturningClient() {
   try {
     const matches = await findClientMatches(name, phone);
     if (!matches.length) return;
-    showClientPrompt(matches);
+    showMatchPrompt('client', matches);
   } catch (e) { console.log('Returning-client lookup skipped:', e.message); }
 }
 
@@ -756,35 +809,40 @@ function _escAttr(s) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
-// matches: array of list items (each with .fields), newest first.
-function showClientPrompt(matches) {
+// Show the green banner for a matched client OR instructor, with a dropdown of
+// their past properties. entity = 'client' | 'instructor'.
+function showMatchPrompt(entity, matches) {
   const banner = document.getElementById('clientMatchBanner');
   if (!banner) return;
-  // Reduce to distinct properties (by address), keeping the newest job per property.
+  _matchEntity = entity;
+  _matchDefault = matches[0].fields || matches[0];
+  // Distinct properties (by address), keeping the newest job per property.
   const byProp = {};
   matches.forEach(m => {
     const f = m.fields || m;
     const k = (f.Title || '').trim().toLowerCase();
-    if (!(k in byProp)) byProp[k] = f;
+    if (k && !(k in byProp)) byProp[k] = f;
   });
   _clientProps = Object.values(byProp);
-  _pendingClientMatch = _clientProps[0];
-  const clientName = _pendingClientMatch.ClientName || 'this client';
+  const label = entity === 'instructor' ? 'instructor' : 'client';
+  const who = (entity === 'instructor' ? _matchDefault.InstructorName : _matchDefault.ClientName) || ('this ' + label);
   const txt = document.getElementById('clientMatchText');
   const propBox = document.getElementById('clientMatchProps');
 
-  if (_clientProps.length <= 1) {
-    txt.textContent = "We've worked with " + clientName + " before — fill in their saved details?";
+  if (_clientProps.length === 0) {
+    txt.textContent = "We've worked with " + who + " before — fill in their saved details?";
     propBox.style.display = 'none';
     propBox.innerHTML = '';
   } else {
-    txt.textContent = clientName + " has " + _clientProps.length +
-      " properties on file — choose one to load, or fill client details only:";
-    let opts = '<option value="">— Client details only —</option>';
+    const n = _clientProps.length;
+    txt.textContent = who + ' has ' + n + ' propert' + (n === 1 ? 'y' : 'ies') +
+      ' on file — choose one to load the full job, or fill ' + label + ' details only:';
+    const detailLabel = label.charAt(0).toUpperCase() + label.slice(1) + ' details only';
+    let opts = '<option value="">— ' + detailLabel + ' —</option>';
     _clientProps.forEach((f, i) => {
-      let label = f.Title || 'No address';
-      if (f.InstructionDate) label += '  ·  ' + f.InstructionDate;
-      opts += '<option value="' + i + '">' + _escAttr(label) + '</option>';
+      let lab = f.Title || 'No address';
+      if (f.InstructionDate) lab += '  ·  ' + f.InstructionDate;
+      opts += '<option value="' + i + '">' + _escAttr(lab) + '</option>';
     });
     propBox.innerHTML =
       '<select id="clientMatchPropSelect" style="width:100%;max-width:520px;padding:7px 10px;' +
@@ -800,46 +858,24 @@ function dismissClientPrompt() {
   if (b) b.style.display = 'none';
 }
 
-// Shared fill — only fills blank fields, so nothing already typed is overwritten.
-function fillClientFields(f, includeProperty) {
-  if (!f) return;
-  const fill = (id, val) => {
-    const el = document.getElementById(id);
-    if (el && val && !el.value.trim()) el.value = val;
-  };
-  fill('c_client_name',  f.ClientName);
-  fill('c_email',        f.ClientEmail);
-  fill('c_client_phone', f.ClientPhone);
-  fill('c_client_addr',  f.ClientAddress);
-  fill('c_borrower',     f.Borrower);
-  fill('c_inst_name',    f.InstructorName);
-  fill('c_inst_phone',   f.InstructorPhone);
-  if (includeProperty) {
-    fill('c_prop_addr',     f.Title);
-    fill('c_title_no',      f.TitleNo);
-    fill('c_legal_desc',    f.LegalDescription);
-    fill('c_area',          f.Area);
-    fill('c_rv_land',       f.LandValue);
-    fill('c_rv_cv',         f.CapitalValue);
-    fill('c_rates_council', f.CouncilRates);
-    if (f.TitleNo) {
-      f.TitleNo.split(',').map(t => t.trim()).filter(Boolean)
-        .forEach((t, i) => fill('c_title' + (i + 1), t));
-    }
-  }
-  if (typeof refreshDeliveryDisplays === 'function') refreshDeliveryDisplays();
-  if (typeof calcFee === 'function') calcFee();
-}
-
 // "Fill details" button on the green banner.
 function fillClientFromPast() {
   const sel = document.getElementById('clientMatchPropSelect');
   const propChosen = sel && sel.value !== '';
-  const single = _clientProps.length === 1;
-  let f = _pendingClientMatch;
-  if (propChosen) f = _clientProps[parseInt(sel.value, 10)] || f;
-  else if (single) f = _clientProps[0];
-  fillClientFields(f, propChosen || single);
+  if (propChosen) {
+    // Load the full past job: client + instructor + property.
+    const f = _clientProps[parseInt(sel.value, 10)];
+    fillClientContact(f);
+    fillInstructorContact(f);
+    fillPropertyFields(f);
+  } else if (_matchEntity === 'instructor') {
+    // Instructor details only — never auto-fill a client (they differ per job).
+    fillInstructorContact(_matchDefault);
+  } else {
+    fillClientContact(_matchDefault);
+  }
+  if (typeof refreshDeliveryDisplays === 'function') refreshDeliveryDisplays();
+  if (typeof calcFee === 'function') calcFee();
   dismissClientPrompt();
 }
 
@@ -921,9 +957,7 @@ function attachAutocomplete(inputId, column, onPick) {
         });
         const rows = [...seen.values()].map(g => ({
           value: g.value,
-          sub: column === 'ClientName'
-            ? (g.count > 1 ? g.count + ' properties on file' : '1 property on file')
-            : ''
+          sub: g.count > 1 ? g.count + ' jobs on file' : '1 job on file'
         }));
         render(rows);
       } catch (e) { /* silent */ }
@@ -940,24 +974,23 @@ async function pickClient(name) {
   if (input) input.value = name;
   _lastClientLookup = '';
   try {
-    const matches = await findClientMatches(name, '');
+    const matches = await findMatchesByColumn('ClientName', name);
     if (!matches.length) return;
-    fillClientFields(matches[0].fields, false);
-    showClientPrompt(matches);
+    fillClientContact(matches[0].fields);
+    showMatchPrompt('client', matches);
   } catch (e) { console.log('pickClient skipped:', e.message); }
 }
 
-// Pick an instructor → fill their phone from the most recent matching job.
+// Pick an instructor → fill their details and offer their properties.
 async function pickInstructor(name) {
   const input = document.getElementById('c_inst_name');
   if (input) input.value = name;
   try {
-    const items = await spSearchByPrefix('InstructorName', name);
-    const exact = items.find(m => ((m.fields || {}).InstructorName || '').trim().toLowerCase() === name.toLowerCase());
-    const f = (exact || items[0] || {}).fields;
-    const el = document.getElementById('c_inst_phone');
-    if (f && el && f.InstructorPhone && !el.value.trim()) el.value = f.InstructorPhone;
-  } catch (e) { /* silent */ }
+    const matches = await findMatchesByColumn('InstructorName', name);
+    if (!matches.length) return;
+    fillInstructorContact(matches[0].fields);
+    showMatchPrompt('instructor', matches);
+  } catch (e) { console.log('pickInstructor skipped:', e.message); }
 }
 
 window.addEventListener('load', function () {
@@ -3307,60 +3340,7 @@ resetForm = function() {
       </div>
 
       <div class="section">
-        <div class="section-head"><div class="section-num">2</div><h3>Instruction Date &amp; Allocation</h3></div>
-        <div class="section-body">
-          <div class="row2">
-            <div class="field"><label>Instruction Date</label><input type="date" id="c_inst_date"/></div>
-            <div class="field"><label>Taken By</label>
-              <select id="c_taken_by">
-                <option value="">Select…</option>
-                <option>Andrew White</option>
-                <option>Paul Bibby</option>
-                <option>Dayna Campbell</option>
-                <option>Bridget Ireland</option>
-                <option>Jody White</option>
-              </select>
-            </div>
-          </div>
-          <div class="row2">
-            <div class="field"><label>VOS Order No.</label><input type="text" id="c_vos" placeholder=""/></div>
-            <div class="field"><label>Valuation Allocated To</label>
-              <select id="c_alloc">
-                <option value="">Select valuer…</option>
-                <option>Andrew White</option>
-                <option>Paul Bibby</option>
-                <option>Dayna Campbell</option>
-                <option>Bridget Ireland</option>
-              </select>
-            </div>
-          </div>
-          <div class="row2" style="margin-top:10px;align-items:start;">
-            <label for="c_is_quote" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(125,166,212,0.1);border:2px solid rgba(125,166,212,0.4);border-radius:10px;cursor:pointer;user-select:none;transition:all 0.18s;" onmouseover="this.style.background='rgba(125,166,212,0.18)'" onmouseout="this.style.background='rgba(125,166,212,0.1)'">
-              <input type="checkbox" id="c_is_quote" onchange="toggleQuote()" style="width:22px;height:22px;cursor:pointer;accent-color:var(--blue);flex-shrink:0;"/>
-              <div>
-                <div style="font-size:15px;font-weight:800;color:var(--navy);letter-spacing:0.02em;">This is a Quote</div>
-                <div style="font-size:11px;color:var(--grey);margin-top:2px;">Tick to add quote fee, expiry date and send a quote email to the client</div>
-              </div>
-            </label>
-            <div class="row3" style="gap:8px;">
-              <div class="field"><label style="font-weight:800;color:var(--navy);">Valuation Reference</label><input type="text" id="c_val_ref" placeholder=""/></div>
-              <div class="field"><label style="font-weight:800;color:var(--navy);">Insurance Reference</label><input type="text" id="c_ins_ref" placeholder=""/></div>
-              <div class="field"><label>Prior Reference</label><input type="text" id="c_prior_ref2" placeholder=""/></div>
-            </div>
-          </div>
-
-          <div id="quoteFields" style="display:none;">
-            <div class="row3">
-              <div class="field"><label>Quote Fee (excl. GST)</label><input type="number" id="c_quote_fee" placeholder="0.00" step="0.01"/></div>
-              <div class="field"><label>Quote Expiry Date</label><input type="date" id="c_quote_expiry"/></div>
-              <div class="field"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-head"><div class="section-num">3</div><h3>Property Address & Title Details</h3></div>
+        <div class="section-head"><div class="section-num">2</div><h3>Property Address & Title Details</h3></div>
         <div class="section-body">
           <div class="field">
             <label>Property Address</label>
@@ -3395,7 +3375,7 @@ resetForm = function() {
       </div>
 
       <div class="section">
-        <div class="section-head"><div class="section-num">4</div><h3>Client</h3></div>
+        <div class="section-head"><div class="section-num">3</div><h3>Client</h3></div>
         <div class="section-body">
           <div class="row2">
             <div class="field"><label>Client Name</label><input type="text" id="c_client_name" placeholder=""/></div>
@@ -3413,7 +3393,7 @@ resetForm = function() {
       </div>
 
       <div class="section">
-        <div class="section-head"><div class="section-num">5</div><h3>Address Report To</h3></div>
+        <div class="section-head"><div class="section-num">4</div><h3>Address Report To</h3></div>
         <div class="section-body">
           <div class="field no-print">
             <label>Quick Fill</label>
@@ -3439,7 +3419,7 @@ resetForm = function() {
       </div>
 
       <div class="section">
-        <div class="section-head"><div class="section-num">6</div><h3>Terms, Report &amp; Invoice Delivery</h3></div>
+        <div class="section-head"><div class="section-num">5</div><h3>Terms, Report &amp; Invoice Delivery</h3></div>
         <div class="section-body">
 
           <!-- Terms of Engagement sent to -->
@@ -3541,7 +3521,7 @@ resetForm = function() {
       </div>
 
             <div class="section">
-        <div class="section-head"><div class="section-num">7</div><h3>Appointment</h3></div>
+        <div class="section-head"><div class="section-num">6</div><h3>Appointment</h3></div>
         <div class="section-body">
           <div class="row3">
             <div class="field"><label>Name</label><input type="text" id="c_appt_name" placeholder="Contact for access"/></div>
@@ -3551,6 +3531,59 @@ resetForm = function() {
                 <input type="date" id="c_appt_date" style="flex:1.2;"/>
                 <input type="time" id="c_appt_time" style="flex:1;" placeholder="10:00"/>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head"><div class="section-num">7</div><h3>Instruction Date &amp; Allocation</h3></div>
+        <div class="section-body">
+          <div class="row2">
+            <div class="field"><label>Instruction Date</label><input type="date" id="c_inst_date"/></div>
+            <div class="field"><label>Taken By</label>
+              <select id="c_taken_by">
+                <option value="">Select…</option>
+                <option>Andrew White</option>
+                <option>Paul Bibby</option>
+                <option>Dayna Campbell</option>
+                <option>Bridget Ireland</option>
+                <option>Jody White</option>
+              </select>
+            </div>
+          </div>
+          <div class="row2">
+            <div class="field"><label>VOS Order No.</label><input type="text" id="c_vos" placeholder=""/></div>
+            <div class="field"><label>Valuation Allocated To</label>
+              <select id="c_alloc">
+                <option value="">Select valuer…</option>
+                <option>Andrew White</option>
+                <option>Paul Bibby</option>
+                <option>Dayna Campbell</option>
+                <option>Bridget Ireland</option>
+              </select>
+            </div>
+          </div>
+          <div class="row2" style="margin-top:10px;align-items:start;">
+            <label for="c_is_quote" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(125,166,212,0.1);border:2px solid rgba(125,166,212,0.4);border-radius:10px;cursor:pointer;user-select:none;transition:all 0.18s;" onmouseover="this.style.background='rgba(125,166,212,0.18)'" onmouseout="this.style.background='rgba(125,166,212,0.1)'">
+              <input type="checkbox" id="c_is_quote" onchange="toggleQuote()" style="width:22px;height:22px;cursor:pointer;accent-color:var(--blue);flex-shrink:0;"/>
+              <div>
+                <div style="font-size:15px;font-weight:800;color:var(--navy);letter-spacing:0.02em;">This is a Quote</div>
+                <div style="font-size:11px;color:var(--grey);margin-top:2px;">Tick to add quote fee, expiry date and send a quote email to the client</div>
+              </div>
+            </label>
+            <div class="row3" style="gap:8px;">
+              <div class="field"><label style="font-weight:800;color:var(--navy);">Valuation Reference</label><input type="text" id="c_val_ref" placeholder=""/></div>
+              <div class="field"><label style="font-weight:800;color:var(--navy);">Insurance Reference</label><input type="text" id="c_ins_ref" placeholder=""/></div>
+              <div class="field"><label>Prior Reference</label><input type="text" id="c_prior_ref2" placeholder=""/></div>
+            </div>
+          </div>
+
+          <div id="quoteFields" style="display:none;">
+            <div class="row3">
+              <div class="field"><label>Quote Fee (excl. GST)</label><input type="number" id="c_quote_fee" placeholder="0.00" step="0.01"/></div>
+              <div class="field"><label>Quote Expiry Date</label><input type="date" id="c_quote_expiry"/></div>
+              <div class="field"></div>
             </div>
           </div>
         </div>
