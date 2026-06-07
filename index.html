@@ -427,7 +427,7 @@ const MSAL_CONFIG = {
     authority:  'https://login.microsoftonline.com/20c41d01-1bd2-4680-b8f6-4aeaac37d166',
     redirectUri: 'https://andrew1423w.github.io/'
   },
-  cache: { cacheLocation: 'sessionStorage' }
+  cache: { cacheLocation: 'localStorage' }
 };
 let msalInstance = null;
 
@@ -759,19 +759,13 @@ function dismissClientPrompt() {
   if (b) b.style.display = 'none';
 }
 
-// Fill only the fields that are still empty, so nothing the user typed is lost.
-function fillClientFromPast() {
-  let f = _pendingClientMatch;
-  const sel = document.getElementById('clientMatchPropSelect');
-  const propChosen = sel && sel.value !== '';
-  if (propChosen) f = _clientProps[parseInt(sel.value, 10)] || f;
-  if (!f) { dismissClientPrompt(); return; }
-
+// Shared fill — only fills blank fields, so nothing already typed is overwritten.
+function fillClientFields(f, includeProperty) {
+  if (!f) return;
   const fill = (id, val) => {
     const el = document.getElementById(id);
     if (el && val && !el.value.trim()) el.value = val;
   };
-  // Client contact details (always)
   fill('c_client_name',  f.ClientName);
   fill('c_email',        f.ClientEmail);
   fill('c_client_phone', f.ClientPhone);
@@ -779,9 +773,7 @@ function fillClientFromPast() {
   fill('c_borrower',     f.Borrower);
   fill('c_inst_name',    f.InstructorName);
   fill('c_inst_phone',   f.InstructorPhone);
-
-  // Property details — only when a specific property was chosen from the list.
-  if (propChosen) {
+  if (includeProperty) {
     fill('c_prop_addr',     f.Title);
     fill('c_title_no',      f.TitleNo);
     fill('c_legal_desc',    f.LegalDescription);
@@ -796,15 +788,141 @@ function fillClientFromPast() {
   }
   if (typeof refreshDeliveryDisplays === 'function') refreshDeliveryDisplays();
   if (typeof calcFee === 'function') calcFee();
+}
+
+// "Fill details" button on the green banner.
+function fillClientFromPast() {
+  const sel = document.getElementById('clientMatchPropSelect');
+  const propChosen = sel && sel.value !== '';
+  const single = _clientProps.length === 1;
+  let f = _pendingClientMatch;
+  if (propChosen) f = _clientProps[parseInt(sel.value, 10)] || f;
+  else if (single) f = _clientProps[0];
+  fillClientFields(f, propChosen || single);
   dismissClientPrompt();
 }
 
-// Robust binding via capture (blur does not bubble).
+// Phone blur still offers the prompt; the client NAME now uses the live dropdown.
 document.addEventListener('blur', function (e) {
-  if (e.target && (e.target.id === 'c_client_name' || e.target.id === 'c_client_phone')) {
-    checkReturningClient();
-  }
+  if (e.target && e.target.id === 'c_client_phone') checkReturningClient();
 }, true);
+
+// ── LIVE TYPE-AHEAD SUGGESTIONS (client + instructor) ────
+// Find list items whose <column> starts with the typed text.
+async function spSearchByPrefix(column, text) {
+  const token = await getGraphTokenSilent();
+  if (!token) return [];
+  const { siteId, listId } = await getSPIds(token);
+  const cols = await getSPColumns(token);
+  if (cols && !cols.has(column)) return [];
+  const esc = String(text).replace(/'/g, "''");
+  const url = 'https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId +
+    '/items?expand=fields&$top=50&$filter=' +
+    encodeURIComponent("startswith(fields/" + column + ",'" + esc + "')");
+  const resp = await fetch(url, { headers: {
+    'Authorization': 'Bearer ' + token,
+    'Prefer': 'HonorNonIndexedQueriesWarningMayFailRandomly'
+  }});
+  if (!resp.ok) return [];
+  const data = await resp.json();
+  const items = data.value || [];
+  items.sort((a, b) => new Date(b.createdDateTime) - new Date(a.createdDateTime));
+  return items;
+}
+
+// Attach a suggestion dropdown under an input.
+function attachAutocomplete(inputId, column, onPick) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  input.setAttribute('autocomplete', 'off');
+  let box = null, timer = null;
+  const close = () => { if (box) { box.remove(); box = null; } };
+
+  function render(rows) {
+    close();
+    if (!rows.length) return;
+    box = document.createElement('div');
+    const r = input.getBoundingClientRect();
+    box.style.cssText =
+      'position:absolute;z-index:10002;background:#fff;border:1.5px solid var(--blue);' +
+      'border-radius:8px;box-shadow:0 8px 24px rgba(14,28,53,0.18);max-height:280px;overflow-y:auto;';
+    box.style.left  = (r.left + window.scrollX) + 'px';
+    box.style.top   = (r.bottom + window.scrollY + 4) + 'px';
+    box.style.width = r.width + 'px';
+    rows.forEach(row => {
+      const opt = document.createElement('div');
+      opt.innerHTML = '<div style="font-weight:700;color:var(--navy);font-size:13px;">' + _escAttr(row.value) + '</div>' +
+        (row.sub ? '<div style="font-size:11px;color:var(--grey);margin-top:1px;">' + _escAttr(row.sub) + '</div>' : '');
+      opt.style.cssText = 'padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);';
+      opt.onmouseover = () => opt.style.background = 'rgba(125,166,212,0.12)';
+      opt.onmouseout  = () => opt.style.background = '';
+      opt.onmousedown = (e) => { e.preventDefault(); close(); onPick(row.value); };
+      box.appendChild(opt);
+    });
+    document.body.appendChild(box);
+  }
+
+  input.addEventListener('input', () => {
+    const text = input.value.trim();
+    clearTimeout(timer);
+    if (text.length < 2) { close(); return; }
+    timer = setTimeout(async () => {
+      try {
+        const items = await spSearchByPrefix(column, text);
+        const seen = new Map();
+        items.forEach(it => {
+          const f = it.fields || {};
+          const val = (f[column] || '').trim();
+          if (!val) return;
+          const key = val.toLowerCase();
+          if (!seen.has(key)) seen.set(key, { value: val, count: 0 });
+          seen.get(key).count++;
+        });
+        const rows = [...seen.values()].map(g => ({
+          value: g.value,
+          sub: column === 'ClientName'
+            ? (g.count > 1 ? g.count + ' properties on file' : '1 property on file')
+            : ''
+        }));
+        render(rows);
+      } catch (e) { /* silent */ }
+    }, 300);
+  });
+
+  input.addEventListener('blur', () => setTimeout(close, 200));
+  window.addEventListener('scroll', close, true);
+}
+
+// Pick a client → fill their contact details and offer their properties.
+async function pickClient(name) {
+  const input = document.getElementById('c_client_name');
+  if (input) input.value = name;
+  _lastClientLookup = '';
+  try {
+    const matches = await findClientMatches(name, '');
+    if (!matches.length) return;
+    fillClientFields(matches[0].fields, false);
+    showClientPrompt(matches);
+  } catch (e) { console.log('pickClient skipped:', e.message); }
+}
+
+// Pick an instructor → fill their phone from the most recent matching job.
+async function pickInstructor(name) {
+  const input = document.getElementById('c_inst_name');
+  if (input) input.value = name;
+  try {
+    const items = await spSearchByPrefix('InstructorName', name);
+    const exact = items.find(m => ((m.fields || {}).InstructorName || '').trim().toLowerCase() === name.toLowerCase());
+    const f = (exact || items[0] || {}).fields;
+    const el = document.getElementById('c_inst_phone');
+    if (f && el && f.InstructorPhone && !el.value.trim()) el.value = f.InstructorPhone;
+  } catch (e) { /* silent */ }
+}
+
+window.addEventListener('load', function () {
+  attachAutocomplete('c_client_name', 'ClientName', pickClient);
+  attachAutocomplete('c_inst_name', 'InstructorName', pickInstructor);
+});
 
 async function loadJobFromSharePoint(itemId) {
   const { siteId, listId } = await getSPIds();
