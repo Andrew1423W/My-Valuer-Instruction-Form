@@ -569,12 +569,14 @@ async function connectSharePoint() {
     const { } = await getSPIds(token);
     const cols = await getSPColumns(token);
     if (!cols) { showSPStatus('Signed in, but could not read the list columns. Check the list name is exactly "Valuation Instructions".', 'err'); return; }
-    const need = ['ClientName','ClientPhone','ClientEmail','ClientAddress','InstructorName','TitleNo','LegalDescription','Area','LandValue','CapitalValue','CouncilRates','InstructionDate','Borrower'];
-    const missing = need.filter(n => !cols.has(n));
+    // Only ClientName + ClientPhone are essential (they power the returning-client match).
+    // Everything else is optional — the form simply skips columns that don't exist.
+    const essential = ['ClientName', 'ClientPhone'];
+    const missing = essential.filter(n => !cols.has(n));
     if (missing.length) {
-      showSPStatus('✓ Connected, but these columns are missing (check spelling/caps): ' + missing.join(', '), 'err');
+      showSPStatus('✓ Connected, but the returning-client match needs these column(s): ' + missing.join(', ') + ' (check spelling/caps).', 'err');
     } else {
-      showSPStatus('✓ Connected to SharePoint — list found with all key columns. You\'re good to go!', 'ok');
+      showSPStatus('✓ Connected to SharePoint — ready to go. Jobs will now save here.', 'ok');
     }
   } catch (e) {
     showSPStatus('⚠ ' + (e && e.message ? e.message : 'Could not connect to SharePoint.'), 'err');
