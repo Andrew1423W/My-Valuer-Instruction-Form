@@ -152,7 +152,7 @@ body{
 .field label{
   display:block;
   font-size:10px;
-  font-weight:700;
+  font-weight:800;
   text-transform:uppercase;
   letter-spacing:0.1em;
   color:var(--navy);
@@ -209,7 +209,7 @@ body{
 
 /* RATING */
 .rating-grid{display:grid;grid-template-columns:140px 1fr;gap:10px 14px;align-items:center;}
-.rating-label{font-size:11px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:0.08em;}
+.rating-label{font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:0.08em;}
 
 /* TITLE REFS */
 .title-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
@@ -2402,7 +2402,7 @@ function addDeliveryRecipient(field) {
   const div = document.createElement('div');
   div.style.cssText = 'margin-top:8px;padding:10px;background:rgba(125,166,212,0.05);border:1.5px solid var(--border);border-radius:7px;position:relative;';
   div.innerHTML =
-    '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:6px;">Additional Recipient ' + idx + '</div>' +
+    '<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:6px;">Additional Recipient ' + idx + '</div>' +
     '<button type="button" onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:8px;background:none;border:none;color:var(--grey);font-size:16px;cursor:pointer;line-height:1;">×</button>' +
     '<div class="row2" style="margin-bottom:6px;">' +
       '<div class="field" style="margin:0;"><label>Name</label><input type="text" placeholder="" style="width:100%;"/></div>' +
@@ -3044,11 +3044,11 @@ resetForm = function() {
             </select>
             <div id="c_toe_display" style="display:flex;gap:8px;margin-top:4px;">
               <div style="flex:1;padding:7px 10px;background:rgba(125,166,212,0.07);border:1.5px solid var(--border);border-radius:7px;font-size:13px;min-height:34px;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Name</div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Name</div>
                 <div id="c_toe_display_name" style="color:var(--grey);font-style:italic;">—</div>
               </div>
               <div style="flex:1;padding:7px 10px;background:rgba(125,166,212,0.07);border:1.5px solid var(--border);border-radius:7px;font-size:13px;min-height:34px;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Email</div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Email</div>
                 <div id="c_toe_display_email" style="color:var(--grey);font-style:italic;">—</div>
               </div>
             </div>
@@ -3075,11 +3075,11 @@ resetForm = function() {
             </select>
             <div id="c_rpt_display" style="display:flex;gap:8px;margin-top:4px;">
               <div style="flex:1;padding:7px 10px;background:rgba(125,166,212,0.07);border:1.5px solid var(--border);border-radius:7px;font-size:13px;min-height:34px;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Name</div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Name</div>
                 <div id="c_rpt_display_name" style="color:var(--grey);font-style:italic;">—</div>
               </div>
               <div style="flex:1;padding:7px 10px;background:rgba(125,166,212,0.07);border:1.5px solid var(--border);border-radius:7px;font-size:13px;min-height:34px;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Email</div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Email</div>
                 <div id="c_rpt_display_email" style="color:var(--grey);font-style:italic;">—</div>
               </div>
             </div>
@@ -3106,11 +3106,11 @@ resetForm = function() {
             </select>
             <div id="c_inv_display" style="display:flex;gap:8px;margin-top:4px;">
               <div style="flex:1;padding:7px 10px;background:rgba(125,166,212,0.07);border:1.5px solid var(--border);border-radius:7px;font-size:13px;min-height:34px;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Name</div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Name</div>
                 <div id="c_inv_display_name" style="color:var(--grey);font-style:italic;">—</div>
               </div>
               <div style="flex:1;padding:7px 10px;background:rgba(125,166,212,0.07);border:1.5px solid var(--border);border-radius:7px;font-size:13px;min-height:34px;">
-                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Email</div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;color:var(--navy);margin-bottom:2px;">Email</div>
                 <div id="c_inv_display_email" style="color:var(--grey);font-style:italic;">—</div>
               </div>
             </div>
@@ -3189,7 +3189,7 @@ resetForm = function() {
 
       <div class="section" style="border:none;background:transparent;box-shadow:none;margin-bottom:8px;">
         <div style="padding:6px 0 4px 0;border-bottom:1.5px solid var(--border);margin-bottom:10px;">
-          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#1F3A5F;">Purpose of Valuation</span>
+          <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:#1F3A5F;">Purpose of Valuation</span>
         </div>
         <div class="section-body" style="padding:0;">
           <div class="check-grid" id="purposeGrid">
