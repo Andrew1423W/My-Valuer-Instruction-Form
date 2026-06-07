@@ -546,6 +546,41 @@ async function getSPColumns(token) {
   } catch (e) { return null; }
 }
 
+// Visible status for SharePoint actions (click to dismiss).
+function showSPStatus(msg, type) {
+  const el = document.getElementById('spStatusToast');
+  if (!el) { console.log('SP:', msg); return; }
+  const colours = { info: '#5a8bbd', ok: '#2d7a4f', err: '#b91c1c' };
+  el.style.borderLeftColor = colours[type] || colours.info;
+  el.textContent = msg;
+  el.style.display = 'block';
+  clearTimeout(window._spStatusTimer);
+  // Errors stay longer so they can be read/reported.
+  window._spStatusTimer = setTimeout(() => { el.style.display = 'none'; }, type === 'err' ? 15000 : 5000);
+}
+
+// Explicit sign-in + connection test. Triggered by a button click so the
+// Microsoft popup isn't blocked, and reports exactly what it finds.
+async function connectSharePoint() {
+  try {
+    showSPStatus('☁ Connecting to SharePoint — sign in if prompted…', 'info');
+    const token = await getGraphToken();          // user-gesture popup → not blocked
+    _spColumns = null;                            // force a fresh column read
+    const { } = await getSPIds(token);
+    const cols = await getSPColumns(token);
+    if (!cols) { showSPStatus('Signed in, but could not read the list columns. Check the list name is exactly "Valuation Instructions".', 'err'); return; }
+    const need = ['ClientName','ClientPhone','ClientEmail','ClientAddress','InstructorName','TitleNo','LegalDescription','Area','LandValue','CapitalValue','CouncilRates','InstructionDate','Borrower'];
+    const missing = need.filter(n => !cols.has(n));
+    if (missing.length) {
+      showSPStatus('✓ Connected, but these columns are missing (check spelling/caps): ' + missing.join(', '), 'err');
+    } else {
+      showSPStatus('✓ Connected to SharePoint — list found with all key columns. You\'re good to go!', 'ok');
+    }
+  } catch (e) {
+    showSPStatus('⚠ ' + (e && e.message ? e.message : 'Could not connect to SharePoint.'), 'err');
+  }
+}
+
 async function saveJobToSharePoint() {
   try {
     const { siteId, listId } = await getSPIds();
@@ -1358,9 +1393,12 @@ function generateSummary() {
   btn.disabled = false;
   btn.textContent = "✦ Generate";
 
-  // Auto-save to SharePoint in background (silent — only if SP is configured)
+  // Save the job to SharePoint and report the result.
   if (document.getElementById('c_prop_addr').value) {
-    saveJobToSharePoint().catch(() => {});
+    showSPStatus('☁ Saving job to SharePoint…', 'info');
+    saveJobToSharePoint()
+      .then(() => showSPStatus('✓ Job saved to SharePoint', 'ok'))
+      .catch(err => showSPStatus('⚠ SharePoint save failed: ' + (err && err.message ? err.message : 'unknown error') + ' — try the "Connect SharePoint" button.', 'err'));
   }
 }
 
@@ -3059,6 +3097,7 @@ resetForm = function() {
 <div id="autosaveToast" style="position:fixed;bottom:20px;right:20px;background:var(--navy,#0e1c35);color:rgba(255,255,255,0.85);font-family:inherit;font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;border-left:3px solid var(--blue,#7DA7D9);opacity:0;transition:opacity 0.4s;pointer-events:none;z-index:9999;">
   💾 Autosaved
 </div>
+<div id="spStatusToast" onclick="this.style.display='none'" style="display:none;position:fixed;bottom:20px;left:20px;max-width:420px;background:#1b2a1b;color:#fff;font-family:inherit;font-size:13px;font-weight:600;line-height:1.4;padding:12px 16px;border-radius:8px;border-left:4px solid #2d7a4f;box-shadow:0 6px 20px rgba(0,0,0,0.3);z-index:10000;cursor:pointer;"></div>
 <div id="clientMatchBanner" style="display:none;background:#eef6ee;border-bottom:2px solid #2d7a4f;padding:10px 24px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
   <div style="display:flex;flex-direction:column;gap:6px;flex:1;min-width:240px;">
     <span id="clientMatchText" style="font-size:13px;font-weight:700;color:#1d4d31;">👤 Returning client found.</span>
@@ -3079,6 +3118,7 @@ resetForm = function() {
   <button class="ftab active" onclick="switchForm('client',this)">Client Instruction</button>
   <div style="display:flex;gap:8px;margin-right:8px;">
     <button onclick="resetForm()" style="background:rgba(185,28,28,0.08);border:1.5px solid rgba(185,28,28,0.2);border-radius:7px;padding:6px 16px;font-family:inherit;font-size:12px;font-weight:700;color:#b91c1c;cursor:pointer;">↺ New Job</button>
+    <button onclick="connectSharePoint()" style="background:rgba(45,122,79,0.1);border:1.5px solid rgba(45,122,79,0.3);border-radius:7px;padding:6px 16px;font-family:inherit;font-size:12px;font-weight:700;color:#1d4d31;cursor:pointer;">☁ Connect SharePoint</button>
     <button onclick="openArchive()" style="background:rgba(125,166,212,0.1);border:1.5px solid rgba(125,166,212,0.3);border-radius:7px;padding:6px 16px;font-family:inherit;font-size:12px;font-weight:700;color:var(--navy);cursor:pointer;">🗂 Job Archive</button>
   </div>
 </div>
