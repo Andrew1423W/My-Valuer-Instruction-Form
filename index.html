@@ -1551,7 +1551,44 @@ function validateForm() {
   return problems;
 }
 
+// Flag a single field as required: red outline + message, scroll to it, focus.
+function flagFieldRequired(id, message) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.borderColor = 'var(--red)';
+  el.style.boxShadow = '0 0 0 3px rgba(185,28,28,0.15)';
+  let msg = document.getElementById(id + '_err');
+  if (!msg) {
+    msg = document.createElement('div');
+    msg.id = id + '_err';
+    msg.style.cssText = 'color:var(--red);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.06em;margin-top:5px;';
+    el.parentNode.appendChild(msg);
+  }
+  msg.textContent = message;
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => el.focus({ preventScroll: true }), 300);
+  el.addEventListener('input', function handler() {
+    clearFieldError(id);
+    el.removeEventListener('input', handler);
+  });
+}
+
+function clearFieldError(id) {
+  const el = document.getElementById(id);
+  if (el) { el.style.borderColor = ''; el.style.boxShadow = ''; }
+  const msg = document.getElementById(id + '_err');
+  if (msg) msg.remove();
+}
+
 function generateSummary() {
+  // Client Address is required — take the user straight to it if missing.
+  const addrEl = document.getElementById('c_client_addr');
+  if (addrEl && !addrEl.value.trim()) {
+    flagFieldRequired('c_client_addr', 'Must be Completed');
+    return;
+  }
+  clearFieldError('c_client_addr');
+
   const problems = validateForm();
   if (problems.length) {
     alert("Please check the following before generating:\n\n• " + problems.join("\n• "));
