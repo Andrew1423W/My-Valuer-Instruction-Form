@@ -596,7 +596,7 @@ async function connectSharePoint() {
     const cols = await getSPColumns(token);
     if (!cols) { showSPStatus('Signed in, but could not read the list columns. Check the list name is exactly "Valuation Instructions".', 'err'); return; }
     // Report which key columns are present, and flag phone columns wrongly typed as Number.
-    const want = ['ClientName', 'ClientEmail', 'ClientPhone', 'ClientAddress', 'Borrower', 'InstructorName', 'InstructorPhone'];
+    const want = ['ClientName', 'ClientEmail', 'ClientPhone', 'ClientAddress', 'InstructorName', 'InstructorPhone'];
     const missing = want.filter(n => !cols.has(n));
     const numericPhones = ['ClientPhone', 'InstructorPhone'].filter(n => cols.get(n) === 'number');
     const parts = [];
