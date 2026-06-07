@@ -1551,8 +1551,8 @@ function validateForm() {
   return problems;
 }
 
-// Flag a single field as required: red outline + message, scroll to it, focus.
-function flagFieldRequired(id, message) {
+// Flag a single field as required: red outline + message, optionally scroll/focus.
+function flagFieldRequired(id, message, scrollTo) {
   const el = document.getElementById(id);
   if (!el) return;
   el.style.borderColor = 'var(--red)';
@@ -1565,8 +1565,10 @@ function flagFieldRequired(id, message) {
     el.parentNode.appendChild(msg);
   }
   msg.textContent = message;
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  setTimeout(() => el.focus({ preventScroll: true }), 300);
+  if (scrollTo !== false) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => el.focus({ preventScroll: true }), 300);
+  }
   el.addEventListener('input', function handler() {
     clearFieldError(id);
     el.removeEventListener('input', handler);
@@ -1581,13 +1583,23 @@ function clearFieldError(id) {
 }
 
 function generateSummary() {
-  // Client Address is required — take the user straight to it if missing.
-  const addrEl = document.getElementById('c_client_addr');
-  if (addrEl && !addrEl.value.trim()) {
-    flagFieldRequired('c_client_addr', 'Must be Completed');
-    return;
-  }
-  clearFieldError('c_client_addr');
+  // These Client fields are required — flag any that are empty and jump to the first.
+  const required = [
+    ['c_email',        'Must be Completed'],
+    ['c_client_phone', 'Must be Completed'],
+    ['c_client_addr',  'Must be Completed']
+  ];
+  let firstMissing = null;
+  required.forEach(([id, msg]) => {
+    const el = document.getElementById(id);
+    if (el && !el.value.trim()) {
+      flagFieldRequired(id, msg, firstMissing === null);
+      if (firstMissing === null) firstMissing = id;
+    } else {
+      clearFieldError(id);
+    }
+  });
+  if (firstMissing) return;
 
   const problems = validateForm();
   if (problems.length) {
