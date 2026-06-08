@@ -630,30 +630,38 @@ async function findValuersListId(token) {
   return null;
 }
 
-async function ensureValuersListId(token) {
-  let id = await findValuersListId(token);
-  if (id) return id;
+// Try to create the list via Graph; may fail with accessDenied on some tenants,
+// in which case the user creates it once in the SharePoint UI.
+async function createValuersList(token) {
   const { siteId } = await getSPIds(token);
   const resp = await fetch('https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
     body: JSON.stringify({ displayName: VALUERS_LIST, list: { template: 'genericList' } })
   });
-  if (!resp.ok) throw new Error('Could not create the Valuers list: ' + (await resp.text()));
+  if (!resp.ok) throw new Error(await resp.text());
   _valuersListId = (await resp.json()).id;
-  // Seed with the current default valuers.
-  for (const name of DEFAULT_VALUERS) await addValuerItem(token, name);
   return _valuersListId;
 }
 
-async function addValuerItem(token, name) {
+async function addValuerItem(token, listId, name) {
   const { siteId } = await getSPIds(token);
-  const listId = await ensureValuersListId(token);
   return fetch('https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId + '/items', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
     body: JSON.stringify({ fields: { Title: name } })
   });
+}
+
+function valuerSetupHTML() {
+  return '<div style="padding:14px 16px;font-size:13px;line-height:1.6;color:var(--navy);">' +
+    "<b>One-time setup needed.</b> The shared <b>Valuers</b> list doesn't exist yet and couldn't be created automatically (permissions). Please create it once:" +
+    '<ol style="margin:8px 0 0 18px;padding:0;color:var(--grey);">' +
+    '<li>Open your <b>MyValuer</b> SharePoint site</li>' +
+    '<li>Click <b>+ New &rarr; List &rarr; Blank list</b></li>' +
+    '<li>Name it exactly <b>Valuers</b> &rarr; Create</li>' +
+    '<li>Come back here and reopen <b>Manage valuers</b></li>' +
+    '</ol></div>';
 }
 
 async function fetchValuers(token, listId) {
@@ -708,8 +716,17 @@ async function renderValuerManager() {
   listEl.innerHTML = '<div style="padding:12px;color:var(--grey);">Loading…</div>';
   try {
     const token = await getGraphToken();          // explicit action → popup OK
-    const listId = await ensureValuersListId(token);
-    const valuers = await fetchValuers(token, listId);
+    let listId = await findValuersListId(token);
+    if (!listId) {
+      // Try to auto-create; if the tenant blocks it, show manual-setup steps.
+      try { listId = await createValuersList(token); }
+      catch (e) { listEl.innerHTML = valuerSetupHTML(); return; }
+    }
+    let valuers = await fetchValuers(token, listId);
+    if (!valuers.length) {                          // brand-new list — seed defaults
+      for (const n of DEFAULT_VALUERS) await addValuerItem(token, listId, n);
+      valuers = await fetchValuers(token, listId);
+    }
     populateValuerDropdowns(valuers.map(v => v.name));
     if (!valuers.length) { listEl.innerHTML = '<div style="padding:12px;color:var(--grey);">No valuers yet — add one below.</div>'; return; }
     listEl.innerHTML = valuers.map(v =>
@@ -728,15 +745,18 @@ async function addValuer() {
   input.value = '';
   try {
     const token = await getGraphToken();
-    await addValuerItem(token, name);
+    const listId = await findValuersListId(token);
+    if (!listId) { await renderValuerManager(); return; }
+    await addValuerItem(token, listId, name);
     await renderValuerManager();
   } catch (e) { alert('Could not add valuer: ' + e.message); }
 }
 async function removeValuer(itemId) {
   try {
     const token = await getGraphToken();
+    const listId = await findValuersListId(token);
+    if (!listId) return;
     const { siteId } = await getSPIds(token);
-    const listId = await ensureValuersListId(token);
     await fetch('https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId + '/items/' + itemId, {
       method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token }
     });
