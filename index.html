@@ -2385,7 +2385,7 @@ function openEmail() {
   const prop = document.getElementById("c_prop_addr").value || "New Valuation Job";
   // Pre-fill dialog
   document.getElementById("sendFrom").value    = getSenderEmail();
-  document.getElementById("sendTo").value      = "info"+"@"+"myvaluer.net.nz";
+  document.getElementById("sendTo").value      = "jody"+"@"+"myvaluer.net.nz";
   // Strip postcode (4 digits) and ", New Zealand" from address for subject line
   const propShort = prop.replace(/,?\s*\d{4}\s*,?/g, ',').replace(/,?\s*New Zealand\s*$/i, '').replace(/,\s*,/g, ',').replace(/,\s*$/,'').trim();
   document.getElementById("sendSubject").value = "New Valuation Instruction | " + propShort;
