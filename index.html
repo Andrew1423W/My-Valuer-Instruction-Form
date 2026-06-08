@@ -138,15 +138,50 @@ body{
 .snav-item:hover .snav-num{background:var(--blue-light);color:#fff;}
 .snav-item.active .snav-num{background:linear-gradient(135deg,#1F3A5F 0%,#2d6a9f 100%);color:#fff;}
 .output-side{
-  background:linear-gradient(180deg, #1b2a44 0%, #13203a 100%);
-  min-height:calc(100vh - 76px - 49px);
-  padding:24px;
+  background:radial-gradient(130% 90% at 50% 0%, #24365a 0%, #182a49 55%, #0f1830 100%);
+  padding:28px 24px;
   position:sticky;
-  top:0;
+  top:16px;
+  align-self:start;
+  margin:16px 18px 24px 6px;
+  border-radius:18px;
   display:flex;
   flex-direction:column;
-  border-left:3px solid #2d6a9f;
+  box-shadow:0 16px 46px rgba(13,22,44,0.38);
 }
+.output-inner{ width:100%; }
+.output-brand{ text-align:center; margin-bottom:18px; }
+.output-brand .output-title{ font-size:12px;font-weight:800;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.55);margin:0; }
+.output-brand .output-sub{ font-size:11.5px;color:rgba(255,255,255,0.32);margin-top:5px; }
+
+.success-hero{ text-align:center; margin:4px 0 22px; }
+.success-check{
+  width:62px;height:62px;border-radius:50%;margin:0 auto 14px;
+  background:linear-gradient(135deg,#22c55e 0%,#15803d 100%);
+  color:#fff;font-size:30px;font-weight:800;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 10px 28px rgba(34,160,96,0.45);
+  animation:successPop 0.45s cubic-bezier(.17,.89,.32,1.4);
+}
+@keyframes successPop{0%{transform:scale(0);opacity:0;}60%{transform:scale(1.12);}100%{transform:scale(1);opacity:1;}}
+.success-title{ font-size:20px;font-weight:800;color:#fff;letter-spacing:0.01em; }
+.success-sub{ font-size:12.5px;color:#7df0ad;font-weight:600;margin-top:5px; }
+
+.output-choose{ font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;color:rgba(255,255,255,0.4);margin:0 0 8px;text-align:center; }
+.seg-tabs{ display:flex;gap:4px;background:rgba(255,255,255,0.06);border-radius:11px;padding:4px;margin-bottom:18px; }
+.seg-btn{ flex:1;padding:9px 6px;border:none;border-radius:8px;background:transparent;color:rgba(255,255,255,0.55);font-family:inherit;font-size:11px;font-weight:700;letter-spacing:0.03em;cursor:pointer;transition:all 0.18s; }
+.seg-btn:hover{ color:#fff; }
+.seg-btn.seg-active{ background:linear-gradient(135deg,#2d6a9f 0%,#3f8fd0 100%);color:#fff;box-shadow:0 2px 10px rgba(45,106,159,0.5); }
+
+.output-actions{ display:flex;flex-direction:column;gap:9px; }
+.out-btn{ width:100%;padding:13px;border:none;border-radius:11px;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:0.02em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform 0.15s,box-shadow 0.15s,background 0.2s; }
+.out-btn:hover{ transform:translateY(-1px); }
+.out-primary{ background:linear-gradient(135deg,#2d6a9f 0%,#3f8fd0 100%);color:#fff;box-shadow:0 5px 16px rgba(45,106,159,0.42); }
+.out-primary.copied{ background:linear-gradient(135deg,#15803d 0%,#22c55e 100%); }
+.out-teal{ background:linear-gradient(135deg,#0f766e 0%,#14b8a6 100%);color:#fff;box-shadow:0 5px 16px rgba(15,118,110,0.4); }
+.out-green{ background:linear-gradient(135deg,#15803d 0%,#22c55e 100%);color:#fff;box-shadow:0 5px 16px rgba(21,128,61,0.4); }
+.out-ghost{ background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.82);border:1.5px solid rgba(255,255,255,0.16); }
+.out-ghost:hover{ background:rgba(255,255,255,0.12);color:#fff; }
 
 /* SECTIONS */
 .section{
@@ -334,7 +369,7 @@ body{
 @media(max-width:900px){
   .app{grid-template-columns:1fr;}
   .section-nav{display:none;}
-  .output-side{position:relative;min-height:400px;}
+  .output-side{position:relative;top:0;margin:14px 14px 24px;}
   .form-side,.gen-wrap{padding-left:16px;padding-right:16px;}
   .form-tabs{padding:0 16px;}
   .header{padding:0 16px;}
@@ -1685,33 +1720,23 @@ let lastQuote = "";
 
 function switchOutput(mode) {
   currentOutput = mode;
-  const tabs = {
-    summary: document.getElementById("tabSummary"),
-    email:   document.getElementById("tabEmail"),
-    quote:   document.getElementById("tabQuote")
-  };
-  const emailBtn    = document.getElementById("emailBtn");
+  ['summary', 'email', 'quote'].forEach(m => {
+    const t = document.getElementById('tab' + m.charAt(0).toUpperCase() + m.slice(1));
+    if (t) t.classList.toggle('seg-active', m === mode);
+  });
+  const emailBtn      = document.getElementById("emailBtn");
   const quoteEmailBtn = document.getElementById("quoteEmailBtn");
-  const inactiveStyle = { bg: "rgba(255,255,255,0.07)", col: "rgba(255,255,255,0.6)" };
-
-  // Reset all tabs
-  Object.values(tabs).forEach(t => { if (t) { t.style.background = inactiveStyle.bg; t.style.color = inactiveStyle.col; } });
-
-  // Activate selected tab
-  if (tabs[mode]) { tabs[mode].style.background = "var(--blue)"; tabs[mode].style.color = "var(--white)"; }
-
-  // Show correct content and buttons
-  emailBtn.style.display    = "none";
+  emailBtn.style.display = "none";
   if (quoteEmailBtn) quoteEmailBtn.style.display = "none";
 
   const ready = document.getElementById("outputReady");
   if (mode === "summary") {
-    if (ready) ready.textContent = "✓ Summary ready for ValuePro";
+    if (ready) ready.textContent = "Summary ready for ValuePro";
   } else if (mode === "email") {
-    if (ready) ready.textContent = "✓ Office email ready to send";
+    if (ready) ready.textContent = "Office email ready to send";
     emailBtn.style.display = "flex";
   } else if (mode === "quote") {
-    if (ready) ready.textContent = "✓ Quote ready to send";
+    if (ready) ready.textContent = "Quote ready to send";
     if (quoteEmailBtn) quoteEmailBtn.style.display = "flex";
   }
 }
@@ -1867,8 +1892,12 @@ function generateSummary() {
   document.getElementById("printBtn").style.display = "flex";
   switchOutput(currentOutput);
 
+  // Replay the success "pop" each time Generate is pressed.
+  const check = document.querySelector(".success-check");
+  if (check) { check.style.animation = "none"; void check.offsetWidth; check.style.animation = ""; }
+
   btn.disabled = false;
-  btn.textContent = "✦ Generate";
+  btn.textContent = "✦ Generate Instruction";
 
   // Save the job to SharePoint and report the result.
   if (document.getElementById('c_prop_addr').value) {
@@ -4089,50 +4118,41 @@ resetForm = function() {
 
   <!-- OUTPUT SIDE -->
   <div class="output-side">
-    <div class="output-title">Job Output</div>
-    <div class="output-sub">Generate a ValuePro summary or office email</div>
-
-    <!-- Action buttons at top -->
-    <div style="margin-bottom:14px;">
-      <button class="gen-btn" id="genBtn" onclick="generateSummary()">✦ Generate</button>
-      <div class="loading-bar" id="loadBar" style="margin-top:6px;"><div class="loading-fill"></div></div>
-    </div>
-
-    <div class="output-placeholder" id="outputPlaceholder">
-      <div class="ph-icon">📋</div>
-      <p>Complete the form then click Generate above.</p>
-    </div>
-
-    <div class="output-result" id="outputResult">
-      <!-- Choose what to copy / send -->
-      <div class="output-choose">Copy / send as</div>
-      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
-        <button onclick="switchOutput('summary')" id="tabSummary"
-          style="flex:1;min-width:120px;padding:9px 8px;border-radius:8px;border:none;font-family:inherit;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;background:var(--blue);color:var(--white);transition:all 0.18s;">
-          📋 Summary of Instruction
-        </button>
-        <button onclick="switchOutput('email')" id="tabEmail"
-          style="flex:1;min-width:120px;padding:9px 8px;border-radius:8px;border:none;font-family:inherit;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);transition:all 0.18s;">
-          ✉️ Office Email
-        </button>
-        <button onclick="switchOutput('quote')" id="tabQuote"
-          style="flex:1;min-width:120px;padding:9px 8px;border-radius:8px;border:none;font-family:inherit;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);transition:all 0.18s;display:none;">
-          💬 Quote Email
-        </button>
+    <div class="output-inner">
+      <div class="output-brand">
+        <div class="output-title">Job Output</div>
+        <div class="output-sub">Summary · office email · client quote</div>
       </div>
 
-      <!-- Ready confirmation -->
-      <div class="output-ready" id="outputReady">✓ Summary ready for ValuePro</div>
+      <button class="gen-btn" id="genBtn" onclick="generateSummary()">✦ Generate Instruction</button>
+      <div class="loading-bar" id="loadBar" style="margin-top:8px;"><div class="loading-fill"></div></div>
 
-      <!-- Action buttons -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
-        <button class="act-btn act-copy" id="copyBtn" onclick="copyOutput()">📋 Copy</button>
-        <button class="act-btn act-copy" id="emailBtn" onclick="openEmail()" style="background:var(--blue-dark);display:none;">✉️ Send Email</button>
-        <button class="act-btn act-copy" id="quoteEmailBtn" onclick="openQuoteEmail()" style="background:#2d7a4f;display:none;grid-column:1/-1;">💬 Email Quote to Client</button>
-        <button class="gen-btn" id="printBtn" onclick="printForm()" style="background:linear-gradient(135deg,#2d3748 0%,#4a5568 100%);color:#fff;border:none;display:none;grid-column:1/-1;margin:0;box-shadow:0 4px 14px rgba(0,0,0,0.3);">🖨️ Print / Save as PDF</button>
+      <div class="output-placeholder" id="outputPlaceholder">
+        <div class="ph-icon">📋</div>
+        <p>Fill in the form, then hit Generate.</p>
       </div>
 
-      <div class="output-hint">Generated and ready — just use Copy, Send Email or Print above.</div>
+      <div class="output-result" id="outputResult">
+        <div class="success-hero">
+          <div class="success-check">✓</div>
+          <div class="success-title">Instruction Ready</div>
+          <div class="success-sub" id="outputReady">Summary ready for ValuePro</div>
+        </div>
+
+        <div class="output-choose">Copy / send as</div>
+        <div class="seg-tabs">
+          <button onclick="switchOutput('summary')" id="tabSummary" class="seg-btn seg-active">📋 Summary</button>
+          <button onclick="switchOutput('email')" id="tabEmail" class="seg-btn">✉️ Office Email</button>
+          <button onclick="switchOutput('quote')" id="tabQuote" class="seg-btn" style="display:none;">💬 Quote</button>
+        </div>
+
+        <div class="output-actions">
+          <button class="out-btn out-primary" id="copyBtn" onclick="copyOutput()">📋 Copy to ValuePro</button>
+          <button class="out-btn out-teal" id="emailBtn" onclick="openEmail()" style="display:none;">✉️ Send Office Email</button>
+          <button class="out-btn out-green" id="quoteEmailBtn" onclick="openQuoteEmail()" style="display:none;">💬 Email Quote to Client</button>
+          <button class="out-btn out-ghost" id="printBtn" onclick="printForm()" style="display:none;">🖨️ Print / Save as PDF</button>
+        </div>
+      </div>
     </div>
   </div>
 
