@@ -1881,6 +1881,7 @@ function generateSummary() {
   if (isQuote) {
     lastQuote = buildQuoteEmailText();
     if (quoteTab) quoteTab.style.display = "flex";
+    currentOutput = "quote";    // jump straight to the quote so the email button shows
   } else {
     lastQuote = "";
     if (quoteTab) quoteTab.style.display = "none";
