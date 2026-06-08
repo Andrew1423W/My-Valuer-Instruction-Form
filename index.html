@@ -609,6 +609,7 @@ async function connectSharePoint() {
     }
     console.log('SharePoint columns:', [...cols.entries()]);
     loadValuers();
+    loadAddressCache(true);
   } catch (e) {
     showSPStatus('⚠ ' + (e && e.message ? e.message : 'Could not connect to SharePoint.'), 'err');
   }
@@ -1151,8 +1152,105 @@ async function pickInstructor(name) {
 window.addEventListener('load', function () {
   attachAutocomplete('c_client_name', 'ClientName', pickClient);
   attachAutocomplete('c_inst_name', 'InstructorName', pickInstructor);
+  attachAddressLookup();
   loadValuers();
 });
+
+// ── PAST-PROPERTY LOOKUP (Property Address) ──────────────
+// Caches every saved address so the field can match any part of the address
+// (e.g. "87" or a street name), then loads the full past job when picked.
+let _addressCache = null;
+async function loadAddressCache(force) {
+  if (_addressCache && !force) return _addressCache;
+  try {
+    const token = await getGraphTokenSilent();
+    if (!token) return null;
+    const { siteId, listId } = await getSPIds(token);
+    let url = 'https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId +
+      '/items?expand=fields($select=Title)&$top=200';
+    const out = [];
+    let pages = 0;
+    while (url && pages < 15) {
+      const resp = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+      if (!resp.ok) break;
+      const d = await resp.json();
+      (d.value || []).forEach(it => {
+        const t = ((it.fields && it.fields.Title) || '').trim();
+        if (t) out.push({ id: it.id, title: t });
+      });
+      url = d['@odata.nextLink'] || null;
+      pages++;
+    }
+    _addressCache = out;
+    return _addressCache;
+  } catch (e) { console.log('loadAddressCache skipped:', e.message); return null; }
+}
+
+async function loadPastJob(id) {
+  try {
+    const fields = await loadJobFromSharePoint(id);
+    applyJobFields(fields);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) { alert('Could not load that job: ' + e.message); }
+}
+
+function attachAddressLookup() {
+  const input = document.getElementById('c_prop_addr');
+  if (!input) return;
+  let box = null, timer = null;
+  const close = () => {
+    if (box) { box.remove(); box = null; }
+    document.body.classList.remove('sp-addr-open');   // let Google's dropdown show again
+  };
+
+  function render(rows) {
+    close();
+    if (!rows.length) return;
+    document.body.classList.add('sp-addr-open');       // hide Google's dropdown behind ours
+    box = document.createElement('div');
+    const r = input.getBoundingClientRect();
+    box.style.cssText =
+      'position:absolute;z-index:10005;background:#fff;border:1.5px solid var(--blue);' +
+      'border-radius:8px;box-shadow:0 8px 24px rgba(14,28,53,0.18);max-height:300px;overflow-y:auto;';
+    box.style.left  = (r.left + window.scrollX) + 'px';
+    box.style.top   = (r.bottom + window.scrollY + 4) + 'px';
+    box.style.width = r.width + 'px';
+    const head = document.createElement('div');
+    head.textContent = '📋 Past jobs';
+    head.style.cssText = 'padding:6px 12px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.08em;color:var(--grey);background:rgba(125,166,212,0.08);border-bottom:1px solid var(--border);';
+    box.appendChild(head);
+    rows.forEach(row => {
+      const opt = document.createElement('div');
+      opt.textContent = row.title;
+      opt.style.cssText = 'padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--border);font-size:13px;font-weight:600;color:var(--navy);';
+      opt.onmouseover = () => opt.style.background = 'rgba(125,166,212,0.12)';
+      opt.onmouseout  = () => opt.style.background = '';
+      opt.onmousedown = (e) => { e.preventDefault(); close(); input.value = row.title; loadPastJob(row.id); };
+      box.appendChild(opt);
+    });
+    document.body.appendChild(box);
+  }
+
+  input.addEventListener('input', () => {
+    const text = input.value.trim().toLowerCase();
+    clearTimeout(timer);
+    if (text.length < 2) { close(); return; }
+    timer = setTimeout(async () => {
+      const cache = await loadAddressCache();
+      if (!cache) { close(); return; }
+      const seen = new Set(); const uniq = [];
+      cache.forEach(r => {
+        if (!r.title.toLowerCase().includes(text)) return;
+        const k = r.title.toLowerCase();
+        if (!seen.has(k)) { seen.add(k); uniq.push(r); }
+      });
+      render(uniq.slice(0, 8));
+    }, 250);
+  });
+
+  input.addEventListener('blur', () => setTimeout(close, 200));
+  window.addEventListener('scroll', close, true);
+}
 
 async function loadJobFromSharePoint(itemId) {
   const { siteId, listId } = await getSPIds();
@@ -1797,6 +1895,7 @@ function generateSummary() {
     showSPStatus('☁ Saving job to SharePoint…', 'info');
     saveJobToSharePoint()
       .then(res => {
+        _addressCache = null;   // refresh past-property lookup with the new address
         if (res && res.skipped && res.skipped.length) {
           showSPStatus('✓ Job saved, but these columns were rejected (likely wrong type — should be "Single line of text"): ' + res.skipped.join(', '), 'err');
         } else {
@@ -3424,6 +3523,8 @@ resetForm = function() {
   line-height:1.5;
   min-height:36px;
 }
+/* Hide Google's address dropdown while our "past jobs" dropdown is showing */
+body.sp-addr-open .pac-container { display: none !important; }
 .pac-container {
   font-family: 'Avenir Next', 'Avenir', -apple-system, 'Segoe UI', sans-serif !important;
   border: 1.5px solid var(--blue) !important;
