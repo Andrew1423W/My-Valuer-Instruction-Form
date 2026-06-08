@@ -1713,31 +1713,29 @@ function switchForm(name, btn) {
 }
 
 // Track current output mode
-let currentOutput = "summary";
+let currentOutput = "email";
 let lastSummary = "";
 let lastEmail = "";
 let lastQuote = "";
 
 function switchOutput(mode) {
+  if (mode === "summary") mode = "email";   // Summary removed — fall back to email
   currentOutput = mode;
-  ['summary', 'email', 'quote'].forEach(m => {
+  ['email', 'quote'].forEach(m => {
     const t = document.getElementById('tab' + m.charAt(0).toUpperCase() + m.slice(1));
     if (t) t.classList.toggle('seg-active', m === mode);
   });
   const emailBtn      = document.getElementById("emailBtn");
   const quoteEmailBtn = document.getElementById("quoteEmailBtn");
-  emailBtn.style.display = "none";
-  if (quoteEmailBtn) quoteEmailBtn.style.display = "none";
-
   const ready = document.getElementById("outputReady");
-  if (mode === "summary") {
-    if (ready) ready.textContent = "Summary ready for ValuePro";
-  } else if (mode === "email") {
-    if (ready) ready.textContent = "Office email ready to send";
-    emailBtn.style.display = "flex";
-  } else if (mode === "quote") {
-    if (ready) ready.textContent = "Quote ready to send";
+  if (mode === "quote") {
+    if (emailBtn) emailBtn.style.display = "none";
     if (quoteEmailBtn) quoteEmailBtn.style.display = "flex";
+    if (ready) ready.textContent = "Quote ready to send";
+  } else {
+    if (quoteEmailBtn) quoteEmailBtn.style.display = "none";
+    if (emailBtn) emailBtn.style.display = "flex";
+    if (ready) ready.textContent = "Office email ready to send";
   }
 }
 
@@ -1875,18 +1873,21 @@ function generateSummary() {
   lastSummary = buildValueProSummary();
   lastEmail   = buildEmail();
 
-  // Build quote email and show/hide tab
+  // Quote: show the Email | Quote choice and jump to it. Otherwise it's just
+  // the office email, so hide the choice row entirely.
   const isQuote = document.getElementById("c_is_quote")?.checked;
   const quoteTab = document.getElementById("tabQuote");
+  const modeRow  = document.getElementById("outputModeRow");
   if (isQuote) {
     lastQuote = buildQuoteEmailText();
     if (quoteTab) quoteTab.style.display = "flex";
-    currentOutput = "quote";    // jump straight to the quote so the email button shows
+    if (modeRow) modeRow.style.display = "block";
+    currentOutput = "quote";
   } else {
     lastQuote = "";
     if (quoteTab) quoteTab.style.display = "none";
-    // If currently on quote tab, switch to summary
-    if (currentOutput === "quote") currentOutput = "summary";
+    if (modeRow) modeRow.style.display = "none";
+    currentOutput = "email";
   }
 
   document.getElementById("outputResult").classList.add("visible");
@@ -4137,19 +4138,19 @@ resetForm = function() {
         <div class="success-hero">
           <div class="success-check">✓</div>
           <div class="success-title">Instruction Ready</div>
-          <div class="success-sub" id="outputReady">Summary ready for ValuePro</div>
+          <div class="success-sub" id="outputReady">Ready to send</div>
         </div>
 
-        <div class="output-choose">Copy / send as</div>
-        <div class="seg-tabs">
-          <button onclick="switchOutput('summary')" id="tabSummary" class="seg-btn seg-active">📋 Summary</button>
-          <button onclick="switchOutput('email')" id="tabEmail" class="seg-btn">✉️ Office Email</button>
-          <button onclick="switchOutput('quote')" id="tabQuote" class="seg-btn" style="display:none;">💬 Quote</button>
+        <div id="outputModeRow" style="display:none;">
+          <div class="output-choose">Send as</div>
+          <div class="seg-tabs">
+            <button onclick="switchOutput('email')" id="tabEmail" class="seg-btn seg-active">✉️ Office Email</button>
+            <button onclick="switchOutput('quote')" id="tabQuote" class="seg-btn">💬 Quote</button>
+          </div>
         </div>
 
         <div class="output-actions">
-          <button class="out-btn out-primary" id="copyBtn" onclick="copyOutput()">📋 Copy to ValuePro</button>
-          <button class="out-btn out-teal" id="emailBtn" onclick="openEmail()" style="display:none;">✉️ Send Office Email</button>
+          <button class="out-btn out-teal" id="emailBtn" onclick="openEmail()">✉️ Send Office Email</button>
           <button class="out-btn out-green" id="quoteEmailBtn" onclick="openQuoteEmail()" style="display:none;">💬 Email Quote to Client</button>
           <button class="out-btn out-ghost" id="printBtn" onclick="printForm()" style="display:none;">🖨️ Print / Save as PDF</button>
         </div>
