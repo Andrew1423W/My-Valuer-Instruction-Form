@@ -138,14 +138,14 @@ body{
 .snav-item:hover .snav-num{background:var(--blue-light);color:#fff;}
 .snav-item.active .snav-num{background:linear-gradient(135deg,#1F3A5F 0%,#2d6a9f 100%);color:#fff;}
 .output-side{
-  background:var(--charcoal);
+  background:linear-gradient(180deg, #1b2a44 0%, #13203a 100%);
   min-height:calc(100vh - 76px - 49px);
   padding:24px;
   position:sticky;
   top:0;
   display:flex;
   flex-direction:column;
-  border-left:3px solid var(--blue);
+  border-left:3px solid #2d6a9f;
 }
 
 /* SECTIONS */
@@ -286,21 +286,21 @@ body{
 .output-placeholder p{font-size:13px;color:rgba(255,255,255,0.3);line-height:1.7;max-width:230px;}
 .output-result{display:none;flex-direction:column;flex:1;}
 .output-result.visible{display:flex;}
+.output-choose{
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:0.12em;
+  color:rgba(255,255,255,0.45);margin-bottom:8px;
+}
 .output-ready{
-  background:rgba(45,122,79,0.2);border:1px solid rgba(45,122,79,0.4);
-  border-radius:6px;padding:7px 14px;font-size:11px;color:#6ee7a0;
-  font-weight:700;text-transform:uppercase;letter-spacing:0.1em;
-  margin-bottom:12px;display:inline-flex;align-items:center;gap:7px;align-self:flex-start;
+  background:linear-gradient(135deg, rgba(45,122,79,0.28) 0%, rgba(34,160,96,0.18) 100%);
+  border:1px solid rgba(45,122,79,0.5);
+  border-radius:10px;padding:14px 16px;font-size:13px;color:#7df0ad;
+  font-weight:800;letter-spacing:0.02em;
+  display:flex;align-items:center;gap:9px;
 }
-.output-scroll{
-  flex:1;overflow-y:auto;
-  background:rgba(255,255,255,0.04);
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:8px;padding:16px;
+.output-hint{
+  font-size:11px;color:rgba(255,255,255,0.35);line-height:1.6;
+  text-align:center;margin-top:14px;
 }
-.output-scroll::-webkit-scrollbar{width:4px;}
-.output-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:4px;}
-.output-text{font-size:12.5px;line-height:1.85;color:rgba(255,255,255,0.82);white-space:pre-wrap;font-family:inherit;}
 .action-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
 .act-btn{
   padding:11px 10px;border:none;border-radius:7px;
@@ -1704,16 +1704,14 @@ function switchOutput(mode) {
   emailBtn.style.display    = "none";
   if (quoteEmailBtn) quoteEmailBtn.style.display = "none";
 
+  const ready = document.getElementById("outputReady");
   if (mode === "summary") {
-    document.getElementById("outputText").textContent = lastSummary;
-    document.getElementById("outputReady").textContent = "✓ Ready for ValuePro";
+    if (ready) ready.textContent = "✓ Summary ready for ValuePro";
   } else if (mode === "email") {
-    document.getElementById("outputText").textContent = lastEmail;
-    document.getElementById("outputReady").textContent = "✓ Ready to Send";
+    if (ready) ready.textContent = "✓ Office email ready to send";
     emailBtn.style.display = "flex";
   } else if (mode === "quote") {
-    document.getElementById("outputText").textContent = lastQuote;
-    document.getElementById("outputReady").textContent = "✓ Quote Ready to Send";
+    if (ready) ready.textContent = "✓ Quote ready to send";
     if (quoteEmailBtn) quoteEmailBtn.style.display = "flex";
   }
 }
@@ -2341,8 +2339,10 @@ function buildEmailPlain() {
 
 
 async function copyOutput() {
-  const text = document.getElementById("outputText").innerText;
-  await navigator.clipboard.writeText(text);
+  const text = currentOutput === "email" ? lastEmail
+             : currentOutput === "quote" ? lastQuote
+             : lastSummary;
+  await navigator.clipboard.writeText(text || "");
   const btn = document.getElementById("copyBtn");
   const orig = btn.innerHTML;
   btn.innerHTML = "✓ Copied!";
@@ -4104,34 +4104,35 @@ resetForm = function() {
     </div>
 
     <div class="output-result" id="outputResult">
-      <!-- Output tabs -->
-      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+      <!-- Choose what to copy / send -->
+      <div class="output-choose">Copy / send as</div>
+      <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;">
         <button onclick="switchOutput('summary')" id="tabSummary"
-          style="flex:1;min-width:120px;padding:8px;border-radius:6px;border:none;font-family:inherit;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;background:var(--blue);color:var(--white);transition:all 0.18s;">
+          style="flex:1;min-width:120px;padding:9px 8px;border-radius:8px;border:none;font-family:inherit;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;background:var(--blue);color:var(--white);transition:all 0.18s;">
           📋 Summary of Instruction
         </button>
         <button onclick="switchOutput('email')" id="tabEmail"
-          style="flex:1;min-width:120px;padding:8px;border-radius:6px;border:none;font-family:inherit;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);transition:all 0.18s;">
+          style="flex:1;min-width:120px;padding:9px 8px;border-radius:8px;border:none;font-family:inherit;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);transition:all 0.18s;">
           ✉️ Office Email
         </button>
         <button onclick="switchOutput('quote')" id="tabQuote"
-          style="flex:1;min-width:120px;padding:8px;border-radius:6px;border:none;font-family:inherit;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;cursor:pointer;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);transition:all 0.18s;display:none;">
+          style="flex:1;min-width:120px;padding:9px 8px;border-radius:8px;border:none;font-family:inherit;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;cursor:pointer;background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.6);transition:all 0.18s;display:none;">
           💬 Quote Email
         </button>
       </div>
 
-      <!-- Action row — below tabs -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <!-- Ready confirmation -->
+      <div class="output-ready" id="outputReady">✓ Summary ready for ValuePro</div>
+
+      <!-- Action buttons -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px;">
         <button class="act-btn act-copy" id="copyBtn" onclick="copyOutput()">📋 Copy</button>
         <button class="act-btn act-copy" id="emailBtn" onclick="openEmail()" style="background:var(--blue-dark);display:none;">✉️ Send Email</button>
         <button class="act-btn act-copy" id="quoteEmailBtn" onclick="openQuoteEmail()" style="background:#2d7a4f;display:none;grid-column:1/-1;">💬 Email Quote to Client</button>
         <button class="gen-btn" id="printBtn" onclick="printForm()" style="background:linear-gradient(135deg,#2d3748 0%,#4a5568 100%);color:#fff;border:none;display:none;grid-column:1/-1;margin:0;box-shadow:0 4px 14px rgba(0,0,0,0.3);">🖨️ Print / Save as PDF</button>
       </div>
 
-      <div class="output-ready" id="outputReady">✓ Ready</div>
-      <div class="output-scroll">
-        <div class="output-text" id="outputText"></div>
-      </div>
+      <div class="output-hint">Generated and ready — just use Copy, Send Email or Print above.</div>
     </div>
   </div>
 
