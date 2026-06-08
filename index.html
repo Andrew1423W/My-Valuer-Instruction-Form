@@ -4047,7 +4047,7 @@ resetForm = function() {
     </div>
     <div style="padding:20px 28px;">
       <div style="display:flex;gap:10px;margin-bottom:16px;">
-        <input type="text" id="archiveSearch" placeholder="Search by address or client…" style="flex:1;padding:10px 14px;border:1.5px solid #dce4ee;border-radius:8px;font-family:inherit;font-size:14px;" onkeyup="if(event.key==='Enter') searchArchive()"/>
+        <input type="text" id="archiveSearch" autocomplete="off" placeholder="Search by address or client…" style="flex:1;padding:10px 14px;border:1.5px solid #dce4ee;border-radius:8px;font-family:inherit;font-size:14px;" onkeyup="if(event.key==='Enter') searchArchive()"/>
         <button onclick="searchArchive()" style="padding:10px 20px;background:#0e1c35;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">Search</button>
         <button onclick="loadArchive()" style="padding:10px 20px;background:rgba(125,166,212,0.15);color:var(--navy);border:1.5px solid rgba(125,166,212,0.3);border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">Recent</button>
       </div>
