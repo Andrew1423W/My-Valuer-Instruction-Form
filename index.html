@@ -608,9 +608,140 @@ async function connectSharePoint() {
       showSPStatus('✓ Connected to SharePoint — all key columns present and correctly typed.', 'ok');
     }
     console.log('SharePoint columns:', [...cols.entries()]);
+    loadValuers();
   } catch (e) {
     showSPStatus('⚠ ' + (e && e.message ? e.message : 'Could not connect to SharePoint.'), 'err');
   }
+}
+
+// ── SHARED VALUER LIST (Taken By / Allocated To) ─────────
+const VALUERS_LIST = 'Valuers';
+const DEFAULT_VALUERS = ['Andrew White', 'Paul Bibby', 'Dayna Campbell', 'Bridget Ireland', 'Jody White'];
+let _valuersListId = null;
+
+async function findValuersListId(token) {
+  if (_valuersListId) return _valuersListId;
+  const { siteId } = await getSPIds(token);
+  const resp = await fetch('https://graph.microsoft.com/v1.0/sites/' + siteId +
+    "/lists?$filter=displayName eq '" + VALUERS_LIST + "'", { headers: { 'Authorization': 'Bearer ' + token } });
+  if (!resp.ok) return null;
+  const d = await resp.json();
+  if (d.value && d.value.length) { _valuersListId = d.value[0].id; return _valuersListId; }
+  return null;
+}
+
+async function ensureValuersListId(token) {
+  let id = await findValuersListId(token);
+  if (id) return id;
+  const { siteId } = await getSPIds(token);
+  const resp = await fetch('https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ displayName: VALUERS_LIST, list: { template: 'genericList' } })
+  });
+  if (!resp.ok) throw new Error('Could not create the Valuers list: ' + (await resp.text()));
+  _valuersListId = (await resp.json()).id;
+  // Seed with the current default valuers.
+  for (const name of DEFAULT_VALUERS) await addValuerItem(token, name);
+  return _valuersListId;
+}
+
+async function addValuerItem(token, name) {
+  const { siteId } = await getSPIds(token);
+  const listId = await ensureValuersListId(token);
+  return fetch('https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId + '/items', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields: { Title: name } })
+  });
+}
+
+async function fetchValuers(token, listId) {
+  const { siteId } = await getSPIds(token);
+  const resp = await fetch('https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId +
+    '/items?expand=fields&$top=200', { headers: { 'Authorization': 'Bearer ' + token } });
+  if (!resp.ok) return [];
+  const d = await resp.json();
+  const valuers = (d.value || []).map(it => ({ id: it.id, name: ((it.fields && it.fields.Title) || '').trim() }))
+    .filter(v => v.name);
+  valuers.sort((a, b) => a.name.localeCompare(b.name));
+  return valuers;
+}
+
+function populateValuerDropdowns(names) {
+  ['c_taken_by', 'c_alloc'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const current = sel.value;
+    const placeholder = sel.options[0] ? sel.options[0].outerHTML : '<option value="">Select…</option>';
+    sel.innerHTML = placeholder + names.map(n => '<option>' + _escAttr(n) + '</option>').join('');
+    if (current && names.indexOf(current) !== -1) sel.value = current;
+  });
+}
+
+// Silent population on load / after connect — keeps the built-in defaults if the
+// list doesn't exist yet or the user isn't signed in.
+async function loadValuers() {
+  try {
+    const token = await getGraphTokenSilent();
+    if (!token) return;
+    const listId = await findValuersListId(token);
+    if (!listId) return;
+    const valuers = await fetchValuers(token, listId);
+    if (valuers.length) populateValuerDropdowns(valuers.map(v => v.name));
+  } catch (e) { console.log('loadValuers skipped:', e.message); }
+}
+
+// ── VALUER MANAGER UI ────────────────────────────────────
+async function openValuerManager() {
+  const overlay = document.getElementById('valuerOverlay');
+  if (overlay) overlay.style.display = 'flex';
+  await renderValuerManager();
+}
+function closeValuerManager() {
+  const overlay = document.getElementById('valuerOverlay');
+  if (overlay) overlay.style.display = 'none';
+}
+async function renderValuerManager() {
+  const listEl = document.getElementById('valuerMgrList');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="padding:12px;color:var(--grey);">Loading…</div>';
+  try {
+    const token = await getGraphToken();          // explicit action → popup OK
+    const listId = await ensureValuersListId(token);
+    const valuers = await fetchValuers(token, listId);
+    populateValuerDropdowns(valuers.map(v => v.name));
+    if (!valuers.length) { listEl.innerHTML = '<div style="padding:12px;color:var(--grey);">No valuers yet — add one below.</div>'; return; }
+    listEl.innerHTML = valuers.map(v =>
+      '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);">' +
+        '<span style="font-size:14px;font-weight:600;color:var(--navy);">' + _escAttr(v.name) + '</span>' +
+        '<button type="button" onclick="removeValuer(\'' + v.id + '\')" style="background:rgba(185,28,28,0.08);border:1.5px solid rgba(185,28,28,0.25);border-radius:6px;padding:4px 12px;font-family:inherit;font-size:12px;font-weight:700;color:#b91c1c;cursor:pointer;">🗑 Remove</button>' +
+      '</div>').join('');
+  } catch (e) {
+    listEl.innerHTML = '<div style="padding:12px;color:#b91c1c;">Could not load valuers: ' + _escAttr(e.message) + '</div>';
+  }
+}
+async function addValuer() {
+  const input = document.getElementById('valuerMgrInput');
+  const name = (input.value || '').trim();
+  if (!name) return;
+  input.value = '';
+  try {
+    const token = await getGraphToken();
+    await addValuerItem(token, name);
+    await renderValuerManager();
+  } catch (e) { alert('Could not add valuer: ' + e.message); }
+}
+async function removeValuer(itemId) {
+  try {
+    const token = await getGraphToken();
+    const { siteId } = await getSPIds(token);
+    const listId = await ensureValuersListId(token);
+    await fetch('https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId + '/items/' + itemId, {
+      method: 'DELETE', headers: { 'Authorization': 'Bearer ' + token }
+    });
+    await renderValuerManager();
+  } catch (e) { alert('Could not remove valuer: ' + e.message); }
 }
 
 async function saveJobToSharePoint() {
@@ -1000,6 +1131,7 @@ async function pickInstructor(name) {
 window.addEventListener('load', function () {
   attachAutocomplete('c_client_name', 'ClientName', pickClient);
   attachAutocomplete('c_inst_name', 'InstructorName', pickInstructor);
+  loadValuers();
 });
 
 async function loadJobFromSharePoint(itemId) {
@@ -3617,6 +3749,9 @@ resetForm = function() {
               </select>
             </div>
           </div>
+          <div style="margin-top:6px;">
+            <button type="button" onclick="openValuerManager()" style="background:none;border:1.5px dashed var(--blue);border-radius:7px;padding:5px 14px;font-family:inherit;font-size:12px;font-weight:700;color:var(--blue);cursor:pointer;">✎ Manage valuers</button>
+          </div>
           <div class="row2" style="margin-top:10px;align-items:start;">
             <label for="c_is_quote" style="display:flex;align-items:center;gap:14px;padding:14px 18px;background:rgba(125,166,212,0.1);border:2px solid rgba(125,166,212,0.4);border-radius:10px;cursor:pointer;user-select:none;transition:all 0.18s;" onmouseover="this.style.background='rgba(125,166,212,0.18)'" onmouseout="this.style.background='rgba(125,166,212,0.1)'">
               <input type="checkbox" id="c_is_quote" onchange="toggleQuote()" style="width:22px;height:22px;cursor:pointer;accent-color:var(--blue);flex-shrink:0;"/>
@@ -3898,6 +4033,22 @@ resetForm = function() {
       </div>
       <div id="archiveStatus" style="font-size:13px;color:var(--grey);margin-bottom:10px;"></div>
       <div id="archiveList" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MANAGE VALUERS DIALOG ─────────────────────────── -->
+<div id="valuerOverlay" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(14,28,53,0.7);z-index:99999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;width:440px;max-width:92vw;max-height:85vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.3);">
+    <div style="padding:14px 20px;background:var(--blue);display:flex;align-items:center;justify-content:space-between;">
+      <span style="font-size:14px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:0.06em;">Manage Valuers</span>
+      <button onclick="closeValuerManager()" style="background:none;border:none;color:#fff;font-size:20px;cursor:pointer;line-height:1;">×</button>
+    </div>
+    <div style="padding:10px 16px;font-size:12px;color:var(--grey);border-bottom:1px solid var(--border);">These names appear in both <b>Taken By</b> and <b>Allocated To</b>, and are shared with everyone.</div>
+    <div id="valuerMgrList" style="flex:1;overflow-y:auto;min-height:80px;"></div>
+    <div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;">
+      <input type="text" id="valuerMgrInput" placeholder="New valuer name…" onkeydown="if(event.key==='Enter')addValuer()" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:14px;"/>
+      <button onclick="addValuer()" style="background:var(--green);border:none;border-radius:7px;padding:9px 16px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">＋ Add</button>
     </div>
   </div>
 </div>
