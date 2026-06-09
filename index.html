@@ -2240,7 +2240,7 @@ function buildEmailHTML() {
     + ((rvLand||rvCV||rCouncil) ? sec('Council Rates & Rating Valuation',[row('Land Value',rvLand),row('Improvements',rvImp),row('Capital Value',rvCV),row('Council Rates',rCouncil?rCouncil+' p.a.':''),row('HBRC Rates',rHBRC?rHBRC+' p.a.':'')]) : '')
     + (notes ? '<div style="margin-bottom:20px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:'+B+';border-bottom:2px solid '+B+';padding-bottom:5px;margin-bottom:10px;">Valuation Notes</div><div style="background:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;padding:10px 14px;font-size:13px;color:#1a1a2e;line-height:1.7;">'+notes+'</div></div>' : '')
     + '<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;"/>'
-    + '<p style="font-size:13px;color:#6b7280;line-height:1.7;margin:0;">Kind regards,<br><strong style="color:#0e1c35;">'+sender+'</strong><br>My Valuer Limited &nbsp;&middot;&nbsp; 2 Pandora Road, Napier &nbsp;&middot;&nbsp; 06 835 3350<br>'+senderEmail+'</p>'
+    + buildSignatureHTML()
     + '</div>';
 }
 
@@ -2435,12 +2435,7 @@ function buildEmailPlain() {
 
   lines.push(div);
   lines.push('');
-  lines.push('Kind regards,');
-  lines.push(sender);
-  lines.push('My Valuer Limited');
-  lines.push('2 Pandora Road, Napier');
-  lines.push('Ph: 06 835 3350');
-  lines.push(senderEmail);
+  lines.push(buildSignaturePlain());
 
   return lines.join('\n');
 }
@@ -2720,12 +2715,7 @@ Should you wish to proceed, click the link below or reply to this email confirmi
 
 If you have any questions, please don't hesitate to contact us.
 
-Kind regards,
-${sender}
-My Valuer Limited
-2 Pandora Road, Napier
-Ph: 06 835 3350
-${senderEmail}`;
+${buildSignaturePlain()}`;
 }
 
 function openQuoteEmail() {
@@ -2762,7 +2752,7 @@ function openQuoteEmail() {
     "This quote is valid until " + expiryStr + ".\n\n" +
     "To accept this quote, please reply to this email confirming your instruction to proceed.\n\n" +
     "If you have any questions, please do not hesitate to contact us.\n\n" +
-    "Kind regards,\n" + sender + "\nMy Valuer Limited\n2 Pandora Road, Napier\nPh: 06 835 3350\n" + senderEmail;
+    buildSignaturePlain();
 
   // Strip postcode and country from address for subject line
   const propShort = prop.replace(/,?\s*\d{4}\s*,?/g, ',').replace(/,?\s*New Zealand\s*$/i, '').replace(/,\s*,/g, ',').replace(/,\s*$/,'').trim();
@@ -2781,7 +2771,7 @@ function openQuoteEmail() {
     "This quote is valid until " + expiryStr + ".\n\n" +
     "We look forward to assisting you with this valuation. To get started, simply reply to this email confirming your instruction to proceed and we will be in touch to arrange access at your earliest convenience.\n\n" +
     "If you have any questions, please do not hesitate to contact us.\n\n" +
-    "Kind regards,";
+    buildSignaturePlain();
 
   // Open preview window for valuer to review before sending
   openEmailPreview(clientEmail, subject, finalText, true);
@@ -3159,6 +3149,52 @@ function getSenderEmail() {
 
 function getSenderName() {
   return document.getElementById('c_taken_by').value || 'The team';
+}
+
+// Per-valuer signature details for the Office Email + Quote Email.
+// Add quals/title/cell here for each valuer as needed.
+const STAFF_DETAILS = {
+  'Andrew White':    { quals: 'BBS', title: 'Registered Valuer | FNZIV', cell: '0275789630' },
+  'Paul Bibby':      { quals: '',    title: 'Registered Valuer',         cell: '' },
+  'Dayna Campbell':  { quals: '',    title: 'Registered Valuer',         cell: '' },
+  'Bridget Ireland': { quals: '',    title: 'Registered Valuer',         cell: '' },
+  'Jody White':      { quals: '',    title: '',                          cell: '' }
+};
+
+// Plain-text email signature based on the "Taken By" valuer.
+function buildSignaturePlain() {
+  const name = (document.getElementById('c_taken_by')?.value || '').trim();
+  const info = STAFF_DETAILS[name] || {};
+  const out = ['Kind regards,', ''];
+  if (name) out.push(name + (info.quals ? ' ' + info.quals : ''));
+  if (info.title) out.push(info.title);
+  out.push('');
+  if (info.cell) out.push('Cell | ' + info.cell);
+  out.push('Office | 06 835 3350');
+  out.push('');
+  out.push('2 Pandora Road, Pandora, Napier');
+  out.push('');
+  out.push('The experienced team at My Valuer apply insight with experience to help clients and stakeholders make informed property decisions.');
+  out.push('');
+  out.push('Note: This email may contain information which is confidential and/or subject to legal privilege. If you are not the intended recipient, please immediately notify the sender and delete the email. My Valuer Limited');
+  return out.join('\n');
+}
+
+// HTML email signature (for the rich Office Email).
+function buildSignatureHTML() {
+  const name = (document.getElementById('c_taken_by')?.value || '').trim();
+  const info = STAFF_DETAILS[name] || {};
+  let h = '<p style="font-size:13px;color:#374151;line-height:1.6;margin:0 0 12px;">Kind regards,</p>';
+  h += '<p style="font-size:13px;color:#374151;line-height:1.6;margin:0;">';
+  if (name) h += '<strong style="color:#0e1c35;">' + name + (info.quals ? ' ' + info.quals : '') + '</strong><br>';
+  if (info.title) h += info.title + '<br>';
+  h += '<br>';
+  if (info.cell) h += 'Cell | ' + info.cell + '<br>';
+  h += 'Office | 06 835 3350<br><br>';
+  h += '2 Pandora Road, Pandora, Napier</p>';
+  h += '<p style="font-size:12.5px;color:#6b7280;line-height:1.7;margin:14px 0 0;">The experienced team at My Valuer apply insight with experience to help clients and stakeholders make informed property decisions.</p>';
+  h += '<p style="font-size:11px;color:#9ca3af;line-height:1.6;margin:14px 0 0;">Note: This email may contain information which is confidential and/or subject to legal privilege. If you are not the intended recipient, please immediately notify the sender and delete the email. My Valuer Limited</p>';
+  return h;
 }
 
 // ── QUOTE TOGGLE ──────────────────────────────────────────
