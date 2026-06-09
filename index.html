@@ -1327,7 +1327,11 @@ function rotateTagline() {
   if (!el) return;
   el.style.opacity = '0';
   setTimeout(() => {
-    _tagIdx = (_tagIdx + 1) % TAGLINES.length;
+    let next = Math.floor(Math.random() * TAGLINES.length);
+    if (TAGLINES.length > 1) {
+      while (next === _tagIdx) next = Math.floor(Math.random() * TAGLINES.length);
+    }
+    _tagIdx = next;
     el.textContent = '“' + TAGLINES[_tagIdx] + '”';
     el.style.opacity = '1';
   }, 600);
