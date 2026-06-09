@@ -748,12 +748,13 @@ async function createValuersList(token) {
   return _valuersListId;
 }
 
-async function addValuerItem(token, listId, name, position, phone, quals) {
+async function addValuerItem(token, listId, name, position, phone, quals, postNominal) {
   const { siteId } = await getSPIds(token);
   const fields = { Title: name };
   if (position) fields.Position = position;
   if (phone) fields.Phone = phone;
   if (quals) fields.Qualification = quals;
+  if (postNominal) fields.PostNominal = postNominal;
   return fetch('https://graph.microsoft.com/v1.0/sites/' + siteId + '/lists/' + listId + '/items', {
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -785,7 +786,8 @@ async function fetchValuers(token, listId) {
       name: (f.Title || '').trim(),
       position: (f.Position || '').trim(),
       phone: (f.Phone || '').trim(),
-      quals: (f.Qualification || '').trim()
+      quals: (f.Qualification || '').trim(),
+      postNominal: (f.PostNominal || '').trim()
     };
   }).filter(v => v.name);
   valuers.sort((a, b) => a.name.localeCompare(b.name));
@@ -795,7 +797,7 @@ async function fetchValuers(token, listId) {
 // Cache valuer details so the email signature can use them.
 function cacheValuerDetails(valuers) {
   _valuerDetails = {};
-  valuers.forEach(v => { _valuerDetails[v.name] = { position: v.position, phone: v.phone, quals: v.quals }; });
+  valuers.forEach(v => { _valuerDetails[v.name] = { position: v.position, phone: v.phone, quals: v.quals, postNominal: v.postNominal }; });
 }
 
 function populateValuerDropdowns(names) {
@@ -860,8 +862,9 @@ async function renderValuerManager() {
           '<button type="button" title="Remove" onclick="removeValuer(\'' + v.id + '\')" style="background:rgba(185,28,28,0.08);border:1.5px solid rgba(185,28,28,0.25);border-radius:6px;padding:3px 10px;font-family:inherit;font-size:12px;font-weight:700;color:#b91c1c;cursor:pointer;">🗑</button>' +
         '</div>' +
         '<div style="display:flex;gap:6px;">' +
-          '<input value="' + _escAttr(v.position) + '" placeholder="Position (e.g. Registered Valuer)" onchange="updateValuer(\'' + v.id + '\',\'Position\',this.value)" style="' + inp + 'flex:1.5;"/>' +
+          '<input value="' + _escAttr(v.position) + '" placeholder="Position (e.g. Registered Valuer)" onchange="updateValuer(\'' + v.id + '\',\'Position\',this.value)" style="' + inp + 'flex:1.6;"/>' +
           '<input value="' + _escAttr(v.quals) + '" placeholder="Quals" onchange="updateValuer(\'' + v.id + '\',\'Qualification\',this.value)" style="' + inp + 'flex:0.7;"/>' +
+          '<input value="' + _escAttr(v.postNominal) + '" placeholder="Post-nominal" onchange="updateValuer(\'' + v.id + '\',\'PostNominal\',this.value)" style="' + inp + 'flex:0.8;"/>' +
           '<input value="' + _escAttr(v.phone) + '" placeholder="Cell / phone" onchange="updateValuer(\'' + v.id + '\',\'Phone\',this.value)" style="' + inp + 'flex:1;"/>' +
         '</div>' +
       '</div>').join('');
@@ -873,18 +876,20 @@ async function addValuer() {
   const nameEl = document.getElementById('valuerMgrInput');
   const posEl  = document.getElementById('valuerMgrPosition');
   const qEl    = document.getElementById('valuerMgrQuals');
+  const pnEl   = document.getElementById('valuerMgrPostNom');
   const phEl   = document.getElementById('valuerMgrPhone');
   const name = (nameEl.value || '').trim();
   if (!name) return;
   const position = (posEl ? posEl.value : '').trim();
   const quals = (qEl ? qEl.value : '').trim();
+  const postNominal = (pnEl ? pnEl.value : '').trim();
   const phone = (phEl ? phEl.value : '').trim();
-  nameEl.value = ''; if (posEl) posEl.value = ''; if (qEl) qEl.value = ''; if (phEl) phEl.value = '';
+  nameEl.value = ''; if (posEl) posEl.value = ''; if (qEl) qEl.value = ''; if (pnEl) pnEl.value = ''; if (phEl) phEl.value = '';
   try {
     const token = await getGraphToken();
     const listId = await findValuersListId(token);
     if (!listId) { await renderValuerManager(); return; }
-    await addValuerItem(token, listId, name, position, phone, quals);
+    await addValuerItem(token, listId, name, position, phone, quals, postNominal);
     await renderValuerManager();
   } catch (e) { alert('Could not add valuer: ' + e.message); }
 }
@@ -3219,7 +3224,8 @@ function valuerSig(name) {
   return {
     quals: (sp.quals || fb.quals || ''),
     title: (sp.position || fb.title || ''),
-    cell:  (sp.phone || fb.cell || '')
+    cell:  (sp.phone || fb.cell || ''),
+    postNominal: (sp.postNominal || fb.postNominal || '')
   };
 }
 
@@ -3227,8 +3233,9 @@ function valuerSig(name) {
 function buildSignaturePlain() {
   const name = (document.getElementById('c_taken_by')?.value || '').trim();
   const info = valuerSig(name);
+  const post = [info.quals, info.postNominal].filter(Boolean).join(', ');
   const out = ['Kind regards,', ''];
-  if (name) out.push(name + (info.quals ? ' ' + info.quals : ''));
+  if (name) out.push(name + (post ? ' ' + post : ''));
   if (info.title) out.push(info.title);
   out.push('');
   if (info.cell) out.push('Cell | ' + info.cell);
@@ -3246,9 +3253,10 @@ function buildSignaturePlain() {
 function buildSignatureHTML() {
   const name = (document.getElementById('c_taken_by')?.value || '').trim();
   const info = valuerSig(name);
+  const post = [info.quals, info.postNominal].filter(Boolean).join(', ');
   let h = '<p style="font-size:13px;color:#374151;line-height:1.6;margin:0 0 12px;">Kind regards,</p>';
   h += '<p style="font-size:13px;color:#374151;line-height:1.6;margin:0;">';
-  if (name) h += '<strong style="color:#0e1c35;">' + name + (info.quals ? ' ' + info.quals : '') + '</strong><br>';
+  if (name) h += '<strong style="color:#0e1c35;">' + name + (post ? ' ' + post : '') + '</strong><br>';
   if (info.title) h += info.title + '<br>';
   h += '<br>';
   if (info.cell) h += 'Cell | ' + info.cell + '<br>';
@@ -4405,6 +4413,7 @@ resetForm = function() {
       </div>
       <div style="display:flex;gap:6px;margin-bottom:7px;">
         <input type="text" id="valuerMgrQuals" placeholder="Qualification (e.g. BBS)" style="flex:1;padding:9px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;"/>
+        <input type="text" id="valuerMgrPostNom" placeholder="Post-nominal (e.g. FNZIV)" style="flex:1;padding:9px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;"/>
         <input type="text" id="valuerMgrPhone" placeholder="Cell / phone" onkeydown="if(event.key==='Enter')addValuer()" style="flex:1;padding:9px 11px;border:1.5px solid var(--border);border-radius:7px;font-family:inherit;font-size:13px;"/>
       </div>
       <button onclick="addValuer()" style="width:100%;background:var(--green);border:none;border-radius:7px;padding:10px;font-family:inherit;font-size:13px;font-weight:700;color:#fff;cursor:pointer;">＋ Add Valuer</button>
