@@ -1650,6 +1650,20 @@ function initAutocomplete() {
   ['c_client_addr', 'c_toe_addr', 'c_rpt_addr', 'c_inv_addr'].forEach(acNZ);
 }
 
+// Called by Google when the Maps key is rejected — fail gracefully so the
+// address fields still work as plain manual-entry inputs.
+window.gm_authFailure = function () {
+  console.warn('Google Maps auth failed — autocomplete disabled; manual address entry still works.');
+  ['c_prop_addr', 'c_client_addr', 'c_toe_addr', 'c_rpt_addr', 'c_inv_addr'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.placeholder = 'Type the full address (autocomplete unavailable)';
+  });
+  // Hide Google's error box that renders inside the suggestions dropdown.
+  const css = document.createElement('style');
+  css.textContent = '.pac-container{display:none !important;}';
+  document.head.appendChild(css);
+};
+
 // Load Google Maps script
 (function() {
   const s = document.createElement('script');
