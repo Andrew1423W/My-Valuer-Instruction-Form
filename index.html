@@ -2047,20 +2047,26 @@ function generateSummary() {
   btn.disabled = false;
   btn.textContent = "✦ Generate Instruction";
 
-  // Save the job to SharePoint and report the result.
-  if (document.getElementById('c_prop_addr').value) {
-    showSPStatus('☁ Saving job to SharePoint…', 'info');
-    saveJobToSharePoint()
-      .then(res => {
-        _archiveJobs = null;    // refresh the archive cache with the new job
-        if (res && res.skipped && res.skipped.length) {
-          showSPStatus('✓ Job saved, but these columns were rejected (likely wrong type — should be "Single line of text"): ' + res.skipped.join(', '), 'err');
-        } else {
-          showSPStatus('✓ Job saved to SharePoint', 'ok');
-        }
-      })
-      .catch(err => showSPStatus('⚠ SharePoint save failed: ' + (err && err.message ? err.message : 'unknown error') + ' — try the "Connect SharePoint" button.', 'err'));
-  }
+  // Note: the job is saved to SharePoint when the email is SENT (see
+  // archiveJobToSharePoint), so the instruction is only recorded once it's
+  // been reviewed and confirmed complete.
+}
+
+// Save the current job to SharePoint and report the result. Called when an
+// email is sent.
+function archiveJobToSharePoint() {
+  if (!document.getElementById('c_prop_addr').value) return;
+  showSPStatus('☁ Saving job to SharePoint…', 'info');
+  saveJobToSharePoint()
+    .then(res => {
+      _archiveJobs = null;    // refresh the archive cache with the new job
+      if (res && res.skipped && res.skipped.length) {
+        showSPStatus('✓ Job saved, but these columns were rejected (likely wrong type — should be "Single line of text"): ' + res.skipped.join(', '), 'err');
+      } else {
+        showSPStatus('✓ Job saved to SharePoint', 'ok');
+      }
+    })
+    .catch(err => showSPStatus('⚠ SharePoint save failed: ' + (err && err.message ? err.message : 'unknown error') + ' — try the "Connect SharePoint" button.', 'err'));
 }
 
 // Build ValuePro summary directly from form fields
@@ -2718,6 +2724,7 @@ async function sendEmailFromPreview() {
     status.style.background = "#d1fae5";
     status.style.color = "#065f46";
     status.textContent = "Email sent successfully!";
+    archiveJobToSharePoint();   // record the job now that the email is sent
     setTimeout(() => closeEmailPreview(), 2500);
   } catch(err) {
     // Fallback to mailto
@@ -2733,6 +2740,7 @@ async function sendEmailFromPreview() {
     status.style.background = "#fef3c7";
     status.style.color = "#92400e";
     status.textContent = "Opening in Outlook as fallback — please click Send in Outlook.";
+    archiveJobToSharePoint();   // still record the job — the email is being sent
   }
 }
 
