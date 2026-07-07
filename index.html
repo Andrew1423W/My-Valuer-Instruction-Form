@@ -1557,7 +1557,7 @@ async function lookupLINZ(lat, lng) {
 
     showLinzStatus(
       filled.length > 0
-        ? '✓ LINZ data loaded — ' + filled.join(', ') + ' filled. Enter Registered Owner manually.'
+        ? '✓ LINZ data loaded — ' + filled.join(', ') + ' filled.'
         : '⚠️ Parcel found but limited data returned — check fields manually.',
       filled.length > 0 ? 'ok' : 'err'
     );
@@ -1819,7 +1819,6 @@ Identifier (Title No): ${document.getElementById("c_title_no").value||"—"}
 Estate: ${document.getElementById("c_estate").value||"—"}
 Area: ${document.getElementById("c_area").value||"—"}
 Legal Description: ${document.getElementById("c_legal_desc").value||"—"}
-Registered Owner: ${document.getElementById("c_owner").value||"—"}
 
 INSTRUCTOR: ${document.getElementById("c_inst_name").value||"—"} | Ph: ${document.getElementById("c_inst_phone").value||"—"}
 
@@ -1900,7 +1899,6 @@ Title No: ${document.getElementById("c_title_no").value||"—"}
 Legal Description: ${document.getElementById("c_legal_desc").value||"—"}
 Area: ${document.getElementById("c_area").value||"—"}
 Estate: ${document.getElementById("c_estate").value||"—"}
-Registered Owner: ${document.getElementById("c_owner").value||"—"}
 Instructor: ${document.getElementById("c_inst_name").value||"—"} | Ph: ${document.getElementById("c_inst_phone").value||"—"}
 Client: ${document.getElementById("c_client_name").value||"—"} | Ph: ${document.getElementById("c_client_phone").value||"—"}
 Client Address: ${document.getElementById("c_client_addr").value||"—"}
@@ -2081,7 +2079,6 @@ function buildValueProSummary() {
   const estate  = document.getElementById("c_estate").value || "—";
   const area    = document.getElementById("c_area").value || "—";
   const legal   = document.getElementById("c_legal_desc").value || "—";
-  const owner   = document.getElementById("c_owner").value || "—";
   const instNm  = document.getElementById("c_inst_name").value || "—";
   const instPh  = document.getElementById("c_inst_phone").value || "—";
   const client  = document.getElementById("c_client_name").value || "—";
@@ -2167,7 +2164,6 @@ Identifier (Title):   ${titleNo}
 Estate:               ${estate}
 Area:                 ${area}
 Legal Description:    ${legal}
-Registered Owner:     ${owner}
 Title References:     ${titles}
 
 INSTRUCTOR
@@ -3034,7 +3030,6 @@ function printForm() {
         row('Estate', v('c_estate')),
         row('Area', v('c_area')),
         row('Legal Description', v('c_legal_desc')),
-        row('Registered Owner', v('c_owner')),
         row('Title References', titles)
       ])}
     </div>
@@ -3932,10 +3927,6 @@ resetForm = function() {
               <label>Legal Description</label>
               <input type="text" id="c_legal_desc" placeholder="Auto-filled from LINZ"/>
             </div>
-          </div>
-          <div class="field">
-            <label>Registered Owner</label>
-            <input type="text" id="c_owner" placeholder="Enter manually — requires LINZ personal data licence"/>
           </div>
         </div>
       </div>
