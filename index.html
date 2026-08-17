@@ -1110,6 +1110,13 @@ function mirrorInstructorPhone() {
 document.addEventListener('input', function (e) {
   if (e.target && e.target.id === 'c_inst_phone') mirrorInstructorPhone();
 });
+// Safety net: when the empty Client phone gets focus, pull the Instructor phone.
+document.addEventListener('focusin', function (e) {
+  if (e.target && e.target.id === 'c_client_phone' && e.target.value.trim() === '') {
+    const inst = document.getElementById('c_inst_phone');
+    if (inst && inst.value.trim()) { e.target.value = inst.value; _lastInstPhoneCopy = inst.value; }
+  }
+});
 function fillPropertyFields(f) {
   if (!f) return;
   _fillField('c_prop_addr',     f.Title);
