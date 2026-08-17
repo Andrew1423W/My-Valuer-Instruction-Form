@@ -2669,29 +2669,32 @@ function searchArchive() {
 }
 
 function renderArchiveJobs(jobs) {
-  const status = document.getElementById("archiveStatus");
-  const list   = document.getElementById("archiveList");
+  const list = document.getElementById("archiveList");
   list.innerHTML = "";
   if (!jobs.length) return;
   jobs.forEach(job => {
-    const f   = job.fields;
+    const f = job.fields || {};
     const div = document.createElement("div");
-    div.style.cssText = "padding:12px 16px;border:1.5px solid #dce4ee;border-radius:8px;cursor:pointer;transition:all 0.15s;";
-    div.onmouseover = () => div.style.background = "#f4f8fd";
-    div.onmouseout  = () => div.style.background = "";
+    div.style.cssText = "display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border:1.5px solid #dce4ee;border-radius:8px;transition:all 0.15s;";
+    const meta = [f.TakenBy, f.InstructionDate, f.ClientName].filter(Boolean).map(_escAttr).join(" &nbsp;|&nbsp; ");
+    const spLink = job.webUrl
+      ? "<a href='" + _escAttr(job.webUrl) + "' target='_blank' rel='noopener' onclick='event.stopPropagation()' title='Open this job in SharePoint' style='flex-shrink:0;text-decoration:none;background:rgba(125,166,212,0.12);border:1.5px solid rgba(125,166,212,0.35);border-radius:7px;padding:6px 12px;font-size:12px;font-weight:700;color:#1F3A5F;'>↗ SharePoint</a>"
+      : "";
     div.innerHTML =
-      "<div style='font-weight:700;font-size:14px;color:#0e1c35;'>" + (f.Title || "No address") + "</div>" +
-      "<div style='font-size:12px;color:#888;margin-top:3px;'>" +
-        (f.TakenBy || "") + (f.InstructionDate ? " &nbsp;|&nbsp; " + f.InstructionDate : "") +
-        (f.ClientName ? " &nbsp;|&nbsp; " + f.ClientName : "") +
-      "</div>";
-    div.onclick = async () => {
+      "<div class='arch-load' style='flex:1;min-width:0;cursor:pointer;' title='Load this job back into the form'>" +
+        "<div style='font-weight:700;font-size:14px;color:#0e1c35;'>" + _escAttr(f.Title || "No address") + "</div>" +
+        "<div style='font-size:12px;color:#888;margin-top:3px;'>" + meta + "</div>" +
+      "</div>" + spLink;
+    const loadEl = div.querySelector('.arch-load');
+    loadEl.onmouseover = () => div.style.background = "#f4f8fd";
+    loadEl.onmouseout  = () => div.style.background = "";
+    loadEl.onclick = async () => {
       try {
         const fields = await loadJobFromSharePoint(job.id);
         applyJobFields(fields);
         closeArchive();
-        window.scrollTo({top:0,behavior:"smooth"});
-      } catch(e) { alert("Could not load job: " + e.message); }
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (e) { alert("Could not load job: " + e.message); }
     };
     list.appendChild(div);
   });
@@ -4389,7 +4392,8 @@ resetForm = function() {
         <button onclick="searchArchive()" style="padding:10px 20px;background:#0e1c35;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;">Search</button>
         <button onclick="loadArchive()" style="padding:10px 20px;background:rgba(125,166,212,0.15);color:var(--navy);border:1.5px solid rgba(125,166,212,0.3);border-radius:8px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;">Recent</button>
       </div>
-      <div id="archiveStatus" style="font-size:13px;color:var(--grey);margin-bottom:10px;"></div>
+      <div id="archiveStatus" style="font-size:13px;color:var(--grey);margin-bottom:4px;"></div>
+      <div style="font-size:11.5px;color:#9ca3af;margin-bottom:10px;">Click a job to load it back into the form · use <b style="color:#1F3A5F;">↗ SharePoint</b> to open the record in SharePoint.</div>
       <div id="archiveList" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto;"></div>
     </div>
   </div>
