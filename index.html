@@ -1090,7 +1090,26 @@ function fillInstructorContact(f) {
   if (!f) return;
   _fillField('c_inst_name',  f.InstructorName);
   _fillField('c_inst_phone', f.InstructorPhone);
+  mirrorInstructorPhone();
 }
+
+// Copy the Instructor phone into the Client phone as a default (overtypeable):
+// only fills while the client phone is empty or still equals the last copy,
+// so a manually-entered client phone is never overwritten.
+let _lastInstPhoneCopy = '';
+function mirrorInstructorPhone() {
+  const inst   = document.getElementById('c_inst_phone');
+  const client = document.getElementById('c_client_phone');
+  if (!inst || !client) return;
+  if (client.value.trim() === '' || client.value === _lastInstPhoneCopy) {
+    client.value = inst.value;
+    _lastInstPhoneCopy = inst.value;
+    if (typeof refreshDeliveryDisplays === 'function') refreshDeliveryDisplays();
+  }
+}
+document.addEventListener('input', function (e) {
+  if (e.target && e.target.id === 'c_inst_phone') mirrorInstructorPhone();
+});
 function fillPropertyFields(f) {
   if (!f) return;
   _fillField('c_prop_addr',     f.Title);
