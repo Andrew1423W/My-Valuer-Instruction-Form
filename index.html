@@ -574,7 +574,7 @@ async function getGraphTokenSilent() {
   } catch (e) { return null; }
 }
 
-async function sendViaGraph(to, subject, body, cc) {
+async function sendViaGraph(to, subject, body, cc, bcc) {
   const token = await getGraphToken();
   const message = {
     message: {
@@ -584,13 +584,10 @@ async function sendViaGraph(to, subject, body, cc) {
     },
     saveToSentItems: true
   };
-  // Optional CC recipient(s) — used by the Office Email to copy in valuations inbox
-  if (cc) {
-    const ccList = Array.isArray(cc) ? cc : [cc];
-    message.message.ccRecipients = ccList
-      .filter(Boolean)
-      .map(addr => ({ emailAddress: { address: addr } }));
-  }
+  const toList = a => (Array.isArray(a) ? a : [a]).filter(Boolean)
+    .map(addr => ({ emailAddress: { address: String(addr).trim() } }));
+  if (cc)  { const l = toList(cc);  if (l.length) message.message.ccRecipients  = l; }
+  if (bcc) { const l = toList(bcc); if (l.length) message.message.bccRecipients = l; }
   const resp = await fetch('https://graph.microsoft.com/v1.0/me/sendMail', {
     method: 'POST',
     headers: {
@@ -2589,8 +2586,13 @@ async function doSendEmail() {
 
 function openEmailPreview(to, subject, body, isQuote, plainTextBody, cc) {
   // Populate overlay
-  document.getElementById("previewTo").textContent      = "To: " + to + (cc ? "    Cc: " + (Array.isArray(cc) ? cc.join(", ") : cc) : "");
+  document.getElementById("previewTo").textContent      = "To: " + to;
   document.getElementById("previewSubject").textContent = "Subject: " + subject;
+  // Pre-fill the editable Cc (e.g. the valuations inbox) and clear Bcc.
+  const ccInput  = document.getElementById("previewCcInput");
+  const bccInput = document.getElementById("previewBccInput");
+  if (ccInput)  ccInput.value  = cc ? (Array.isArray(cc) ? cc.join(", ") : cc) : "";
+  if (bccInput) bccInput.value = "";
   document.getElementById("previewStatus").style.display = "none";
   // Render HTML or plain text in preview
   const previewBodyEl = document.getElementById("previewBody");
@@ -2737,13 +2739,15 @@ async function sendEmailFromPreview() {
   const to     = window._previewTo;
   const sub    = window._previewSub;
   const body   = window._previewBody;
-  const cc     = window._previewCc;
+  const splitAddrs = v => (v || '').split(/[,;]/).map(s => s.trim()).filter(Boolean);
+  const cc     = splitAddrs(document.getElementById('previewCcInput')?.value);
+  const bcc    = splitAddrs(document.getElementById('previewBccInput')?.value);
 
   btn.disabled = true;
   btn.textContent = "Sending...";
 
   try {
-    await sendViaGraph(to, sub, body, cc);
+    await sendViaGraph(to, sub, body, cc, bcc);
     btn.textContent = "✓ Sent!";
     btn.style.background = "#2d7a4f";
     status.style.display = "block";
@@ -2756,10 +2760,12 @@ async function sendEmailFromPreview() {
     // Fallback to mailto
     btn.disabled = false;
     btn.textContent = "✓ Send Email";
-    const ccStr = cc ? (Array.isArray(cc) ? cc.join(",") : cc) : "";
+    const ccStr  = cc.join(",");
+    const bccStr = bcc.join(",");
     const mailtoUrl = "mailto:" + encodeURIComponent(to) +
       "?subject=" + encodeURIComponent(sub) +
       (ccStr ? "&cc=" + encodeURIComponent(ccStr) : "") +
+      (bccStr ? "&bcc=" + encodeURIComponent(bccStr) : "") +
       "&body=" + encodeURIComponent(body);
     window.location.href = mailtoUrl;
     status.style.display = "block";
@@ -2787,7 +2793,7 @@ function buildQuoteEmailText() {
   const acceptBody    = encodeURIComponent("Hi " + sender + ",\n\nI confirm I accept the quote and wish to proceed with the valuation of " + prop + ".\n\nPlease arrange access and proceed.\n\nKind regards,\n" + client);
   const acceptLink    = "mailto:" + senderEmail + "?subject=" + acceptSubject + "&body=" + acceptBody;
 
-  return `Dear ${client},
+  return `Dear ${instructorFirstName() || client},
 
 Thank you for your enquiry. Please find below our fee proposal for the above property.
 
@@ -2844,7 +2850,7 @@ function openQuoteEmail() {
 
   // Plain text version for the mailto body
   const plainText =
-    "Dear " + (client || "Client") + ",\n\n" +
+    "Dear " + (instructorFirstName() || client || "Client") + ",\n\n" +
     "Thank you for your enquiry. Please find below our fee proposal for the above property.\n\n" +
     "PROPERTY\n" + prop + "\n\n" +
     "SCOPE OF WORK\n" + purpose + "\n\n" +
@@ -2863,7 +2869,7 @@ function openQuoteEmail() {
 
   // Update body with new wording
   const finalText =
-    "Dear " + (client || "Client") + ",\n\n" +
+    "Dear " + (instructorFirstName() || client || "Client") + ",\n\n" +
     "Thank you for your enquiry. Please find below our fee proposal for the above property.\n\n" +
     "PROPERTY\n" + prop + "\n\n" +
     "SCOPE OF WORK\n" + purpose + "\n\n" +
@@ -3249,6 +3255,12 @@ function getSenderEmail() {
 
 function getSenderName() {
   return document.getElementById('c_taken_by').value || 'The team';
+}
+
+// First name of the Instructor (Name / Organisation), for the quote greeting.
+function instructorFirstName() {
+  const inst = (document.getElementById('c_inst_name')?.value || '').trim();
+  return inst ? inst.split(/\s+/)[0] : '';
 }
 
 // Per-valuer signature details for the Office Email + Quote Email.
@@ -4395,6 +4407,14 @@ resetForm = function() {
   </div>
   <div style="max-width:800px;margin:32px auto;padding:0 24px 60px;">
     <div id="previewStatus" style="display:none;margin-bottom:20px;padding:16px 24px;border-radius:8px;font-size:16px;font-weight:600;text-align:center;"></div>
+    <div style="background:#fff;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);padding:14px 18px;margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap;">
+      <label style="flex:1;min-width:220px;font-size:12px;font-weight:700;color:#374151;">Cc
+        <input type="text" id="previewCcInput" autocomplete="off" placeholder="name@example.com (comma-separated)" style="display:block;width:100%;margin-top:4px;padding:9px 11px;border:1.5px solid #dce4ee;border-radius:7px;font-family:inherit;font-size:14px;font-weight:400;"/>
+      </label>
+      <label style="flex:1;min-width:220px;font-size:12px;font-weight:700;color:#374151;">Bcc
+        <input type="text" id="previewBccInput" autocomplete="off" placeholder="name@example.com (comma-separated)" style="display:block;width:100%;margin-top:4px;padding:9px 11px;border:1.5px solid #dce4ee;border-radius:7px;font-family:inherit;font-size:14px;font-weight:400;"/>
+      </label>
+    </div>
     <div style="background:#fff;border-radius:10px;box-shadow:0 4px 24px rgba(0,0,0,0.12);overflow:hidden;">
       <div style="background:#0e1c35;padding:24px 32px;">
         <div style="color:#fff;font-size:20px;font-weight:800;">My Valuer Limited</div>
