@@ -2588,11 +2588,12 @@ function openEmailPreview(to, subject, body, isQuote, plainTextBody, cc) {
   // Populate overlay
   document.getElementById("previewTo").textContent      = "To: " + to;
   document.getElementById("previewSubject").textContent = "Subject: " + subject;
-  // Pre-fill the editable Cc (e.g. the valuations inbox) and clear Bcc.
+  // Cc starts empty for free typing; Bcc empty. Populate the valuer picker.
   const ccInput  = document.getElementById("previewCcInput");
   const bccInput = document.getElementById("previewBccInput");
-  if (ccInput)  ccInput.value  = cc ? (Array.isArray(cc) ? cc.join(", ") : cc) : "";
+  if (ccInput)  ccInput.value  = "";
   if (bccInput) bccInput.value = "";
+  populateCcValuerDropdown();
   document.getElementById("previewStatus").style.display = "none";
   // Render HTML or plain text in preview
   const previewBodyEl = document.getElementById("previewBody");
@@ -2731,6 +2732,35 @@ function renderArchiveJobs(jobs) {
 function closeEmailPreview() {
   document.getElementById("emailPreviewOverlay").style.display = "none";
   document.body.style.overflow = "";
+}
+
+// Email address for a valuer (known map, else firstname@myvaluer.net.nz).
+function valuerEmail(name) {
+  if (STAFF_EMAILS[name]) return STAFF_EMAILS[name];
+  const first = (name || '').trim().split(/\s+/)[0].toLowerCase();
+  return first ? first + '@' + 'myvaluer.net.nz' : '';
+}
+// Fill the Cc valuer picker from the current valuer list.
+function populateCcValuerDropdown() {
+  const sel = document.getElementById('previewCcValuer');
+  if (!sel) return;
+  const takenBy = document.getElementById('c_taken_by');
+  const names = takenBy
+    ? Array.from(takenBy.options).map(o => o.value).filter(Boolean)
+    : Object.keys(STAFF_EMAILS);
+  sel.innerHTML = '<option value="">+ Add valuer…</option>' +
+    names.map(n => '<option value="' + _escAttr(valuerEmail(n)) + '">' + _escAttr(n) + '</option>').join('');
+}
+// Add the chosen valuer's email to the Cc field (no duplicates).
+function addCcValuer() {
+  const sel = document.getElementById('previewCcValuer');
+  const ccInput = document.getElementById('previewCcInput');
+  if (!sel || !ccInput || !sel.value) return;
+  const email = sel.value;
+  const list = ccInput.value.split(/[,;]/).map(s => s.trim()).filter(Boolean);
+  if (!list.some(a => a.toLowerCase() === email.toLowerCase())) list.push(email);
+  ccInput.value = list.join(', ');
+  sel.value = '';
 }
 
 async function sendEmailFromPreview() {
@@ -4408,10 +4438,14 @@ resetForm = function() {
   <div style="max-width:800px;margin:32px auto;padding:0 24px 60px;">
     <div id="previewStatus" style="display:none;margin-bottom:20px;padding:16px 24px;border-radius:8px;font-size:16px;font-weight:600;text-align:center;"></div>
     <div style="background:#fff;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,0.08);padding:14px 18px;margin-bottom:16px;display:flex;gap:12px;flex-wrap:wrap;">
-      <label style="flex:1;min-width:220px;font-size:12px;font-weight:700;color:#374151;">Cc
-        <input type="text" id="previewCcInput" autocomplete="off" placeholder="name@example.com (comma-separated)" style="display:block;width:100%;margin-top:4px;padding:9px 11px;border:1.5px solid #dce4ee;border-radius:7px;font-family:inherit;font-size:14px;font-weight:400;"/>
-      </label>
-      <label style="flex:1;min-width:220px;font-size:12px;font-weight:700;color:#374151;">Bcc
+      <div style="flex:1;min-width:240px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:700;color:#374151;">Cc</span>
+          <select id="previewCcValuer" onchange="addCcValuer()" style="font-size:12px;padding:4px 8px;border:1.5px solid #dce4ee;border-radius:6px;font-family:inherit;color:#1F3A5F;font-weight:600;cursor:pointer;"><option value="">+ Add valuer…</option></select>
+        </div>
+        <input type="text" id="previewCcInput" autocomplete="off" placeholder="name@example.com (comma-separated)" style="display:block;width:100%;padding:9px 11px;border:1.5px solid #dce4ee;border-radius:7px;font-family:inherit;font-size:14px;"/>
+      </div>
+      <label style="flex:1;min-width:240px;font-size:12px;font-weight:700;color:#374151;">Bcc
         <input type="text" id="previewBccInput" autocomplete="off" placeholder="name@example.com (comma-separated)" style="display:block;width:100%;margin-top:4px;padding:9px 11px;border:1.5px solid #dce4ee;border-radius:7px;font-family:inherit;font-size:14px;font-weight:400;"/>
       </label>
     </div>
