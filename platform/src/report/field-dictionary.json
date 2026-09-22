@@ -1,0 +1,4836 @@
+{
+  "commercial": {
+    "template": "templates/commercial-v65.docx",
+    "job_fields": [
+      {
+        "name": "AuthValuer.Notes",
+        "section": null
+      },
+      {
+        "name": "AuthValuer.Qualifications",
+        "section": null
+      },
+      {
+        "name": "AuthValuer.Qualifications2",
+        "section": null
+      },
+      {
+        "name": "AuthValuer.ValuerName",
+        "section": null
+      },
+      {
+        "name": "Valuations.Accommodation",
+        "section": null
+      },
+      {
+        "name": "Valuations.Address",
+        "section": null
+      },
+      {
+        "name": "Valuations.BathroomFittings",
+        "section": null
+      },
+      {
+        "name": "Valuations.BuildingSystems",
+        "section": null
+      },
+      {
+        "name": "Valuations.BuiltAbout",
+        "section": null
+      },
+      {
+        "name": "Valuations.BuiltYearLabel",
+        "section": null
+      },
+      {
+        "name": "Valuations.CityRates",
+        "section": null
+      },
+      {
+        "name": "Valuations.ClientFirstName",
+        "section": null
+      },
+      {
+        "name": "Valuations.ComplianceStatement",
+        "section": null
+      },
+      {
+        "name": "Valuations.Crosslease",
+        "section": null
+      },
+      {
+        "name": "Valuations.Crossleasetenure",
+        "section": null
+      },
+      {
+        "name": "Valuations.DateofInspection",
+        "section": null
+      },
+      {
+        "name": "Valuations.DemotionEstimate",
+        "section": null
+      },
+      {
+        "name": "Valuations.Depth",
+        "section": null
+      },
+      {
+        "name": "Valuations.DiscRate",
+        "section": null
+      },
+      {
+        "name": "Valuations.EMarketValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.EffectiveDate",
+        "section": null
+      },
+      {
+        "name": "Valuations.ExternalCondition",
+        "section": null
+      },
+      {
+        "name": "Valuations.FENZResiStatement",
+        "section": null
+      },
+      {
+        "name": "Valuations.Fitout",
+        "section": null
+      },
+      {
+        "name": "Valuations.FloodRisk",
+        "section": null
+      },
+      {
+        "name": "Valuations.Frontage",
+        "section": null
+      },
+      {
+        "name": "Valuations.GeneralComments",
+        "section": null
+      },
+      {
+        "name": "Valuations.GroundsRate",
+        "section": null
+      },
+      {
+        "name": "Valuations.ImprovementsDescription",
+        "section": null
+      },
+      {
+        "name": "Valuations.IndemnityInflationFEL",
+        "section": null
+      },
+      {
+        "name": "Valuations.IndemnityValueFEL",
+        "section": null
+      },
+      {
+        "name": "Valuations.InteriorLinings",
+        "section": null
+      },
+      {
+        "name": "Valuations.InternalCondition",
+        "section": null
+      },
+      {
+        "name": "Valuations.JobNumber",
+        "section": null
+      },
+      {
+        "name": "Valuations.Joinery",
+        "section": null
+      },
+      {
+        "name": "Valuations.KitchenFittings",
+        "section": null
+      },
+      {
+        "name": "Valuations.LandUse",
+        "section": null
+      },
+      {
+        "name": "Valuations.LeaseCompare",
+        "section": null
+      },
+      {
+        "name": "Valuations.LeaseExpiry",
+        "section": null
+      },
+      {
+        "name": "Valuations.LeaseTerm",
+        "section": null
+      },
+      {
+        "name": "Valuations.LegalInstruments",
+        "section": null
+      },
+      {
+        "name": "Valuations.Lessee",
+        "section": null
+      },
+      {
+        "name": "Valuations.Lessor",
+        "section": null
+      },
+      {
+        "name": "Valuations.Liquefaction",
+        "section": null
+      },
+      {
+        "name": "Valuations.LiquefactionDamage",
+        "section": null
+      },
+      {
+        "name": "Valuations.LocalAuthority",
+        "section": null
+      },
+      {
+        "name": "Valuations.Location",
+        "section": null
+      },
+      {
+        "name": "Valuations.NBS",
+        "section": null
+      },
+      {
+        "name": "Valuations.Neighbourhood",
+        "section": null
+      },
+      {
+        "name": "Valuations.Occupancy",
+        "section": null
+      },
+      {
+        "name": "Valuations.OccupancyTitle",
+        "section": null
+      },
+      {
+        "name": "Valuations.Opportunities",
+        "section": null
+      },
+      {
+        "name": "Valuations.OrgClientContact",
+        "section": null
+      },
+      {
+        "name": "Valuations.OrgLender",
+        "section": null
+      },
+      {
+        "name": "Valuations.OrgPostalAddress",
+        "section": null
+      },
+      {
+        "name": "Valuations.OtherBuildings",
+        "section": null
+      },
+      {
+        "name": "Valuations.PersonToAddressReportTo",
+        "section": null
+      },
+      {
+        "name": "Valuations.Position",
+        "section": null
+      },
+      {
+        "name": "Valuations.PropAddressTA",
+        "section": null
+      },
+      {
+        "name": "Valuations.PropImp",
+        "section": null
+      },
+      {
+        "name": "Valuations.PropertyType",
+        "section": null
+      },
+      {
+        "name": "Valuations.ProposedImprovements",
+        "section": null
+      },
+      {
+        "name": "Valuations.Purpose",
+        "section": null
+      },
+      {
+        "name": "Valuations.Quality",
+        "section": null
+      },
+      {
+        "name": "Valuations.RVCapitalValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.RVImprovementsValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.RVLandValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.RatesDate",
+        "section": null
+      },
+      {
+        "name": "Valuations.RatingYear",
+        "section": null
+      },
+      {
+        "name": "Valuations.RegionalCouncil",
+        "section": null
+      },
+      {
+        "name": "Valuations.ReinstatementEstimate",
+        "section": null
+      },
+      {
+        "name": "Valuations.ReinstatementInflation",
+        "section": null
+      },
+      {
+        "name": "Valuations.RentReviewPeriod",
+        "section": null
+      },
+      {
+        "name": "Valuations.ReportTitle",
+        "section": null
+      },
+      {
+        "name": "Valuations.RoofCladding",
+        "section": null
+      },
+      {
+        "name": "Valuations.Services",
+        "section": null
+      },
+      {
+        "name": "Valuations.SiteArea",
+        "section": null
+      },
+      {
+        "name": "Valuations.SiteAreaLable",
+        "section": null
+      },
+      {
+        "name": "Valuations.SiteContour",
+        "section": null
+      },
+      {
+        "name": "Valuations.SiteDescriptionTopography",
+        "section": null
+      },
+      {
+        "name": "Valuations.SiteDimensions",
+        "section": null
+      },
+      {
+        "name": "Valuations.SpecialInstructions",
+        "section": null
+      },
+      {
+        "name": "Valuations.Strengths",
+        "section": null
+      },
+      {
+        "name": "Valuations.Structure",
+        "section": null
+      },
+      {
+        "name": "Valuations.StyleArchitectural",
+        "section": null
+      },
+      {
+        "name": "Valuations.SubjWALT",
+        "section": null
+      },
+      {
+        "name": "Valuations.Suburb",
+        "section": null
+      },
+      {
+        "name": "Valuations.TenancyNumber",
+        "section": null
+      },
+      {
+        "name": "Valuations.TenantName",
+        "section": null
+      },
+      {
+        "name": "Valuations.TenureType",
+        "section": null
+      },
+      {
+        "name": "Valuations.TenureTypeDescription",
+        "section": null
+      },
+      {
+        "name": "Valuations.TerritorialAuthority",
+        "section": null
+      },
+      {
+        "name": "Valuations.Threats",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitDets1",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitDets2",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitDets3",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitDets4",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitDets7",
+        "section": null
+      },
+      {
+        "name": "Valuations.ValuationBasis",
+        "section": null
+      },
+      {
+        "name": "Valuations.WOF",
+        "section": null
+      },
+      {
+        "name": "Valuations.WOFStatus",
+        "section": null
+      },
+      {
+        "name": "Valuations.WallCladding",
+        "section": null
+      },
+      {
+        "name": "Valuations.Weaknesses",
+        "section": null
+      },
+      {
+        "name": "Valuations.YieldContractIncome",
+        "section": null
+      },
+      {
+        "name": "Valuations.YieldMarketIncome",
+        "section": null
+      },
+      {
+        "name": "Valuations.Zone",
+        "section": null
+      },
+      {
+        "name": "Valuer.Notes",
+        "section": null
+      },
+      {
+        "name": "Valuer.Qualifications",
+        "section": null
+      },
+      {
+        "name": "Valuer.Qualifications2",
+        "section": null
+      },
+      {
+        "name": "Valuer.ValuerName",
+        "section": null
+      }
+    ],
+    "row_fields": [
+      {
+        "name": "Accommodation",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Address",
+        "regions": [
+          "LeasesEvidenceType_ResidentialRents",
+          "SalesEvidenceType_Land",
+          "TblLeasesEvidence",
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest",
+          "SalesEvidenceType__Gym"
+        ]
+      },
+      {
+        "name": "AnnualRent",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "Area",
+        "regions": [
+          "Leases_so_LeaseArea"
+        ]
+      },
+      {
+        "name": "AreaName",
+        "regions": [
+          "so_LettableAreas"
+        ]
+      },
+      {
+        "name": "AreaUnits",
+        "regions": [
+          "Leases_so_LeaseArea"
+        ]
+      },
+      {
+        "name": "BathroomFittings",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Bgpsm",
+        "regions": [
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_Caryard"
+        ]
+      },
+      {
+        "name": "BuildingSystems",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "BuiltAbout",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "BuiltYearLabel",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "BusinessUse",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "Calcs",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "Carparks",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "CommencementRent",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "Comments",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest",
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "Comparison",
+        "regions": [
+          "LeasesEvidenceType_Retail",
+          "LeasesEvidenceType_Office",
+          "LeasesEvidenceType_Industrial",
+          "LeasesEvidenceType_FoodProcessing",
+          "LeasesEvidenceType_Medical",
+          "LeasesEvidenceType_ServiceStation",
+          "LeasesEvidenceType_Gym",
+          "LeasesEvidenceType_Restaurant-Cafe",
+          "LeasesEvidenceType_CarYard",
+          "LeasesEvidenceType_Telecommunications",
+          "LeasesEvidenceType_NamingRights",
+          "LeasesEvidenceType_GroundRent",
+          "LeasesEvidenceType_Childcare",
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType__Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest"
+        ]
+      },
+      {
+        "name": "DateOfRenewal",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "EqYield",
+        "regions": [
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest"
+        ]
+      },
+      {
+        "name": "Expiry",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "ExternalCondition",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Features",
+        "regions": [
+          "so_Hallway",
+          "so_Lounge",
+          "so_Dining",
+          "so_Family",
+          "so_Kitchen",
+          "so_Bedroom",
+          "so_Office",
+          "so_Study",
+          "so_Bathroom",
+          "so_Toilet",
+          "so_Laundry",
+          "so_Garage"
+        ]
+      },
+      {
+        "name": "FinalLeaseExpiry",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "Fitout",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "FloorArea",
+        "regions": [
+          "so_LettableAreas"
+        ]
+      },
+      {
+        "name": "FloorAreaSize",
+        "regions": [
+          "so_FloorAreaEntry"
+        ]
+      },
+      {
+        "name": "FloorName",
+        "regions": [
+          "so_FloorAreaEntry"
+        ]
+      },
+      {
+        "name": "GeneralComments",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "IRR",
+        "regions": [
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest",
+          "SalesEvidenceType_Accommodation"
+        ]
+      },
+      {
+        "name": "IRRTVM",
+        "regions": [
+          "SalesEvidenceType_Lessors-Interest"
+        ]
+      },
+      {
+        "name": "Inspection",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "InteriorLinings",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "InternalCondition",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Joinery",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Kids",
+        "regions": [
+          "SalesEvidenceType_Childcare"
+        ]
+      },
+      {
+        "name": "KitchenFittings",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "LandAdj",
+        "regions": [
+          "SalesEvidenceType_Land"
+        ]
+      },
+      {
+        "name": "LeaseID",
+        "regions": [
+          "LeasesEvidenceType_CarYard",
+          "LeasesEvidenceType_Telecommunications"
+        ]
+      },
+      {
+        "name": "LeaseStartDate",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "Lessee",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "Lessor",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "LessorInterest",
+        "regions": [
+          "SalesEvidenceType_Lessors-Interest"
+        ]
+      },
+      {
+        "name": "LivingAreas",
+        "regions": [
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Self-Storage"
+        ]
+      },
+      {
+        "name": "Lpsm",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Commercial"
+        ]
+      },
+      {
+        "name": "MainBuildingType",
+        "regions": [
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "MeasUnit",
+        "regions": [
+          "Leases_so_LeaseArea"
+        ]
+      },
+      {
+        "name": "MktYield",
+        "regions": [
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest"
+        ]
+      },
+      {
+        "name": "Name",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "NetOrGross",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "NumberOfUnits",
+        "regions": [
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage"
+        ]
+      },
+      {
+        "name": "OT",
+        "regions": [
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "OccupancyTitle",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "OtherTerms",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "Outgoings",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "OverallComparison",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest"
+        ]
+      },
+      {
+        "name": "OverallOutgoingsRate",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "OverallRate",
+        "regions": [
+          "LeasesEvidenceType_Retail",
+          "LeasesEvidenceType_Office",
+          "LeasesEvidenceType_Industrial",
+          "LeasesEvidenceType_Restaurant-Cafe",
+          "LeasesEvidenceType_ServiceStation",
+          "LeasesEvidenceType_Gym",
+          "LeasesEvidenceType_CarYard",
+          "LeasesEvidenceType_GroundRent",
+          "LeasesEvidenceType_Childcare",
+          "LeasesEvidenceType_Medical",
+          "LeasesEvidenceType_Coolstore",
+          "LeasesEvidenceType_FoodProcessing",
+          "LeasesEvidenceType_Telecommunications",
+          "LeasesEvidenceType_ATM",
+          "LeasesEvidenceType_Supermarket",
+          "LeasesEvidenceType_NamingRights",
+          "LeasesEvidenceType_ResidentialRents",
+          "LeasesEvidenceType_ExcessYardRent",
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "PeerReview",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "Position",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "Premises",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "Price",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest",
+          "SalesEvidenceType__Gym"
+        ]
+      },
+      {
+        "name": "PropAddressLocality",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest",
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "PropState",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest",
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "Purchaser",
+        "regions": [
+          "SalesEvidenceType_Accommodation"
+        ]
+      },
+      {
+        "name": "Quality",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "RatchetClause1",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "Rate",
+        "regions": [
+          "Leases_so_LeaseArea"
+        ]
+      },
+      {
+        "name": "Rent",
+        "regions": [
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "RentReviewFrequency",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "RentSetAt",
+        "regions": [
+          "LeasesEvidenceType_Retail",
+          "LeasesEvidenceType_Office",
+          "LeasesEvidenceType_Industrial",
+          "LeasesEvidenceType_Restaurant-Cafe",
+          "LeasesEvidenceType_ServiceStation",
+          "LeasesEvidenceType_Gym",
+          "LeasesEvidenceType_CarYard",
+          "LeasesEvidenceType_GroundRent",
+          "LeasesEvidenceType_Childcare",
+          "LeasesEvidenceType_Medical",
+          "LeasesEvidenceType_Coolstore",
+          "LeasesEvidenceType_FoodProcessing",
+          "LeasesEvidenceType_Telecommunications",
+          "LeasesEvidenceType_ATM",
+          "LeasesEvidenceType_Supermarket",
+          "LeasesEvidenceType_ResidentialRents",
+          "LeasesEvidenceType_ExcessYardRent",
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "Rental",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "Report",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "Research",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "ReviewFrequenc",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "ReviewMethod",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "RoR",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "RoofCladding",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "SPperKid",
+        "regions": [
+          "SalesEvidenceType_Childcare"
+        ]
+      },
+      {
+        "name": "SaleDate",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest",
+          "SalesEvidenceType__Gym"
+        ]
+      },
+      {
+        "name": "SalePricePerUnit",
+        "regions": [
+          "SalesEvidenceType_Self-Storage"
+        ]
+      },
+      {
+        "name": "SiteArea",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest"
+        ]
+      },
+      {
+        "name": "Structure",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "StyleArchitectural",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Tenancy",
+        "regions": [
+          "SubjectLeases",
+          "LeasesEvidenceType_Retail",
+          "LeasesEvidenceType_Office",
+          "LeasesEvidenceType_Industrial",
+          "LeasesEvidenceType_Restaurant-Cafe",
+          "LeasesEvidenceType_ServiceStation",
+          "LeasesEvidenceType_Gym",
+          "LeasesEvidenceType_CarYard",
+          "LeasesEvidenceType_GroundRent",
+          "LeasesEvidenceType_Childcare",
+          "LeasesEvidenceType_Medical",
+          "LeasesEvidenceType_Coolstore",
+          "LeasesEvidenceType_FoodProcessing",
+          "LeasesEvidenceType_Telecommunications",
+          "LeasesEvidenceType_ATM",
+          "LeasesEvidenceType_Supermarket",
+          "LeasesEvidenceType_NamingRights",
+          "LeasesEvidenceType_ExcessYardRent",
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "TenureType",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "Term",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "TitDets1",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "TitDets2",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "TitDets3",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "TitDets4",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "TitDets7",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "Title",
+        "regions": [
+          "so_Hallway",
+          "so_Lounge",
+          "so_Dining",
+          "so_Family",
+          "so_Kitchen",
+          "so_Bedroom",
+          "so_Office",
+          "so_Study",
+          "so_Bathroom",
+          "so_Toilet",
+          "so_Laundry",
+          "so_Garage",
+          "Leases_so_LeaseArea"
+        ]
+      },
+      {
+        "name": "Title1",
+        "regions": [
+          "PhotoGrid_BackPagePhotos"
+        ]
+      },
+      {
+        "name": "Title2",
+        "regions": [
+          "PhotoGrid_BackPagePhotos"
+        ]
+      },
+      {
+        "name": "TotalLettableArea",
+        "regions": [
+          "LeasesEvidenceType_Retail",
+          "LeasesEvidenceType_Office",
+          "LeasesEvidenceType_Industrial",
+          "LeasesEvidenceType_Restaurant-Cafe",
+          "LeasesEvidenceType_ServiceStation",
+          "LeasesEvidenceType_Gym",
+          "LeasesEvidenceType_CarYard",
+          "LeasesEvidenceType_GroundRent",
+          "LeasesEvidenceType_Childcare",
+          "LeasesEvidenceType_Medical",
+          "LeasesEvidenceType_Coolstore",
+          "LeasesEvidenceType_FoodProcessing",
+          "LeasesEvidenceType_Telecommunications",
+          "LeasesEvidenceType_ATM",
+          "LeasesEvidenceType_Supermarket",
+          "LeasesEvidenceType_ResidentialRents",
+          "LeasesEvidenceType_ExcessYardRent",
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "TransactionType",
+        "regions": [
+          "LeasesEvidenceType_Retail",
+          "LeasesEvidenceType_Office",
+          "LeasesEvidenceType_Industrial",
+          "LeasesEvidenceType_Restaurant-Cafe",
+          "LeasesEvidenceType_ServiceStation",
+          "LeasesEvidenceType_Gym",
+          "LeasesEvidenceType_CarYard",
+          "LeasesEvidenceType_GroundRent",
+          "LeasesEvidenceType_Childcare",
+          "LeasesEvidenceType_Medical",
+          "LeasesEvidenceType_Coolstore",
+          "LeasesEvidenceType_FoodProcessing",
+          "LeasesEvidenceType_Telecommunications",
+          "LeasesEvidenceType_ATM",
+          "LeasesEvidenceType_Supermarket",
+          "LeasesEvidenceType_ResidentialRents",
+          "LeasesEvidenceType_ExcessYardRent",
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "Type",
+        "regions": [
+          "SubjectLeases"
+        ]
+      },
+      {
+        "name": "WALT",
+        "regions": [
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest"
+        ]
+      },
+      {
+        "name": "WallCladding",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Yield",
+        "regions": [
+          "SalesEvidenceType_Commercial",
+          "SalesEvidenceType_Leasehold",
+          "SalesEvidenceType_ServiceStation",
+          "SalesEvidenceType_Gym",
+          "SalesEvidenceType_Caryard",
+          "SalesEvidenceType_Childcare",
+          "SalesEvidenceType_Accommodation",
+          "SalesEvidenceType_Self-Storage",
+          "SalesEvidenceType_Lessors-Interest"
+        ]
+      }
+    ],
+    "regions": [
+      {
+        "name": "AdditionalOccupancies",
+        "section": null,
+        "row_fields": [
+          "OccupancyTitle",
+          "BuiltYearLabel",
+          "BuiltAbout",
+          "Quality",
+          "Structure",
+          "StyleArchitectural",
+          "WallCladding",
+          "RoofCladding",
+          "Joinery",
+          "InteriorLinings",
+          "Accommodation",
+          "KitchenFittings",
+          "BathroomFittings",
+          "GeneralComments",
+          "BuildingSystems",
+          "Fitout",
+          "ExternalCondition",
+          "InternalCondition"
+        ]
+      },
+      {
+        "name": "AdditionalTitles",
+        "section": null,
+        "row_fields": [
+          "TitDets1",
+          "TenureType",
+          "TitDets2",
+          "TitDets3",
+          "TitDets4",
+          "TitDets7"
+        ]
+      },
+      {
+        "name": "AerialMap",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "FrontPagePhotos",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "LeasesEvidenceType_ATM",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_CarYard",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "LeaseID",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_Childcare",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_Coolstore",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_ExcessYardRent",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_FoodProcessing",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_GroundRent",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_Gym",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_Industrial",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_Medical",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_NamingRights",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_Office",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_ResidentialRents",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_Restaurant-Cafe",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_Retail",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_ServiceStation",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_Supermarket",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate"
+        ]
+      },
+      {
+        "name": "LeasesEvidenceType_Telecommunications",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "RentSetAt",
+          "TransactionType",
+          "TotalLettableArea",
+          "OverallRate",
+          "LeaseID",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "Leases_so_LeaseArea",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Area",
+          "AreaUnits",
+          "Rate",
+          "MeasUnit"
+        ]
+      },
+      {
+        "name": "PhotoGrid_BackPagePhotos",
+        "section": null,
+        "row_fields": [
+          "Title1",
+          "Title2"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Accommodation",
+        "section": null,
+        "row_fields": [
+          "Purchaser",
+          "Address",
+          "Price",
+          "SaleDate",
+          "SiteArea",
+          "NumberOfUnits",
+          "WALT",
+          "Yield",
+          "MktYield",
+          "EqYield",
+          "Bgpsm",
+          "Lpsm",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "IRR"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Caryard",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "Price",
+          "PropAddressLocality",
+          "PropState",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "WALT",
+          "Yield",
+          "MktYield",
+          "EqYield",
+          "IRR",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "Bgpsm"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Childcare",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "Price",
+          "PropAddressLocality",
+          "PropState",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "WALT",
+          "Yield",
+          "MktYield",
+          "EqYield",
+          "Kids",
+          "SPperKid",
+          "Comments",
+          "OverallComparison",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Commercial",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "Price",
+          "PropAddressLocality",
+          "PropState",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "WALT",
+          "Yield",
+          "MktYield",
+          "EqYield",
+          "IRR",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "Lpsm",
+          "Bgpsm"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Gym",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "Price",
+          "PropAddressLocality",
+          "PropState",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "WALT",
+          "Yield",
+          "MktYield",
+          "EqYield",
+          "IRR",
+          "Comments",
+          "OverallComparison"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Land",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "SaleDate",
+          "Price",
+          "SiteArea",
+          "Lpsm",
+          "PropAddressLocality",
+          "PropState",
+          "LandAdj",
+          "Comments",
+          "OverallComparison",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Leasehold",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "Price",
+          "PropAddressLocality",
+          "PropState",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "WALT",
+          "Yield",
+          "MktYield",
+          "EqYield",
+          "IRR",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "Bgpsm"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Lessors-Interest",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "Price",
+          "PropAddressLocality",
+          "PropState",
+          "SaleDate",
+          "SiteArea",
+          "WALT",
+          "Yield",
+          "MktYield",
+          "LessorInterest",
+          "IRR",
+          "EqYield",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "IRRTVM"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Self-Storage",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "Price",
+          "PropAddressLocality",
+          "PropState",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "WALT",
+          "Yield",
+          "MktYield",
+          "EqYield",
+          "IRR",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "NumberOfUnits",
+          "SalePricePerUnit"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_ServiceStation",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "Price",
+          "PropAddressLocality",
+          "PropState",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "WALT",
+          "Yield",
+          "MktYield",
+          "EqYield",
+          "IRR",
+          "Comments",
+          "OverallComparison",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType__Gym",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "SaleDate",
+          "Price",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "StreetMap",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "SubjectLeases",
+        "section": null,
+        "row_fields": [
+          "Tenancy",
+          "LeaseStartDate",
+          "Term",
+          "Expiry",
+          "ReviewFrequenc",
+          "RoR",
+          "Rental",
+          "NetOrGross",
+          "AnnualRent",
+          "Type",
+          "Lessor",
+          "Lessee",
+          "Premises",
+          "Carparks",
+          "DateOfRenewal",
+          "FinalLeaseExpiry",
+          "CommencementRent",
+          "RentReviewFrequency",
+          "ReviewMethod",
+          "RatchetClause1",
+          "Outgoings",
+          "OverallOutgoingsRate",
+          "BusinessUse",
+          "OtherTerms"
+        ]
+      },
+      {
+        "name": "SubjectPhoto_Front",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "SubjectPhoto_Rear",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "TblLeasesEvidence",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "RentSetAt",
+          "TotalLettableArea",
+          "Rent",
+          "OverallRate",
+          "Tenancy",
+          "PropAddressLocality",
+          "PropState",
+          "TransactionType",
+          "MainBuildingType",
+          "OT",
+          "Comments"
+        ]
+      },
+      {
+        "name": "so_Bathroom",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Bedroom",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Dining",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Family",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_FloorAreaEntry",
+        "section": null,
+        "row_fields": [
+          "FloorName",
+          "FloorAreaSize"
+        ]
+      },
+      {
+        "name": "so_Garage",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Hallway",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Kitchen",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Laundry",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_LettableAreas",
+        "section": null,
+        "row_fields": [
+          "AreaName",
+          "FloorArea"
+        ]
+      },
+      {
+        "name": "so_Lounge",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Office",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Study",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Toilet",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_ValuerInvolvement",
+        "section": null,
+        "row_fields": [
+          "Name",
+          "Position",
+          "Inspection",
+          "Research",
+          "Calcs",
+          "Report",
+          "PeerReview"
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "expr": "Valuations.ComReport_eq_Ground-Rental",
+        "field": "Valuations.ComReport",
+        "op": "==",
+        "value": "Ground Rental",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComReport_eq_Insurance",
+        "field": "Valuations.ComReport",
+        "op": "==",
+        "value": "Insurance",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComReport_eq_Lessors-Interest",
+        "field": "Valuations.ComReport",
+        "op": "==",
+        "value": "Lessors Interest",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComReport_eq_Market-Rental",
+        "field": "Valuations.ComReport",
+        "op": "==",
+        "value": "Market Rental",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComReport_neq_Ground-Rental",
+        "field": "Valuations.ComReport",
+        "op": "!=",
+        "value": "Ground Rental",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComReport_neq_Insurance",
+        "field": "Valuations.ComReport",
+        "op": "!=",
+        "value": "Insurance",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComReport_neq_Lessors-Interest",
+        "field": "Valuations.ComReport",
+        "op": "!=",
+        "value": "Lessors Interest",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComReport_neq_Market-Rental",
+        "field": "Valuations.ComReport",
+        "op": "!=",
+        "value": "Market Rental",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComReport_neq_Market-Value",
+        "field": "Valuations.ComReport",
+        "op": "!=",
+        "value": "Market Value",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComplianceStatementMarket_eq_No",
+        "field": "Valuations.ComplianceStatementMarket",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComplianceStatementMortgage_eq_No",
+        "field": "Valuations.ComplianceStatementMortgage",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ConditionAndRepair_eq_No",
+        "field": "Valuations.ConditionAndRepair",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Disclosure_eq_No",
+        "field": "Valuations.Disclosure",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.EarthquakeProneBuildings_eq_No",
+        "field": "Valuations.EarthquakeProneBuildings",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Flooding_eq_No",
+        "field": "Valuations.Flooding",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ForcedSale_eq_No",
+        "field": "Valuations.ForcedSale",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Investigations_eq_No",
+        "field": "Valuations.Investigations",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.IrregularShape_eq_No",
+        "field": "Valuations.IrregularShape",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.LandValueAssessment_eq_No",
+        "field": "Valuations.LandValueAssessment",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.LeaseholdProperty_neq_Yes",
+        "field": "Valuations.LeaseholdProperty",
+        "op": "!=",
+        "value": "Yes",
+        "section": null
+      },
+      {
+        "expr": "Valuations.PeerReview_eq_No",
+        "field": "Valuations.PeerReview",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.RegularShape_eq_No",
+        "field": "Valuations.RegularShape",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Reliance_eq_No",
+        "field": "Valuations.Reliance",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Responsibility to Third Party_eq_No",
+        "field": "Valuations.Responsibility to Third Party",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseAsbestos_eq_No",
+        "field": "Valuations.UseAsbestos",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseAssumptions_eq_No",
+        "field": "Valuations.UseAssumptions",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseAuthorisingSignature_eq_No",
+        "field": "Valuations.UseAuthorisingSignature",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseAuthorisingSignature_eq_Yes",
+        "field": "Valuations.UseAuthorisingSignature",
+        "op": "==",
+        "value": "Yes",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseContamination_eq_No",
+        "field": "Valuations.UseContamination",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseConveyancersActRules2008_eq_No",
+        "field": "Valuations.UseConveyancersActRules2008",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseCrossLeaseTitle_eq_No",
+        "field": "Valuations.UseCrossLeaseTitle",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseDateValuation_eq_No",
+        "field": "Valuations.UseDateValuation",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseGST_eq_No",
+        "field": "Valuations.UseGST",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseLandSurvey_eq_No",
+        "field": "Valuations.UseLandSurvey",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseLeases_eq_No",
+        "field": "Valuations.UseLeases",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseLegislation_eq_No",
+        "field": "Valuations.UseLegislation",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseMarketValuations_eq_No",
+        "field": "Valuations.UseMarketValuations",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseMortgageRecommendation_eq_No",
+        "field": "Valuations.UseMortgageRecommendation",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseNotStructuralSurvey_eq_No",
+        "field": "Valuations.UseNotStructuralSurvey",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UsePlasterFinish_eq_No",
+        "field": "Valuations.UsePlasterFinish",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UsePurpose_eq_No",
+        "field": "Valuations.UsePurpose",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseRegistrations_eq_No",
+        "field": "Valuations.UseRegistrations",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseReliabilityData_eq_No",
+        "field": "Valuations.UseReliabilityData",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseReproductionReport_eq_No",
+        "field": "Valuations.UseReproductionReport",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseSystems_eq_No",
+        "field": "Valuations.UseSystems",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseTenancies_eq_No",
+        "field": "Valuations.UseTenancies",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseWaterLeaks_eq_No",
+        "field": "Valuations.UseWaterLeaks",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ValueAsIfComplete_eq_No",
+        "field": "Valuations.ValueAsIfComplete",
+        "op": "==",
+        "value": "No",
+        "section": null
+      }
+    ],
+    "switch_fields": [
+      "Valuations.ComReport",
+      "Valuations.ComplianceStatementMarket",
+      "Valuations.ComplianceStatementMortgage",
+      "Valuations.ConditionAndRepair",
+      "Valuations.Disclosure",
+      "Valuations.EarthquakeProneBuildings",
+      "Valuations.Flooding",
+      "Valuations.ForcedSale",
+      "Valuations.Investigations",
+      "Valuations.IrregularShape",
+      "Valuations.LandValueAssessment",
+      "Valuations.LeaseholdProperty",
+      "Valuations.PeerReview",
+      "Valuations.RegularShape",
+      "Valuations.Reliance",
+      "Valuations.Responsibility to Third Party",
+      "Valuations.UseAsbestos",
+      "Valuations.UseAssumptions",
+      "Valuations.UseAuthorisingSignature",
+      "Valuations.UseContamination",
+      "Valuations.UseConveyancersActRules2008",
+      "Valuations.UseCrossLeaseTitle",
+      "Valuations.UseDateValuation",
+      "Valuations.UseGST",
+      "Valuations.UseLandSurvey",
+      "Valuations.UseLeases",
+      "Valuations.UseLegislation",
+      "Valuations.UseMarketValuations",
+      "Valuations.UseMortgageRecommendation",
+      "Valuations.UseNotStructuralSurvey",
+      "Valuations.UsePlasterFinish",
+      "Valuations.UsePurpose",
+      "Valuations.UseRegistrations",
+      "Valuations.UseReliabilityData",
+      "Valuations.UseReproductionReport",
+      "Valuations.UseSystems",
+      "Valuations.UseTenancies",
+      "Valuations.UseWaterLeaks",
+      "Valuations.ValueAsIfComplete"
+    ],
+    "images": [
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "FrontPagePhotos",
+        "width": "405",
+        "height": null
+      },
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "SubjectPhoto_Front",
+        "width": "410",
+        "height": "270"
+      },
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "SubjectPhoto_Rear",
+        "width": "410",
+        "height": "270"
+      },
+      {
+        "source": "PhotoID1",
+        "section": null,
+        "region": "PhotoGrid_BackPagePhotos",
+        "width": "210",
+        "height": "160"
+      },
+      {
+        "source": "PhotoID2",
+        "section": null,
+        "region": "PhotoGrid_BackPagePhotos",
+        "width": "210",
+        "height": "160"
+      },
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "AerialMap",
+        "width": "470",
+        "height": null
+      },
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "StreetMap",
+        "width": "470",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Land",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Commercial",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Leasehold",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_ServiceStation",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Gym",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Caryard",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Childcare",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Accommodation",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Self-Storage",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Lessors-Interest",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "LeaseCaptureID",
+        "section": null,
+        "region": "TblLeasesEvidence",
+        "width": "150",
+        "height": null
+      }
+    ]
+  },
+  "residential": {
+    "template": "templates/residential-v48.docx",
+    "job_fields": [
+      {
+        "name": "AuthValuer.Notes",
+        "section": null
+      },
+      {
+        "name": "AuthValuer.Qualifications",
+        "section": null
+      },
+      {
+        "name": "AuthValuer.Qualifications2",
+        "section": null
+      },
+      {
+        "name": "AuthValuer.ValuerName",
+        "section": null
+      },
+      {
+        "name": "Valuations.Access",
+        "section": null
+      },
+      {
+        "name": "Valuations.Accommodation",
+        "section": null
+      },
+      {
+        "name": "Valuations.AccommodationBathrooms",
+        "section": null
+      },
+      {
+        "name": "Valuations.AccommodationBedrooms",
+        "section": null
+      },
+      {
+        "name": "Valuations.Address",
+        "section": null
+      },
+      {
+        "name": "Valuations.AncillaryArea",
+        "section": null
+      },
+      {
+        "name": "Valuations.AsBrokerForText",
+        "section": null
+      },
+      {
+        "name": "Valuations.BathroomFittings",
+        "section": null
+      },
+      {
+        "name": "Valuations.BuiltAbout",
+        "section": null
+      },
+      {
+        "name": "Valuations.BuiltYearLabel",
+        "section": null
+      },
+      {
+        "name": "Valuations.CarAreas",
+        "section": null
+      },
+      {
+        "name": "Valuations.Chats",
+        "section": null
+      },
+      {
+        "name": "Valuations.CityRates",
+        "section": null
+      },
+      {
+        "name": "Valuations.ClientFirstName",
+        "section": null
+      },
+      {
+        "name": "Valuations.ComplianceStatement",
+        "section": null
+      },
+      {
+        "name": "Valuations.Crosslease",
+        "section": null
+      },
+      {
+        "name": "Valuations.Crossleasetenure",
+        "section": null
+      },
+      {
+        "name": "Valuations.CtoC",
+        "section": null
+      },
+      {
+        "name": "Valuations.DateofInspection",
+        "section": null
+      },
+      {
+        "name": "Valuations.DemotionEstimate",
+        "section": null
+      },
+      {
+        "name": "Valuations.Depth",
+        "section": null
+      },
+      {
+        "name": "Valuations.ELandValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.EMainBuilding",
+        "section": null
+      },
+      {
+        "name": "Valuations.EMarketValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.EOther",
+        "section": null
+      },
+      {
+        "name": "Valuations.EarlierSaleDate",
+        "section": null
+      },
+      {
+        "name": "Valuations.EarlierSalePrice",
+        "section": null
+      },
+      {
+        "name": "Valuations.EffectiveDate",
+        "section": null
+      },
+      {
+        "name": "Valuations.EnvIssTxt",
+        "section": null
+      },
+      {
+        "name": "Valuations.ExternalCondition",
+        "section": null
+      },
+      {
+        "name": "Valuations.FloodRisk",
+        "section": null
+      },
+      {
+        "name": "Valuations.Frontage",
+        "section": null
+      },
+      {
+        "name": "Valuations.GarageComments",
+        "section": null
+      },
+      {
+        "name": "Valuations.GeneralComments",
+        "section": null
+      },
+      {
+        "name": "Valuations.GroundsRate",
+        "section": null
+      },
+      {
+        "name": "Valuations.HeritageIssTxt",
+        "section": null
+      },
+      {
+        "name": "Valuations.ImprovementsDescription",
+        "section": null
+      },
+      {
+        "name": "Valuations.ImpsTxt",
+        "section": null
+      },
+      {
+        "name": "Valuations.IndemnityInflationFEL",
+        "section": null
+      },
+      {
+        "name": "Valuations.IndemnityValueFEL",
+        "section": null
+      },
+      {
+        "name": "Valuations.InteriorLinings",
+        "section": null
+      },
+      {
+        "name": "Valuations.InternalCondition",
+        "section": null
+      },
+      {
+        "name": "Valuations.JobNumber",
+        "section": null
+      },
+      {
+        "name": "Valuations.Joinery",
+        "section": null
+      },
+      {
+        "name": "Valuations.KitchenFittings",
+        "section": null
+      },
+      {
+        "name": "Valuations.LI",
+        "section": null
+      },
+      {
+        "name": "Valuations.LIAsIf",
+        "section": null
+      },
+      {
+        "name": "Valuations.LandTxt",
+        "section": null
+      },
+      {
+        "name": "Valuations.LandUse",
+        "section": null
+      },
+      {
+        "name": "Valuations.LeaseCompare",
+        "section": null
+      },
+      {
+        "name": "Valuations.LeaseExpiry",
+        "section": null
+      },
+      {
+        "name": "Valuations.LeaseTerm",
+        "section": null
+      },
+      {
+        "name": "Valuations.LegalInstruments",
+        "section": null
+      },
+      {
+        "name": "Valuations.Lessee",
+        "section": null
+      },
+      {
+        "name": "Valuations.Lessor",
+        "section": null
+      },
+      {
+        "name": "Valuations.Liquefaction",
+        "section": null
+      },
+      {
+        "name": "Valuations.LiquefactionDamage",
+        "section": null
+      },
+      {
+        "name": "Valuations.LivingAreas",
+        "section": null
+      },
+      {
+        "name": "Valuations.LocEcImpTxt",
+        "section": null
+      },
+      {
+        "name": "Valuations.LocNeiTxt",
+        "section": null
+      },
+      {
+        "name": "Valuations.LocalAuthority",
+        "section": null
+      },
+      {
+        "name": "Valuations.Location",
+        "section": null
+      },
+      {
+        "name": "Valuations.MarkSegCondTxt",
+        "section": null
+      },
+      {
+        "name": "Valuations.MarkVolTxt",
+        "section": null
+      },
+      {
+        "name": "Valuations.MarketValueInWords",
+        "section": null
+      },
+      {
+        "name": "Valuations.MarketingPeriod",
+        "section": null
+      },
+      {
+        "name": "Valuations.Neighbourhood",
+        "section": null
+      },
+      {
+        "name": "Valuations.OccupancyCarAreas",
+        "section": null
+      },
+      {
+        "name": "Valuations.OccupancyTitle",
+        "section": null
+      },
+      {
+        "name": "Valuations.OrgClientContact",
+        "section": null
+      },
+      {
+        "name": "Valuations.OrgLender",
+        "section": null
+      },
+      {
+        "name": "Valuations.OrgPostalAddress",
+        "section": null
+      },
+      {
+        "name": "Valuations.OtherArea",
+        "section": null
+      },
+      {
+        "name": "Valuations.OtherAreas",
+        "section": null
+      },
+      {
+        "name": "Valuations.OtherBuildings",
+        "section": null
+      },
+      {
+        "name": "Valuations.OutdoorAreas",
+        "section": null
+      },
+      {
+        "name": "Valuations.PersonToAddressReportTo",
+        "section": null
+      },
+      {
+        "name": "Valuations.Position",
+        "section": null
+      },
+      {
+        "name": "Valuations.ProgDate",
+        "section": null
+      },
+      {
+        "name": "Valuations.ProgressOneSaleAllowance",
+        "section": null
+      },
+      {
+        "name": "Valuations.PropAddressTA",
+        "section": null
+      },
+      {
+        "name": "Valuations.PropertyType",
+        "section": null
+      },
+      {
+        "name": "Valuations.ProposedImprovements",
+        "section": null
+      },
+      {
+        "name": "Valuations.Purpose",
+        "section": null
+      },
+      {
+        "name": "Valuations.Quality",
+        "section": null
+      },
+      {
+        "name": "Valuations.RVCapitalValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.RVImprovementsValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.RVLandValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.RatesDate",
+        "section": null
+      },
+      {
+        "name": "Valuations.RatingYear",
+        "section": null
+      },
+      {
+        "name": "Valuations.RegionalCouncil",
+        "section": null
+      },
+      {
+        "name": "Valuations.ReinstatementEstimate",
+        "section": null
+      },
+      {
+        "name": "Valuations.ReinstatementInflation",
+        "section": null
+      },
+      {
+        "name": "Valuations.RentPA",
+        "section": null
+      },
+      {
+        "name": "Valuations.RentReviewPeriod",
+        "section": null
+      },
+      {
+        "name": "Valuations.ReportTitle",
+        "section": null
+      },
+      {
+        "name": "Valuations.Retention",
+        "section": null
+      },
+      {
+        "name": "Valuations.RoofCladding",
+        "section": null
+      },
+      {
+        "name": "Valuations.Services",
+        "section": null
+      },
+      {
+        "name": "Valuations.SiteArea",
+        "section": null
+      },
+      {
+        "name": "Valuations.SiteContour",
+        "section": null
+      },
+      {
+        "name": "Valuations.SiteDescriptionTopography",
+        "section": null
+      },
+      {
+        "name": "Valuations.SiteDimensions",
+        "section": null
+      },
+      {
+        "name": "Valuations.SpecialInstructions",
+        "section": null
+      },
+      {
+        "name": "Valuations.Structure",
+        "section": null
+      },
+      {
+        "name": "Valuations.StyleArchitectural",
+        "section": null
+      },
+      {
+        "name": "Valuations.SubjSaleDate",
+        "section": null
+      },
+      {
+        "name": "Valuations.SubjSalePrice",
+        "section": null
+      },
+      {
+        "name": "Valuations.SubjectSaleComments",
+        "section": null
+      },
+      {
+        "name": "Valuations.Suburb",
+        "section": null
+      },
+      {
+        "name": "Valuations.SumInsured",
+        "section": null
+      },
+      {
+        "name": "Valuations.SumInsuredInclGST",
+        "section": null
+      },
+      {
+        "name": "Valuations.TBELandValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.TBEMainBuilding",
+        "section": null
+      },
+      {
+        "name": "Valuations.TBEMarketValue",
+        "section": null
+      },
+      {
+        "name": "Valuations.TBEMarketValueInWords",
+        "section": null
+      },
+      {
+        "name": "Valuations.TBEOther",
+        "section": null
+      },
+      {
+        "name": "Valuations.TenureType",
+        "section": null
+      },
+      {
+        "name": "Valuations.TenureTypeDescription",
+        "section": null
+      },
+      {
+        "name": "Valuations.TerritorialAuthority",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitDets1",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitDets2",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitDets3",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitDets4",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitDets7",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitleIssTxt",
+        "section": null
+      },
+      {
+        "name": "Valuations.TitleIssue",
+        "section": null
+      },
+      {
+        "name": "Valuations.TypeOfValuation",
+        "section": null
+      },
+      {
+        "name": "Valuations.VOSNo",
+        "section": null
+      },
+      {
+        "name": "Valuations.VRangeHigh",
+        "section": null
+      },
+      {
+        "name": "Valuations.VRangeLow",
+        "section": null
+      },
+      {
+        "name": "Valuations.ValExisting",
+        "section": null
+      },
+      {
+        "name": "Valuations.ValTrendTxt",
+        "section": null
+      },
+      {
+        "name": "Valuations.Valb4SA",
+        "section": null
+      },
+      {
+        "name": "Valuations.ValuationBasis",
+        "section": null
+      },
+      {
+        "name": "Valuations.ValuationConclusion",
+        "section": null
+      },
+      {
+        "name": "Valuations.WallCladding",
+        "section": null
+      },
+      {
+        "name": "Valuations.gstnumber",
+        "section": null
+      },
+      {
+        "name": "Valuer.Notes",
+        "section": null
+      },
+      {
+        "name": "Valuer.Qualifications",
+        "section": null
+      },
+      {
+        "name": "Valuer.Qualifications2",
+        "section": null
+      },
+      {
+        "name": "Valuer.ValuerName",
+        "section": null
+      }
+    ],
+    "row_fields": [
+      {
+        "name": "Accommodation",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "AccommodationBathrooms",
+        "regions": [
+          "AdditionalOccupancies",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "AccommodationBedrooms",
+        "regions": [
+          "AdditionalOccupancies",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "Address",
+        "regions": [
+          "TblLeasesEvidence",
+          "LeasesEvidenceType_ResidentialRents",
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_BlockLand",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_SaleInOneLine",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_Church-Community-Halls",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "AncillaryArea",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "AnnualRent",
+        "regions": [
+          "LeasesEvidenceType_ResidentialRents"
+        ]
+      },
+      {
+        "name": "BathroomFittings",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Beds",
+        "regions": [
+          "TblLeasesEvidence",
+          "LeasesEvidenceType_ResidentialRents"
+        ]
+      },
+      {
+        "name": "BuildingAge",
+        "regions": [
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_SaleInOneLine",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_Church-Community-Halls",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "BuiltAbout",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "BuiltYearLabel",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Calcs",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "Comments",
+        "regions": [
+          "TblLeasesEvidence",
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_BlockLand",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_SaleInOneLine",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_Church-Community-Halls",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "Comparison",
+        "regions": [
+          "LeasesEvidenceType_ResidentialRents",
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_BlockLand",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Church-Community-Halls",
+          "SalesEvidenceType_SaleInOneLine",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "Discountrate",
+        "regions": [
+          "SalesEvidenceType_InvestmentSale"
+        ]
+      },
+      {
+        "name": "ExternalCondition",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Features",
+        "regions": [
+          "so_Hallway",
+          "so_Lounge",
+          "so_Dining",
+          "so_Family",
+          "so_Kitchen",
+          "so_Bedroom",
+          "so_Office",
+          "so_Study",
+          "so_Bathroom",
+          "so_Toilet",
+          "so_Laundry",
+          "so_Garage",
+          "Occupancies_so_Hallway",
+          "Occupancies_so_Lounge",
+          "Occupancies_so_Dining",
+          "Occupancies_so_Family",
+          "Occupancies_so_Kitchen",
+          "Occupancies_so_Bedroom",
+          "Occupancies_so_Office",
+          "Occupancies_so_Study",
+          "Occupancies_so_Bathroom",
+          "Occupancies_so_Toilet",
+          "Occupancies_so_Laundry",
+          "Occupancies_so_Garage"
+        ]
+      },
+      {
+        "name": "GYield",
+        "regions": [
+          "SalesEvidenceType_InvestmentSale"
+        ]
+      },
+      {
+        "name": "GeneralComments",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "Inspection",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "InteriorLinings",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "InternalCondition",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "InvestmentUnits",
+        "regions": [
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_SaleInOneLine"
+        ]
+      },
+      {
+        "name": "Joinery",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "KitchenFittings",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "LandAdj",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_BlockLand"
+        ]
+      },
+      {
+        "name": "LivingAreas",
+        "regions": [
+          "AdditionalOccupancies",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_Church-Community-Halls",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "Lpsm",
+        "regions": [
+          "SalesEvidenceType_Land"
+        ]
+      },
+      {
+        "name": "MainBuildingType",
+        "regions": [
+          "TblLeasesEvidence"
+        ]
+      },
+      {
+        "name": "Name",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "OccupancyCarAreas",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "OccupancyTitle",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "OtherArea",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "OtherAreas",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "OutdoorAreas",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "OverallComparison",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_BlockLand",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_Church-Community-Halls",
+          "SalesEvidenceType_SaleInOneLine",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "Position",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "Price",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_BlockLand",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_SaleInOneLine",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_Church-Community-Halls",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "PricePerSite",
+        "regions": [
+          "SalesEvidenceType_BlockLand"
+        ]
+      },
+      {
+        "name": "ProfitandRisk",
+        "regions": [
+          "SalesEvidenceType_BlockLand",
+          "SalesEvidenceType_SaleInOneLine"
+        ]
+      },
+      {
+        "name": "PropAddressLocality",
+        "regions": [
+          "TblLeasesEvidence",
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_BlockLand",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_SaleInOneLine",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_Church-Community-Halls",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "PropState",
+        "regions": [
+          "TblLeasesEvidence",
+          "SalesEvidenceType_Land"
+        ]
+      },
+      {
+        "name": "RentSetAt",
+        "regions": [
+          "TblLeasesEvidence",
+          "LeasesEvidenceType_ResidentialRents"
+        ]
+      },
+      {
+        "name": "Rental",
+        "regions": [
+          "TblLeasesEvidence",
+          "LeasesEvidenceType_ResidentialRents"
+        ]
+      },
+      {
+        "name": "Report",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "Research",
+        "regions": [
+          "so_ValuerInvolvement"
+        ]
+      },
+      {
+        "name": "RoofCladding",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "SaleDate",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_BlockLand",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_SaleInOneLine",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_Church-Community-Halls",
+          "SalesEvidenceType_ForcedSale"
+        ]
+      },
+      {
+        "name": "SalePricePerUnit",
+        "regions": [
+          "SalesEvidenceType_SaleInOneLine"
+        ]
+      },
+      {
+        "name": "SalePriceperHa",
+        "regions": [
+          "SalesEvidenceType_BlockLand"
+        ]
+      },
+      {
+        "name": "SalesAnalysis",
+        "regions": [
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Apartment",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete"
+        ]
+      },
+      {
+        "name": "SiteArea",
+        "regions": [
+          "SalesEvidenceType_Land",
+          "SalesEvidenceType_BlockLand",
+          "SalesEvidenceType_Residential",
+          "SalesEvidenceType_Lifestyle",
+          "SalesEvidenceType_Residential-Obsolete",
+          "SalesEvidenceType_InvestmentSale",
+          "SalesEvidenceType_SaleInOneLine",
+          "SalesEvidenceType_Church-Community-Halls",
+          "SalesEvidenceType_ForcedSale",
+          "SalesEvidenceType_Apartment"
+        ]
+      },
+      {
+        "name": "StyleArchitectural",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      },
+      {
+        "name": "TenureType",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "TitDets1",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "TitDets2",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "TitDets3",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "TitDets4",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "TitDets7",
+        "regions": [
+          "AdditionalTitles"
+        ]
+      },
+      {
+        "name": "Title",
+        "regions": [
+          "so_Hallway",
+          "so_Lounge",
+          "so_Dining",
+          "so_Family",
+          "so_Kitchen",
+          "so_Bedroom",
+          "so_Office",
+          "so_Study",
+          "so_Bathroom",
+          "so_Toilet",
+          "so_Laundry",
+          "so_Garage",
+          "Occupancies_so_Hallway",
+          "Occupancies_so_Lounge",
+          "Occupancies_so_Dining",
+          "Occupancies_so_Family",
+          "Occupancies_so_Kitchen",
+          "Occupancies_so_Bedroom",
+          "Occupancies_so_Office",
+          "Occupancies_so_Study",
+          "Occupancies_so_Bathroom",
+          "Occupancies_so_Toilet",
+          "Occupancies_so_Laundry",
+          "Occupancies_so_Garage"
+        ]
+      },
+      {
+        "name": "Title1",
+        "regions": [
+          "PhotoGrid_BackPagePhotos"
+        ]
+      },
+      {
+        "name": "Title2",
+        "regions": [
+          "PhotoGrid_BackPagePhotos"
+        ]
+      },
+      {
+        "name": "TotalDevSites",
+        "regions": [
+          "SalesEvidenceType_BlockLand"
+        ]
+      },
+      {
+        "name": "TransactionType",
+        "regions": [
+          "TblLeasesEvidence",
+          "LeasesEvidenceType_ResidentialRents"
+        ]
+      },
+      {
+        "name": "WallCladding",
+        "regions": [
+          "AdditionalOccupancies"
+        ]
+      }
+    ],
+    "regions": [
+      {
+        "name": "AdditionalOccupancies",
+        "section": null,
+        "row_fields": [
+          "BuiltYearLabel",
+          "OccupancyTitle",
+          "BuiltAbout",
+          "AccommodationBedrooms",
+          "AccommodationBathrooms",
+          "Accommodation",
+          "LivingAreas",
+          "OccupancyCarAreas",
+          "AncillaryArea",
+          "OtherAreas",
+          "OtherArea",
+          "OutdoorAreas",
+          "StyleArchitectural",
+          "WallCladding",
+          "RoofCladding",
+          "Joinery",
+          "InteriorLinings",
+          "KitchenFittings",
+          "BathroomFittings",
+          "GeneralComments",
+          "ExternalCondition",
+          "InternalCondition"
+        ]
+      },
+      {
+        "name": "AdditionalTitles",
+        "section": null,
+        "row_fields": [
+          "TitDets1",
+          "TenureType",
+          "TitDets2",
+          "TitDets3",
+          "TitDets4",
+          "TitDets7"
+        ]
+      },
+      {
+        "name": "AerialMap",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "FrontPagePhotos",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "LeasesEvidenceType_ResidentialRents",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "RentSetAt",
+          "TransactionType",
+          "Beds",
+          "Rental",
+          "Comparison",
+          "AnnualRent"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Bathroom",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Bedroom",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Dining",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Family",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Garage",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Hallway",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Kitchen",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Laundry",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Lounge",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Office",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Study",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "Occupancies_so_Toilet",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "PhotoGrid_BackPagePhotos",
+        "section": null,
+        "row_fields": [
+          "Title1",
+          "Title2"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Apartment",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "PropAddressLocality",
+          "Price",
+          "SaleDate",
+          "LivingAreas",
+          "BuildingAge",
+          "AccommodationBedrooms",
+          "AccommodationBathrooms",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "SiteArea",
+          "SalesAnalysis"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_BlockLand",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "PropAddressLocality",
+          "Price",
+          "SaleDate",
+          "SiteArea",
+          "SalePriceperHa",
+          "TotalDevSites",
+          "PricePerSite",
+          "ProfitandRisk",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "LandAdj"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Church-Community-Halls",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "PropAddressLocality",
+          "Price",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "BuildingAge",
+          "Comments",
+          "OverallComparison",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_ForcedSale",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "PropAddressLocality",
+          "Price",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "BuildingAge",
+          "AccommodationBedrooms",
+          "AccommodationBathrooms",
+          "Comments",
+          "OverallComparison",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_InvestmentSale",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "PropAddressLocality",
+          "Price",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "BuildingAge",
+          "InvestmentUnits",
+          "AccommodationBedrooms",
+          "AccommodationBathrooms",
+          "Discountrate",
+          "GYield",
+          "Comments",
+          "OverallComparison",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Land",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "SiteArea",
+          "SaleDate",
+          "Price",
+          "LandAdj",
+          "OverallComparison",
+          "Comparison",
+          "PropAddressLocality",
+          "PropState",
+          "Comments",
+          "Lpsm"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Lifestyle",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "PropAddressLocality",
+          "Price",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "BuildingAge",
+          "AccommodationBedrooms",
+          "AccommodationBathrooms",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "SalesAnalysis"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Residential",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "PropAddressLocality",
+          "Price",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "BuildingAge",
+          "AccommodationBedrooms",
+          "AccommodationBathrooms",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "SalesAnalysis"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_Residential-Obsolete",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "PropAddressLocality",
+          "Price",
+          "SaleDate",
+          "SiteArea",
+          "LivingAreas",
+          "BuildingAge",
+          "AccommodationBedrooms",
+          "AccommodationBathrooms",
+          "Comments",
+          "OverallComparison",
+          "Comparison",
+          "SalesAnalysis"
+        ]
+      },
+      {
+        "name": "SalesEvidenceType_SaleInOneLine",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "PropAddressLocality",
+          "Price",
+          "SaleDate",
+          "SiteArea",
+          "BuildingAge",
+          "InvestmentUnits",
+          "SalePricePerUnit",
+          "ProfitandRisk",
+          "Comments",
+          "OverallComparison",
+          "Comparison"
+        ]
+      },
+      {
+        "name": "StreetMap",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "SubjectPhoto_Bathroom",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "SubjectPhoto_Elevation",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "SubjectPhoto_Front",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "SubjectPhoto_Kitchen",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "SubjectPhoto_Plans",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "SubjectPhoto_Rear",
+        "section": null,
+        "row_fields": []
+      },
+      {
+        "name": "TblLeasesEvidence",
+        "section": null,
+        "row_fields": [
+          "Address",
+          "PropAddressLocality",
+          "PropState",
+          "RentSetAt",
+          "TransactionType",
+          "MainBuildingType",
+          "Beds",
+          "Rental",
+          "Comments"
+        ]
+      },
+      {
+        "name": "so_Bathroom",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Bedroom",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Dining",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Family",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Garage",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Hallway",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Kitchen",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Laundry",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Lounge",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Office",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Study",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_Toilet",
+        "section": null,
+        "row_fields": [
+          "Title",
+          "Features"
+        ]
+      },
+      {
+        "name": "so_ValuerInvolvement",
+        "section": null,
+        "row_fields": [
+          "Name",
+          "Position",
+          "Inspection",
+          "Research",
+          "Calcs",
+          "Report"
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "expr": "Valuations.ComplianceStatementHousesUnderConstruction_eq_No",
+        "field": "Valuations.ComplianceStatementHousesUnderConstruction",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComplianceStatementMarket_eq_No",
+        "field": "Valuations.ComplianceStatementMarket",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ComplianceStatementMortgage_eq_No",
+        "field": "Valuations.ComplianceStatementMortgage",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ConditionAndRepair_eq_No",
+        "field": "Valuations.ConditionAndRepair",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Disclosure_eq_No",
+        "field": "Valuations.Disclosure",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.EarthquakeProneBuildings_eq_No",
+        "field": "Valuations.EarthquakeProneBuildings",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Flooding_eq_No",
+        "field": "Valuations.Flooding",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ForcedSale_eq_No",
+        "field": "Valuations.ForcedSale",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.GraduateInvolvement_eq_No",
+        "field": "Valuations.GraduateInvolvement",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.HypoSub_eq_No",
+        "field": "Valuations.HypoSub",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.HypotheticalSubdivision_eq_No",
+        "field": "Valuations.HypotheticalSubdivision",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Investigations_eq_No",
+        "field": "Valuations.Investigations",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.IrregularShape_eq_No",
+        "field": "Valuations.IrregularShape",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.LandValueAssessment_eq_No",
+        "field": "Valuations.LandValueAssessment",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.LeaseholdProperty_eq_No",
+        "field": "Valuations.LeaseholdProperty",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Mortgage_eq_No",
+        "field": "Valuations.Mortgage",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.PeerReview_eq_No",
+        "field": "Valuations.PeerReview",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.PropImp_eq_No",
+        "field": "Valuations.PropImp",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.RecentSaleOfSubject_eq_No",
+        "field": "Valuations.RecentSaleOfSubject",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.RegularShape_eq_No",
+        "field": "Valuations.RegularShape",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Reliance_eq_No",
+        "field": "Valuations.Reliance",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_eq_CMR",
+        "field": "Valuations.ResiReport",
+        "op": "==",
+        "value": "CMR",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_eq_Insurance",
+        "field": "Valuations.ResiReport",
+        "op": "==",
+        "value": "Insurance",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_neq_CMR",
+        "field": "Valuations.ResiReport",
+        "op": "!=",
+        "value": "CMR",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_neq_CMV",
+        "field": "Valuations.ResiReport",
+        "op": "!=",
+        "value": "CMV",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_neq_CMV-and-Forced-Sale-Price",
+        "field": "Valuations.ResiReport",
+        "op": "!=",
+        "value": "CMV and Forced Sale Price",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_neq_CMV-and-Progress-Report",
+        "field": "Valuations.ResiReport",
+        "op": "!=",
+        "value": "CMV and Progress Report",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_neq_CMV-and-Value-as-Complete",
+        "field": "Valuations.ResiReport",
+        "op": "!=",
+        "value": "CMV and Value as Complete",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_neq_CMV-and-Value-as-Complete-and-CMR",
+        "field": "Valuations.ResiReport",
+        "op": "!=",
+        "value": "CMV and Value as Complete and CMR",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_neq_Insurance",
+        "field": "Valuations.ResiReport",
+        "op": "!=",
+        "value": "Insurance",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_neq_Progress-Report",
+        "field": "Valuations.ResiReport",
+        "op": "!=",
+        "value": "Progress Report",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ResiReport_neq_Retrospective-Market-Value",
+        "field": "Valuations.ResiReport",
+        "op": "!=",
+        "value": "Retrospective Market Value",
+        "section": null
+      },
+      {
+        "expr": "Valuations.Responsibility to Third Party_eq_No",
+        "field": "Valuations.Responsibility to Third Party",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.RetrospectiveValuation_eq_No",
+        "field": "Valuations.RetrospectiveValuation",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.RoomSummary_eq_No",
+        "field": "Valuations.RoomSummary",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.SubjectUnderContract_eq_No",
+        "field": "Valuations.SubjectUnderContract",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.SummaryofLegalInstruments_eq_No",
+        "field": "Valuations.SummaryofLegalInstruments",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseAsbestos_eq_No",
+        "field": "Valuations.UseAsbestos",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseAssumptions_eq_No",
+        "field": "Valuations.UseAssumptions",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseAuthorisingSignature_eq_No",
+        "field": "Valuations.UseAuthorisingSignature",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseAuthorisingSignature_eq_Yes",
+        "field": "Valuations.UseAuthorisingSignature",
+        "op": "==",
+        "value": "Yes",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseContamination_eq_No",
+        "field": "Valuations.UseContamination",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseConveyancersActRules2008_eq_No",
+        "field": "Valuations.UseConveyancersActRules2008",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseCostApproach_eq_No",
+        "field": "Valuations.UseCostApproach",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseCrossLeaseTitle_eq_No",
+        "field": "Valuations.UseCrossLeaseTitle",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseDateValuation_eq_No",
+        "field": "Valuations.UseDateValuation",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseGST_eq_No",
+        "field": "Valuations.UseGST",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseIncomeApproach_eq_No",
+        "field": "Valuations.UseIncomeApproach",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseLandSurvey_eq_No",
+        "field": "Valuations.UseLandSurvey",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseLeases_eq_No",
+        "field": "Valuations.UseLeases",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseLegislation_eq_No",
+        "field": "Valuations.UseLegislation",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseMarketApproach_eq_No",
+        "field": "Valuations.UseMarketApproach",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseMarketValuations_eq_No",
+        "field": "Valuations.UseMarketValuations",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseMortgageRecommendation_eq_No",
+        "field": "Valuations.UseMortgageRecommendation",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseNotStructuralSurvey_eq_No",
+        "field": "Valuations.UseNotStructuralSurvey",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UsePlasterFinish_eq_No",
+        "field": "Valuations.UsePlasterFinish",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UsePurpose_eq_No",
+        "field": "Valuations.UsePurpose",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseRegistrations_eq_No",
+        "field": "Valuations.UseRegistrations",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseReliabilityData_eq_No",
+        "field": "Valuations.UseReliabilityData",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseReproductionReport_eq_No",
+        "field": "Valuations.UseReproductionReport",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseSystems_eq_No",
+        "field": "Valuations.UseSystems",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseTenancies_eq_No",
+        "field": "Valuations.UseTenancies",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.UseWaterLeaks_eq_No",
+        "field": "Valuations.UseWaterLeaks",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.VOSOrder_eq_No",
+        "field": "Valuations.VOSOrder",
+        "op": "==",
+        "value": "No",
+        "section": null
+      },
+      {
+        "expr": "Valuations.ValueAsIfComplete_eq_No",
+        "field": "Valuations.ValueAsIfComplete",
+        "op": "==",
+        "value": "No",
+        "section": null
+      }
+    ],
+    "switch_fields": [
+      "Valuations.ComplianceStatementHousesUnderConstruction",
+      "Valuations.ComplianceStatementMarket",
+      "Valuations.ComplianceStatementMortgage",
+      "Valuations.ConditionAndRepair",
+      "Valuations.Disclosure",
+      "Valuations.EarthquakeProneBuildings",
+      "Valuations.Flooding",
+      "Valuations.ForcedSale",
+      "Valuations.GraduateInvolvement",
+      "Valuations.HypoSub",
+      "Valuations.HypotheticalSubdivision",
+      "Valuations.Investigations",
+      "Valuations.IrregularShape",
+      "Valuations.LandValueAssessment",
+      "Valuations.LeaseholdProperty",
+      "Valuations.Mortgage",
+      "Valuations.PeerReview",
+      "Valuations.PropImp",
+      "Valuations.RecentSaleOfSubject",
+      "Valuations.RegularShape",
+      "Valuations.Reliance",
+      "Valuations.ResiReport",
+      "Valuations.Responsibility to Third Party",
+      "Valuations.RetrospectiveValuation",
+      "Valuations.RoomSummary",
+      "Valuations.SubjectUnderContract",
+      "Valuations.SummaryofLegalInstruments",
+      "Valuations.UseAsbestos",
+      "Valuations.UseAssumptions",
+      "Valuations.UseAuthorisingSignature",
+      "Valuations.UseContamination",
+      "Valuations.UseConveyancersActRules2008",
+      "Valuations.UseCostApproach",
+      "Valuations.UseCrossLeaseTitle",
+      "Valuations.UseDateValuation",
+      "Valuations.UseGST",
+      "Valuations.UseIncomeApproach",
+      "Valuations.UseLandSurvey",
+      "Valuations.UseLeases",
+      "Valuations.UseLegislation",
+      "Valuations.UseMarketApproach",
+      "Valuations.UseMarketValuations",
+      "Valuations.UseMortgageRecommendation",
+      "Valuations.UseNotStructuralSurvey",
+      "Valuations.UsePlasterFinish",
+      "Valuations.UsePurpose",
+      "Valuations.UseRegistrations",
+      "Valuations.UseReliabilityData",
+      "Valuations.UseReproductionReport",
+      "Valuations.UseSystems",
+      "Valuations.UseTenancies",
+      "Valuations.UseWaterLeaks",
+      "Valuations.VOSOrder",
+      "Valuations.ValueAsIfComplete"
+    ],
+    "images": [
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "FrontPagePhotos",
+        "width": "480",
+        "height": null
+      },
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "SubjectPhoto_Plans",
+        "width": "410",
+        "height": "270"
+      },
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "SubjectPhoto_Elevation",
+        "width": "410",
+        "height": "270"
+      },
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "SubjectPhoto_Front",
+        "width": "410",
+        "height": "270"
+      },
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "SubjectPhoto_Rear",
+        "width": "410",
+        "height": "270"
+      },
+      {
+        "source": "PhotoID1",
+        "section": null,
+        "region": "PhotoGrid_BackPagePhotos",
+        "width": "210",
+        "height": "160"
+      },
+      {
+        "source": "PhotoID2",
+        "section": null,
+        "region": "PhotoGrid_BackPagePhotos",
+        "width": "210",
+        "height": "160"
+      },
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "AerialMap",
+        "width": "460",
+        "height": null
+      },
+      {
+        "source": "PhotoID",
+        "section": null,
+        "region": "StreetMap",
+        "width": "460",
+        "height": null
+      },
+      {
+        "source": "PhotoID1",
+        "section": null,
+        "region": "SubjectPhoto_Kitchen",
+        "width": "180",
+        "height": "135"
+      },
+      {
+        "source": "PhotoID1",
+        "section": null,
+        "region": "SubjectPhoto_Bathroom",
+        "width": "180",
+        "height": "135"
+      },
+      {
+        "source": "LeaseCaptureID",
+        "section": null,
+        "region": "TblLeasesEvidence",
+        "width": "150",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Land",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_BlockLand",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Residential",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Lifestyle",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Residential-Obsolete",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_InvestmentSale",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_SaleInOneLine",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_BlockLand",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Apartment",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_Church-Community-Halls",
+        "width": "160",
+        "height": null
+      },
+      {
+        "source": "SalesCaptureID",
+        "section": null,
+        "region": "SalesEvidenceType_ForcedSale",
+        "width": "160",
+        "height": null
+      }
+    ]
+  }
+}
