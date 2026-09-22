@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { asc, eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { valuers, contacts, properties } from '@/db/schema';
+import { valuers, clients, contacts, properties } from '@/db/schema';
 import { createJob } from '@/app/actions';
 import { SectionCard } from '@/components/ui';
 import { PROPERTY_TYPE_LABELS } from '@/lib/format';
+import { CLIENT_KIND_LABELS } from '@/lib/clients';
+import { REPORT_TYPES_BY_TEMPLATE, REPORT_TYPE_LABELS } from '@/report/job-fields';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,15 +25,22 @@ const PURPOSES = [
 
 const BASES = ['Market Value', 'Market Rental', 'Insurance Replacement', 'Fair Value', 'Compensation'];
 
-export default async function NewJobPage() {
-  const [staff, allContacts, existingProperties] = await Promise.all([
+export default async function NewJobPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ clientOrgId?: string }>;
+}) {
+  const [staff, allContacts, existingProperties, clientOrgs, query] = await Promise.all([
     db.select().from(valuers).where(eq(valuers.active, true)).orderBy(asc(valuers.name)),
     db.select().from(contacts).orderBy(asc(contacts.name)),
     db.select().from(properties).orderBy(asc(properties.address)).limit(300),
+    db.select().from(clients).where(eq(clients.active, true)).orderBy(asc(clients.name)),
+    searchParams,
   ]);
+  const preselectedClient = query.clientOrgId ?? '';
 
   const instructors = allContacts.filter((c) => c.type === 'instructor');
-  const clients = allContacts.filter((c) => c.type !== 'instructor');
+  const clientContacts = allContacts.filter((c) => c.type !== 'instructor');
   const today = new Date().toISOString().slice(0, 10);
 
   return (
@@ -101,10 +110,23 @@ export default async function NewJobPage() {
           <SectionCard title="Client">
             <div className="grid sm:grid-cols-2 gap-3">
               <label className="sm:col-span-2">
-                <span className="label">Existing client</span>
+                <span className="label">Client (the organisation the report is addressed to)</span>
+                <select name="clientOrgId" className="select" defaultValue={preselectedClient}>
+                  <option value="">— None —</option>
+                  {clientOrgs.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                      {c.division ? ` — ${c.division}` : ''}
+                      {` (${CLIENT_KIND_LABELS[c.kind] ?? c.kind})`}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="sm:col-span-2">
+                <span className="label">Named contact</span>
                 <select name="clientId" className="select" defaultValue="">
-                  <option value="">— New client —</option>
-                  {clients.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  <option value="">— New contact —</option>
+                  {clientContacts.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
               </label>
               <label><span className="label">Name</span><input name="clientName" className="input" /></label>
@@ -128,6 +150,28 @@ export default async function NewJobPage() {
               <span className="label">Basis</span>
               <select name="basis" className="select" defaultValue="Market Value">
                 {BASES.map((b) => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </label>
+            <label>
+              <span className="label">Report template</span>
+              <select name="reportTemplate" className="select" defaultValue="commercial">
+                <option value="commercial">Commercial master</option>
+                <option value="residential">Residential master</option>
+              </select>
+            </label>
+            <label>
+              <span className="label">Report type</span>
+              <select name="reportType" className="select" defaultValue="market_value">
+                {[...new Set([...REPORT_TYPES_BY_TEMPLATE.commercial, ...REPORT_TYPES_BY_TEMPLATE.residential])].map(
+                  (t) => <option key={t} value={t}>{REPORT_TYPE_LABELS[t]}</option>,
+                )}
+              </select>
+            </label>
+            <label>
+              <span className="label">Counter-signed by</span>
+              <select name="authorisedById" className="select" defaultValue="">
+                <option value="">Not counter-signed</option>
+                {staff.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </label>
             <label>

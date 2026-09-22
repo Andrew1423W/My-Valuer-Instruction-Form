@@ -98,7 +98,10 @@ const job: ReportJob = {
       carparking: '14 sealed spaces on site',
       nbsRating: '67% NBS (IL2)',
       measuredFloorArea: '1860.00',
-      accommodation: [{ room: 'Office', detail: 'Reception and two offices, carpeted' }],
+      accommodation: [
+        { label: 'Unit A warehouse', areaSqm: '1120.00' },
+        { label: 'Unit B warehouse', areaSqm: '740.00' },
+      ],
       inspectedBy: { name: 'A N Other', role: 'registered_valuer' },
     },
   ],
@@ -160,9 +163,9 @@ const stored: StoredReportData = {
     'Valuations.UseAuthorisingSignature': 'Yes',
   },
   rows: {
-    so_LettableAreas: [
-      { AreaName: 'Unit A warehouse', FloorArea: '1,120' },
-      { AreaName: 'Unit B warehouse', FloorArea: '740' },
+    so_FloorAreaEntry: [
+      { FloorName: 'Ground floor warehouse', FloorAreaSize: '1,680' },
+      { FloorName: 'First floor office', FloorAreaSize: '180' },
     ],
   },
 };
@@ -221,7 +224,8 @@ async function main() {
   console.log('\n  the schedules');
   check('tenancy schedule, first tenant', has('Coastal Engineering Limited'));
   check('tenancy schedule, second tenant', has('Bay Distribution Co'));
-  check('lettable areas entered by hand', has('Unit A warehouse') && has('Unit B warehouse'));
+  check('lettable areas, from the inspection', has('Unit A warehouse') && has('Unit B warehouse'));
+  check('floor areas entered by hand', has('Ground floor warehouse') && has('First floor office'));
   check('sales evidence', has('42 Prebensen Drive') && has('$3,950,000'));
   check('rental evidence', has('9 Austin Street') && has('Regional Freight Limited'));
   check('evidence stays marked as demonstration data', has('DEMO DATA'));

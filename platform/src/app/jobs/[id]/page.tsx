@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { asc, desc, eq, notInArray, sql } from 'drizzle-orm';
 import { db } from '@/db';
-import { jobs, jobEvents, valuers, salesEvidence, rentalEvidence } from '@/db/schema';
+import { jobs, jobEvents, valuers, clients, salesEvidence, rentalEvidence } from '@/db/schema';
 import { STATUS_META } from '@/lib/status';
 import { StatusBadge, RatingBadge, SectionCard, Field, Empty } from '@/components/ui';
 import { StatusMover } from '@/components/status-mover';
@@ -10,6 +10,7 @@ import { updateJobDetails, addComparable, updateComparable, removeComparable, ad
 import {
   money, shortDate, dateTime, area, propertyType, ratePerSqm, yieldPct, titleCase, daysUntil, nzInputValue,
 } from '@/lib/format';
+import { REPORT_TYPES_BY_TEMPLATE, REPORT_TYPE_LABELS } from '@/report/job-fields';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,8 +24,10 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
       property: true,
       instructor: true,
       client: true,
+      clientOrg: true,
       allocatedTo: true,
       takenBy: true,
+      authorisedBy: true,
       inspections: { with: { inspectedBy: true, photos: true }, orderBy: [desc(sql`inspected_at`)] },
       comparables: { with: { sale: true, rental: true }, orderBy: [asc(sql`sort_order`)] },
       events: { with: { valuer: true }, orderBy: [desc(jobEvents.at)] },
@@ -32,7 +35,10 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   });
   if (!job) notFound();
 
-  const staff = await db.select().from(valuers).where(eq(valuers.active, true)).orderBy(asc(valuers.name));
+  const [staff, clientOrgs] = await Promise.all([
+    db.select().from(valuers).where(eq(valuers.active, true)).orderBy(asc(valuers.name)),
+    db.select().from(clients).where(eq(clients.active, true)).orderBy(asc(clients.name)),
+  ]);
   const inspection = job.inspections[0] ?? null;
   const dd = daysUntil(job.dueDate);
 
@@ -87,7 +93,8 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
           <Link href={`/jobs/${job.id}/inspection`} className="btn btn-ghost">
             {inspection ? 'Edit inspection' : 'Start inspection'}
           </Link>
-          <a href={`/api/jobs/${job.id}/report`} className="btn btn-primary">Generate report (.docx)</a>
+          <Link href={`/jobs/${job.id}/report`} className="btn btn-primary">Write the report</Link>
+          <a href={`/api/jobs/${job.id}/report`} className="btn btn-ghost">Download (.docx)</a>
         </div>
       </div>
 
@@ -119,6 +126,20 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
         {/* -------------------------------------------------------- parties */}
         <SectionCard title="Parties & instruction">
           <div className="grid grid-cols-2 gap-3">
+            <Field label="Client">
+              {job.clientOrg ? (
+                <Link href={`/clients/${job.clientOrg.id}`} className="font-bold text-navy hover:underline">
+                  {job.clientOrg.name}
+                </Link>
+              ) : '—'}
+              {job.clientOrg?.division && (
+                <div className="text-[11.5px] text-gray-500">{job.clientOrg.division}</div>
+              )}
+            </Field>
+            <Field label="Report">
+              {REPORT_TYPE_LABELS[job.reportType]}
+              <div className="text-[11.5px] text-gray-500">{job.reportTemplate} master template</div>
+            </Field>
             <Field label="Instructor">
               {job.instructor ? (
                 <>
@@ -128,7 +149,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
                 </>
               ) : '—'}
             </Field>
-            <Field label="Client">
+            <Field label="Named contact">
               {job.client ? (
                 <>
                   {job.client.name}
@@ -142,6 +163,7 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
             <Field label="Basis of value">{job.basis ?? '—'}</Field>
             <Field label="VOS order no.">{job.vosOrderNo ?? '—'}</Field>
             <Field label="Instructed">{shortDate(job.instructionDate)} ({job.takenBy?.initials ?? '—'})</Field>
+            <Field label="Counter-signed by">{job.authorisedBy?.name ?? 'Not counter-signed'}</Field>
             <Field label="Due">
               <span className={dd !== null && dd < 0 ? 'text-red-700 font-bold' : ''}>{shortDate(job.dueDate)}</span>
             </Field>
@@ -161,6 +183,30 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
           <form action={updateJobDetails} className="space-y-3">
             <input type="hidden" name="jobId" value={job.id} />
             <div className="grid grid-cols-2 gap-3">
+              <label className="col-span-2">
+                <span className="label">Client</span>
+                <select name="clientOrgId" defaultValue={job.clientOrgId ?? ''} className="select">
+                  <option value="">— None —</option>
+                  {clientOrgs.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}{c.division ? ` — ${c.division}` : ''}</option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span className="label">Report template</span>
+                <select name="reportTemplate" defaultValue={job.reportTemplate} className="select">
+                  <option value="commercial">Commercial master</option>
+                  <option value="residential">Residential master</option>
+                </select>
+              </label>
+              <label>
+                <span className="label">Report type</span>
+                <select name="reportType" defaultValue={job.reportType} className="select">
+                  {[...new Set([...REPORT_TYPES_BY_TEMPLATE.commercial, ...REPORT_TYPES_BY_TEMPLATE.residential])].map(
+                    (t) => <option key={t} value={t}>{REPORT_TYPE_LABELS[t]}</option>,
+                  )}
+                </select>
+              </label>
               <label>
                 <span className="label">Allocated to</span>
                 <select name="allocatedToId" defaultValue={job.allocatedToId ?? ''} className="select">
@@ -216,6 +262,13 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
               <label>
                 <span className="label">Fee — insurance</span>
                 <input name="feeInsurance" defaultValue={job.feeInsurance ?? ''} className="input" />
+              </label>
+              <label className="col-span-2">
+                <span className="label">Counter-signed by</span>
+                <select name="authorisedById" defaultValue={job.authorisedById ?? ''} className="select">
+                  <option value="">Not counter-signed</option>
+                  {staff.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </select>
               </label>
             </div>
             <label className="block">

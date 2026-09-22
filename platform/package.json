@@ -10,7 +10,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "template:spec": "python3 tools/extract-template-spec.py",
-    "template:verify": "tsx tools/verify-template-fill.ts && tsx tools/verify-field-expressions.ts && tsx tools/verify-job-mapping.ts",
+    "template:verify": "tsx tools/verify-template-fill.ts && tsx tools/verify-field-expressions.ts && tsx tools/verify-job-mapping.ts && tsx tools/verify-report-entry.ts",
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:seed": "tsx src/db/seed.ts",

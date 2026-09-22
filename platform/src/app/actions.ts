@@ -10,12 +10,17 @@ import {
   jobs,
   jobEvents,
   jobComparables,
+  jobReportRows,
+  jobReportSwitches,
+  jobReportValues,
   properties,
+  clients,
   contacts,
   inspections,
   inspectionPhotos,
   salesEvidence,
   rentalEvidence,
+  tenancies,
   type AccommodationLine,
   type JobStatus,
 } from '@/db/schema';
@@ -57,6 +62,18 @@ const PROPERTY_TYPES = [
 const RATINGS = ['inferior', 'comparable', 'superior'] as const;
 const TENURES = ['vacant_possession', 'investment', 'part_occupied', 'development_site'] as const;
 const RENTAL_KINDS = ['new_letting', 'rent_review', 'renewal', 'sublease'] as const;
+
+const CLIENT_KINDS = [
+  'bank', 'non_bank_lender', 'law_firm', 'accountant', 'corporate',
+  'government', 'council', 'trust', 'private', 'other',
+] as const;
+
+const REPORT_TEMPLATES = ['commercial', 'residential'] as const;
+
+const REPORT_TYPES = [
+  'market_value', 'market_rental', 'ground_rental',
+  'lessors_interest', 'current_market_rental', 'insurance',
+] as const;
 
 /* ------------------------------------------------------------ job status */
 
@@ -128,14 +145,18 @@ export async function createJob(fd: FormData) {
       propertyId,
       instructorId,
       clientId,
+      clientOrgId: intOrNull(fd, 'clientOrgId'),
       borrower: str(fd, 'borrower'),
       purpose: str(fd, 'purpose'),
       purposeDetail: str(fd, 'purposeDetail'),
       basis: str(fd, 'basis') ?? 'Market Value',
+      reportTemplate: enumOrNull(fd, 'reportTemplate', REPORT_TEMPLATES) ?? 'commercial',
+      reportType: enumOrNull(fd, 'reportType', REPORT_TYPES) ?? 'market_value',
       isQuote,
       vosOrderNo: str(fd, 'vosOrderNo'),
       poNumber: str(fd, 'poNumber'),
       allocatedToId: intOrNull(fd, 'allocatedToId'),
+      authorisedById: intOrNull(fd, 'authorisedById'),
       takenById: me.id,
       instructionDate: str(fd, 'instructionDate') ?? nzToday(),
       dueDate: str(fd, 'dueDate'),
@@ -202,6 +223,16 @@ export async function updateJobDetails(fd: FormData) {
     .set({
       dueDate: str(fd, 'dueDate'),
       allocatedToId: intOrNull(fd, 'allocatedToId'),
+      authorisedById: intOrNull(fd, 'authorisedById'),
+      // Only what the form actually carried: a form that leaves the report
+      // type out must not reset the job to a commercial market valuation.
+      ...(fd.has('clientOrgId') ? { clientOrgId: intOrNull(fd, 'clientOrgId') } : {}),
+      ...(enumOrNull(fd, 'reportTemplate', REPORT_TEMPLATES)
+        ? { reportTemplate: enumOrNull(fd, 'reportTemplate', REPORT_TEMPLATES)! }
+        : {}),
+      ...(enumOrNull(fd, 'reportType', REPORT_TYPES)
+        ? { reportType: enumOrNull(fd, 'reportType', REPORT_TYPES)! }
+        : {}),
       inspectionAt: str(fd, 'inspectionAt') ? parseNzDateTime(str(fd, 'inspectionAt')!) : null,
       effectiveDate: str(fd, 'effectiveDate'),
       adoptedValue: numStr(fd, 'adoptedValue'),
@@ -413,4 +444,210 @@ export async function createRentalEvidence(fd: FormData) {
 
   revalidatePath('/evidence');
   redirect('/evidence?tab=rentals');
+}
+
+/* ---------------------------------------------------------------- clients */
+
+export async function createClient(fd: FormData) {
+  await requireValuer();
+  const name = str(fd, 'name');
+  if (!name) throw new Error('A client name is required.');
+
+  const [client] = await db
+    .insert(clients)
+    .values({
+      name,
+      kind: enumOrNull(fd, 'kind', CLIENT_KINDS) ?? 'other',
+      division: str(fd, 'division'),
+      address: str(fd, 'address'),
+      phone: str(fd, 'phone'),
+      accountsEmail: str(fd, 'accountsEmail'),
+      reportsEmail: str(fd, 'reportsEmail'),
+      terms: str(fd, 'terms'),
+      defaultFee: numStr(fd, 'defaultFee'),
+      defaultTurnaroundDays: intOrNull(fd, 'defaultTurnaroundDays'),
+      notes: str(fd, 'notes'),
+    })
+    .returning();
+
+  revalidatePath('/clients');
+  redirect(`/clients/${client.id}`);
+}
+
+export async function updateClient(fd: FormData) {
+  await requireValuer();
+  const id = intOrNull(fd, 'clientId');
+  if (!id) throw new Error('clientId missing');
+
+  await db
+    .update(clients)
+    .set({
+      name: str(fd, 'name') ?? undefined,
+      kind: enumOrNull(fd, 'kind', CLIENT_KINDS) ?? undefined,
+      division: str(fd, 'division'),
+      address: str(fd, 'address'),
+      phone: str(fd, 'phone'),
+      accountsEmail: str(fd, 'accountsEmail'),
+      reportsEmail: str(fd, 'reportsEmail'),
+      terms: str(fd, 'terms'),
+      defaultFee: numStr(fd, 'defaultFee'),
+      defaultTurnaroundDays: intOrNull(fd, 'defaultTurnaroundDays'),
+      notes: str(fd, 'notes'),
+      active: fd.get('active') === 'on',
+      updatedAt: new Date(),
+    })
+    .where(eq(clients.id, id));
+
+  revalidatePath(`/clients/${id}`);
+  revalidatePath('/clients');
+}
+
+export async function addClientContact(fd: FormData) {
+  await requireValuer();
+  const clientId = intOrNull(fd, 'clientId');
+  const name = str(fd, 'contactName');
+  if (!clientId) throw new Error('clientId missing');
+  if (!name) throw new Error('A contact name is required.');
+
+  await db.insert(contacts).values({
+    clientId,
+    type: 'instructor',
+    name,
+    company: str(fd, 'contactCompany'),
+    email: str(fd, 'contactEmail'),
+    phone: str(fd, 'contactPhone'),
+    notes: str(fd, 'contactNotes'),
+  });
+
+  revalidatePath(`/clients/${clientId}`);
+}
+
+/* ---------------------------------------------------------- tenancy schedule */
+
+export async function saveTenancy(fd: FormData) {
+  await requireValuer();
+  const propertyId = intOrNull(fd, 'propertyId');
+  if (!propertyId) throw new Error('propertyId missing');
+  const tenant = str(fd, 'tenant');
+  if (!tenant) throw new Error('A tenant name is required.');
+
+  const values = {
+    propertyId,
+    tenant,
+    unit: str(fd, 'unit'),
+    use: str(fd, 'use'),
+    areaSqm: numStr(fd, 'areaSqm'),
+    carParks: intOrNull(fd, 'carParks'),
+    rentPa: numStr(fd, 'rentPa'),
+    outgoingsBasis: str(fd, 'outgoingsBasis'),
+    outgoingsPa: numStr(fd, 'outgoingsPa'),
+    marketRentPa: numStr(fd, 'marketRentPa'),
+    leaseStart: str(fd, 'leaseStart'),
+    leaseExpiry: str(fd, 'leaseExpiry'),
+    renewals: str(fd, 'renewals'),
+    finalExpiry: str(fd, 'finalExpiry'),
+    reviewBasis: str(fd, 'reviewBasis'),
+    nextReview: str(fd, 'nextReview'),
+    bondOrGuarantee: str(fd, 'bondOrGuarantee'),
+    comments: str(fd, 'comments'),
+    sortOrder: intOrNull(fd, 'sortOrder') ?? 0,
+  };
+
+  const id = intOrNull(fd, 'tenancyId');
+  if (id) await db.update(tenancies).set(values).where(eq(tenancies.id, id));
+  else await db.insert(tenancies).values(values);
+
+  const jobId = intOrNull(fd, 'jobId');
+  if (jobId) revalidatePath(`/jobs/${jobId}/report`);
+  revalidatePath('/properties');
+}
+
+export async function removeTenancy(id: number, jobId: number) {
+  await requireValuer();
+  await db.delete(tenancies).where(eq(tenancies.id, id));
+  revalidatePath(`/jobs/${jobId}/report`);
+}
+
+/* ------------------------------------------------------- report narrative */
+
+/**
+ * Saves one section of the report entry form.
+ *
+ * Every field the form carries is written, blanks included, so clearing a box
+ * clears the value. The form names each input `field:<template field name>`
+ * and `switch:<template field name>`, which keeps the handler independent of
+ * which template version is in use.
+ */
+export async function saveReportSection(fd: FormData) {
+  const me = await requireValuer();
+  const jobId = intOrNull(fd, 'jobId');
+  if (!jobId) throw new Error('jobId missing');
+
+  const values: { fieldName: string; value: string | null }[] = [];
+  const switches: { fieldName: string; value: string }[] = [];
+  for (const [key, raw] of fd.entries()) {
+    if (typeof raw !== 'string') continue;
+    if (key.startsWith('field:')) {
+      const value = raw.trim();
+      values.push({ fieldName: key.slice('field:'.length), value: value === '' ? null : value });
+    } else if (key.startsWith('switch:')) {
+      switches.push({ fieldName: key.slice('switch:'.length), value: raw.trim() || 'No' });
+    }
+  }
+
+  for (const v of values) {
+    await db
+      .insert(jobReportValues)
+      .values({ jobId, fieldName: v.fieldName, value: v.value, updatedById: me.id })
+      .onConflictDoUpdate({
+        target: [jobReportValues.jobId, jobReportValues.fieldName],
+        set: { value: v.value, updatedById: me.id, updatedAt: new Date() },
+      });
+  }
+
+  for (const sw of switches) {
+    await db
+      .insert(jobReportSwitches)
+      .values({ jobId, fieldName: sw.fieldName, value: sw.value })
+      .onConflictDoUpdate({
+        target: [jobReportSwitches.jobId, jobReportSwitches.fieldName],
+        set: { value: sw.value, updatedAt: new Date() },
+      });
+  }
+
+  revalidatePath(`/jobs/${jobId}/report`);
+}
+
+/** Adds or replaces the rows of one repeating region. */
+export async function saveReportRows(fd: FormData) {
+  await requireValuer();
+  const jobId = intOrNull(fd, 'jobId');
+  const region = str(fd, 'region');
+  if (!jobId || !region) throw new Error('jobId and region are required');
+
+  // The form posts `row:<index>:<field>`, so the rows arrive in order.
+  const rows = new Map<number, Record<string, string>>();
+  for (const [key, raw] of fd.entries()) {
+    if (typeof raw !== 'string' || !key.startsWith('row:')) continue;
+    const [, index, ...rest] = key.split(':');
+    const i = Number(index);
+    if (!Number.isFinite(i)) continue;
+    const row = rows.get(i) ?? {};
+    const value = raw.trim();
+    if (value !== '') row[rest.join(':')] = value;
+    rows.set(i, row);
+  }
+
+  await db.delete(jobReportRows).where(
+    and(eq(jobReportRows.jobId, jobId), eq(jobReportRows.region, region)),
+  );
+
+  const toInsert = [...rows.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .filter(([, row]) => Object.keys(row).length > 0)
+    .map(([, row], order) => ({ jobId, region, sortOrder: order, values: row }));
+
+  if (toInsert.length > 0) await db.insert(jobReportRows).values(toInsert);
+
+  revalidatePath(`/jobs/${jobId}/report`);
 }

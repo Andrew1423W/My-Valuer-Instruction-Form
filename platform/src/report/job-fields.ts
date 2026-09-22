@@ -22,12 +22,44 @@ import dictionary from './field-dictionary.json';
 /** The templates, read into a spec by `tools/extract-template-spec.py`. */
 export type TemplateSpec = {
   template: string;
-  job_fields: { name: string; section: string | null }[];
-  row_fields: { name: string; section: string | null }[];
-  regions: { name: string; row_fields: string[]; section: string | null }[];
-  conditions: { expr: string; field: string; op: string; value: string }[];
+  job_fields: SpecField[];
+  row_fields: { name: string; regions: string[] }[];
+  regions: SpecRegion[];
+  conditions: SpecCondition[];
   switch_fields: string[];
-  images: { name: string; width: number | null; height: number | null }[];
+  images: SpecImage[];
+};
+
+/** Where a field sits in the template, and what decides whether it prints. */
+type Placed = {
+  /** The nearest top-level heading, and the nearest heading of any level. */
+  section: string | null;
+  subsection: string | null;
+  /** Position in the document, so the form can read in report order. */
+  order: number;
+  /** The conditional blocks enclosing it; any one of them can delete it. */
+  conditions: string[];
+};
+
+export type SpecField = Placed & { name: string };
+export type SpecRegion = Placed & { name: string; row_fields: string[] };
+export type SpecCondition = {
+  expr: string;
+  field: string;
+  op: string;
+  value: string;
+  section: string | null;
+  subsection: string | null;
+  order: number;
+};
+export type SpecImage = {
+  source: string;
+  section: string | null;
+  subsection: string | null;
+  region: string | null;
+  conditions: string[];
+  width: string | null;
+  height: string | null;
 };
 
 export const TEMPLATE_SPECS = dictionary as unknown as Record<ReportTemplate, TemplateSpec>;
@@ -212,7 +244,7 @@ export type ReportJob = {
     carparking: string | null;
     nbsRating: string | null;
     measuredFloorArea: string | null;
-    accommodation?: { room: string; detail: string }[] | null;
+    accommodation?: { label: string; areaSqm: string; notes?: string }[] | null;
     inspectedBy?: ReportValuer | null;
   }[];
   comparables?: {
@@ -428,10 +460,9 @@ export function derivedRows(job: ReportJob): Record<string, FieldValues[]> {
     push(rows, 'so_FloorAreaEntry', { FloorName: 'Total', FloorAreaSize: numberOf(floorArea) });
   }
 
-  // The rooms recorded on the inspection.
+  // The areas recorded on the inspection become the lettable area schedule.
   for (const line of job.inspections?.[0]?.accommodation ?? []) {
-    const region = `so_${line.room.replace(/[^A-Za-z]/g, '')}`;
-    push(rows, region, { Title: line.room, Features: line.detail });
+    push(rows, 'so_LettableAreas', { AreaName: line.label, FloorArea: numberOf(line.areaSqm) });
   }
 
   // The evidence selected for this job, grouped as the template groups it.
@@ -513,8 +544,15 @@ export function buildFillInput(job: ReportJob, stored: StoredReportData): FillIn
   Object.assign(switches, stored.switches);
   switches[reportTypeSwitchField(job.reportTemplate)] = REPORT_TYPE_SWITCH[job.reportType];
 
-  const rows: Record<string, FieldValues[]> = { ...stored.rows };
+  // Rows the valuer entered win over rows derived from records. The schedules
+  // the form does not offer — the evidence, the tenancies, who did what — have
+  // no entered rows, so they come from the records either way; the ones it does
+  // offer, such as the floor areas, stay the valuer's to state.
+  const rows: Record<string, FieldValues[]> = {};
   for (const [region, data] of Object.entries(derivedRowsForJob)) {
+    if (data.length > 0) rows[region] = data;
+  }
+  for (const [region, data] of Object.entries(stored.rows)) {
     if (data.length > 0) rows[region] = data;
   }
 
