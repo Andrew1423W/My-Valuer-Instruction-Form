@@ -50,6 +50,16 @@ export type FillReport = {
   tokensDropped: string[];
   /** Region or block markers left without a pair, removed as debris. */
   markersOrphaned: string[];
+  /**
+   * Places the template asks the valuer to type over by hand.
+   *
+   * The commercial template states its value conclusion as literal text —
+   * `??? Thousand Dollars ($,000) plus GST, if any` — rather than as a merge
+   * field, so filling cannot reach it. Reporting them means no report goes out
+   * with `$??????` in it, and shows which figures are worth adding merge
+   * fields for.
+   */
+  placeholders: string[];
 };
 
 export async function fillTemplate(
@@ -66,6 +76,7 @@ export async function fillTemplate(
     imagesSkipped: 0,
     tokensDropped: [],
     markersOrphaned: [],
+    placeholders: [],
   };
 
   const parts = Object.keys(zip.files).filter((n) =>
@@ -87,6 +98,7 @@ export async function fillTemplate(
     xml = substitute(xml, input.fields, report);
     xml = stripRemainingTokens(xml, report);
     xml = stripCachedFieldText(xml);
+    collectPlaceholders(xml, report);
     zip.file(part, xml);
   }
 
@@ -684,6 +696,23 @@ function stripCachedFieldText(xml: string): string {
       return cleaned === text ? whole : `<w:t${attrs ?? ''}>${cleaned}</w:t>`;
     },
   );
+}
+
+/**
+ * Notes the literal placeholders the template leaves for hand typing.
+ *
+ * A run of question marks, with or without a dollar sign, is how the templates
+ * mark a figure the valuer fills in Word. They are left in place — removing
+ * them would hide the gap — and reported so the platform can warn.
+ */
+function collectPlaceholders(xml: string, report: FillReport): void {
+  const text = (xml.match(/<w:t(?:\s[^>]*)?>[\s\S]*?<\/w:t>/g) ?? [])
+    .map((t) => unescapeXml(t.replace(/<[^>]+>/g, '')))
+    .join(' ');
+  for (const m of text.matchAll(/[^.?!]{0,60}\$?\?{3,}[^.?!]{0,60}/g)) {
+    const snippet = m[0].replace(/\s+/g, ' ').trim();
+    if (snippet && !report.placeholders.includes(snippet)) report.placeholders.push(snippet);
+  }
 }
 
 /** Sets `w:updateFields`, so Word refreshes the contents page when opened. */

@@ -1,7 +1,4 @@
-import { asc, desc, eq, sql } from 'drizzle-orm';
-import { db } from '@/db';
-import { jobs } from '@/db/schema';
-import { buildReport, type ReportData } from '@/lib/report';
+import { buildJobReport } from '@/report/build';
 
 export const dynamic = 'force-dynamic';
 
@@ -9,26 +6,19 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const id = Number((await params).id);
   if (!Number.isFinite(id)) return new Response('Not found', { status: 404 });
 
-  const job = await db.query.jobs.findFirst({
-    where: eq(jobs.id, id),
-    with: {
-      property: true,
-      instructor: true,
-      client: true,
-      allocatedTo: true,
-      inspections: { with: { inspectedBy: true }, orderBy: [desc(sql`inspected_at`)] },
-      comparables: { with: { sale: true, rental: true }, orderBy: [asc(sql`sort_order`)] },
-    },
-  });
-  if (!job) return new Response('Not found', { status: 404 });
+  const built = await buildJobReport(id);
+  if (!built) return new Response('Not found', { status: 404 });
 
-  const buffer = await buildReport(job as unknown as ReportData);
-  const filename = `${job.jobNo} ${job.property.address.replace(/[^a-zA-Z0-9 -]/g, '')}.docx`;
-
-  return new Response(new Uint8Array(buffer), {
+  const { docx, filename, report } = built;
+  return new Response(new Uint8Array(docx), {
     headers: {
       'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'Content-Disposition': `attachment; filename="${filename}"`,
+      // So the valuer can see what the report is missing without opening it.
+      'X-Report-Fields-Filled': String(report.fieldsFilled),
+      'X-Report-Fields-Missing': String(report.fieldsMissing.length),
+      'X-Report-Blocks-Dropped': String(report.blocksDropped.length),
+      'X-Report-Images-Skipped': String(report.imagesSkipped),
     },
   });
 }

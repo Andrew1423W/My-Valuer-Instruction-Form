@@ -10,6 +10,13 @@ export const metadata: Metadata = {
     'Valuation practice management for My Valuer Limited: job pipeline, inspections, sales and rental evidence, and report assembly.',
 };
 
+/**
+ * The header names the signed-in valuer, which is a per-request lookup, so
+ * nothing here can be prerendered. Saying so keeps `next build` from trying to
+ * reach the database at build time.
+ */
+export const dynamic = 'force-dynamic';
+
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const me = await currentValuer();
 
