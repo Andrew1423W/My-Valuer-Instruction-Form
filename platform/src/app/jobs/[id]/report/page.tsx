@@ -1,10 +1,18 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { asc, eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 import { db } from '@/db';
-import { jobReportRows, jobReportSwitches, jobReportValues, jobs } from '@/db/schema';
-import { saveReportRows, saveReportSection } from '@/app/actions';
+import {
+  inspectionPhotos,
+  inspections,
+  jobReportRows,
+  jobReportSwitches,
+  jobReportValues,
+  jobs,
+} from '@/db/schema';
+import { savePhotoSlots, saveReportRows, saveReportSection } from '@/app/actions';
 import { Empty, SectionCard, StatTile } from '@/components/ui';
+import { photoSlots } from '@/report/photo-slots';
 import { entryProgress, entryRegions, entrySections, entrySwitches } from '@/report/entry';
 import { REPORT_TYPE_LABELS, reportTypeSwitchField, templateSpec, REPORT_TYPE_SWITCH } from '@/report/job-fields';
 
@@ -29,6 +37,20 @@ export default async function ReportEntryPage({ params }: { params: Promise<{ id
       .where(eq(jobReportRows.jobId, id))
       .orderBy(asc(jobReportRows.region), asc(jobReportRows.sortOrder)),
   ]);
+
+  // Photographs come from the most recent inspection — the one the report describes.
+  const latestInspection = await db.query.inspections.findFirst({
+    where: eq(inspections.jobId, id),
+    orderBy: [desc(inspections.inspectedAt)],
+  });
+  const photos = latestInspection
+    ? await db
+        .select()
+        .from(inspectionPhotos)
+        .where(eq(inspectionPhotos.inspectionId, latestInspection.id))
+        .orderBy(asc(inspectionPhotos.sortOrder), asc(inspectionPhotos.id))
+    : [];
+  const slots = photoSlots(job.reportTemplate).filter((s) => !s.grid);
 
   const values = Object.fromEntries(storedValues.map((v) => [v.fieldName, v.value]));
   const rowsByRegion = new Map<string, Record<string, unknown>[]>();
@@ -129,6 +151,66 @@ export default async function ReportEntryPage({ params }: { params: Promise<{ id
           </form>
         </SectionCard>
       ))}
+
+      <SectionCard title={`Photographs — ${photos.length}`}>
+        <p className="text-[12.5px] text-gray-500 mb-3">
+          Where each photograph from the inspection goes in the report. The slots come from the
+          {' '}{job.reportTemplate} master template. Anything left on the back-page grid is laid out
+          two to a row, in this order; a slot with no photograph is left out of the report rather
+          than printed empty.
+        </p>
+        {photos.length === 0 ? (
+          <Empty>
+            No photographs yet — they come from the inspection.{' '}
+            <Link href={`/jobs/${job.id}/inspection`} className="font-bold text-navy">
+              Record an inspection
+            </Link>
+            .
+          </Empty>
+        ) : (
+          <form action={savePhotoSlots} className="space-y-3">
+            <input type="hidden" name="jobId" value={job.id} />
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {photos.map((photo) => (
+                <div key={photo.id} className="border border-gray-200 rounded-lg p-2 space-y-2">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={`/api/photos/${photo.id}`}
+                    alt={photo.caption ?? 'Inspection photograph'}
+                    className="w-full h-32 object-cover rounded bg-gray-100"
+                  />
+                  <label className="block">
+                    <span className="label">Goes in</span>
+                    <select
+                      name={`slot:${photo.id}`}
+                      defaultValue={photo.slot ?? ''}
+                      className="select"
+                    >
+                      <option value="">Back-page grid</option>
+                      {slots.map((s) => (
+                        <option key={s.name} value={s.name}>
+                          {s.label}
+                          {s.section ? ` — ${s.section}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <span className="label">Caption</span>
+                    <input
+                      name={`caption:${photo.id}`}
+                      className="input"
+                      defaultValue={photo.caption ?? ''}
+                      placeholder="Front elevation from Karamu Road"
+                    />
+                  </label>
+                </div>
+              ))}
+            </div>
+            <button type="submit" className="btn btn-primary">Save photographs</button>
+          </form>
+        )}
+      </SectionCard>
 
       <SectionCard title={`Schedules — ${schedules.length}`}>
         <p className="text-[12.5px] text-gray-500 mb-3">

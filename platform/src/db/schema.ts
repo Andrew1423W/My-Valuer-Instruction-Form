@@ -343,6 +343,15 @@ export const inspectionPhotos = pgTable(
     inspectionId: integer('inspection_id').references(() => inspections.id, { onDelete: 'cascade' }).notNull(),
     filename: text('filename').notNull(),
     caption: text('caption'),
+    /**
+     * Which picture slot in the master template this photograph fills, named as
+     * the template names the region: `SubjectPhoto_Front`, `AerialMap`. Null
+     * means it is not placed on its own, and joins the back-page photo grid.
+     *
+     * Kept as free text rather than an enum because the slots come from the
+     * templates, and a new template version should not need a migration.
+     */
+    slot: text('slot'),
     sortOrder: integer('sort_order').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },

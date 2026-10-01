@@ -18,6 +18,15 @@
  * Working in token space keeps the later passes out of Word's run/field XML.
  */
 import JSZip from 'jszip';
+import {
+  createImageContext,
+  encodeImageToken,
+  flushImageContext,
+  insertImages,
+  type ImageInput,
+} from './docx-images';
+
+export type { ImageInput } from './docx-images';
 
 /**
  * Token delimiters. Private-use characters, because the templates already
@@ -36,6 +45,27 @@ export type FillInput = {
   rows?: Record<string, FieldValues[]>;
   /** Values the conditional blocks test, e.g. `Valuations.UseGST` -> `'No'`. */
   switches?: FieldValues;
+  /**
+   * Photographs available to the image slots, keyed as the fields and rows name
+   * them. A slot whose `PhotoID` reads `photo-204` takes `images['photo-204']`.
+   */
+  images?: Record<string, ImageInput>;
+  /**
+   * What to write into the document's file properties.
+   *
+   * The master templates carry the author who first drew them up, so without
+   * this every report the platform produces goes out of the office showing that
+   * person as its author in Word's own properties panel.
+   */
+  properties?: DocProperties;
+};
+
+/** The file properties a produced report carries, replacing the template's. */
+export type DocProperties = {
+  title?: string;
+  /** The valuer the report is issued by. */
+  creator?: string;
+  lastModifiedBy?: string;
 };
 
 /** What the fill did, for logging and for warning the valuer about gaps. */
@@ -45,6 +75,9 @@ export type FillReport = {
   regionsExpanded: { name: string; rows: number }[];
   blocksKept: string[];
   blocksDropped: string[];
+  /** Photographs placed into the template's picture slots. */
+  imagesInserted: number;
+  /** Picture slots no photograph reached; the slot comes out of the document. */
   imagesSkipped: number;
   /** Tokens no value reached, removed so Word can still open the file. */
   tokensDropped: string[];
@@ -73,6 +106,7 @@ export async function fillTemplate(
     regionsExpanded: [],
     blocksKept: [],
     blocksDropped: [],
+    imagesInserted: 0,
     imagesSkipped: 0,
     tokensDropped: [],
     markersOrphaned: [],
@@ -90,23 +124,48 @@ export async function fillTemplate(
     return value === undefined || value === null ? null : String(value);
   };
 
+  const images = await createImageContext(zip, input.images ?? {}, parts);
+
   for (const part of parts) {
     let xml = await zip.file(part)!.async('string');
     xml = flattenFields(xml, resolve);
-    xml = expandRegions(xml, input.rows ?? {}, report);
+    xml = expandRegions(xml, input.rows ?? {}, report, input.images);
     xml = resolveConditionals(xml, input.switches ?? {}, report);
-    xml = substitute(xml, input.fields, report);
+    xml = substitute(xml, input.fields, report, input.images);
+    // Pictures go in after substitution, so a slot inside a repeating region is
+    // placed once per row, each row carrying its own photograph.
+    xml = await insertImages(
+      xml,
+      part,
+      zip,
+      images,
+      OPEN,
+      CLOSE,
+      () => {
+        report.imagesInserted += 1;
+      },
+      () => {
+        report.imagesSkipped += 1;
+      },
+    );
     xml = stripRemainingTokens(xml, report);
     xml = stripCachedFieldText(xml);
     collectPlaceholders(xml, report);
     zip.file(part, xml);
   }
 
+  flushImageContext(zip, images);
+
   // The contents page and cross references still hold the text Word cached the
   // last time the template was merged. Asking Word to refresh fields on open
   // rebuilds them against this report's headings and page numbers.
   const settings = zip.file('word/settings.xml');
   if (settings) zip.file('word/settings.xml', updateFieldsOnOpen(await settings.async('string')));
+
+  const core = zip.file('docProps/core.xml');
+  if (core && input.properties) {
+    zip.file('docProps/core.xml', setCoreProperties(await core.async('string'), input.properties));
+  }
 
   const docx = await zip.generateAsync({
     type: 'nodebuffer',
@@ -531,6 +590,7 @@ export function expandRegions(
   xml: string,
   rows: Record<string, FieldValues[]>,
   report: FillReport,
+  images?: Record<string, ImageInput>,
 ): string {
   let out = xml;
   // Outermost-first: take the first start marker and find the end that closes it.
@@ -553,7 +613,7 @@ export function expandRegions(
     report.regionsExpanded.push({ name, rows: data.length });
 
     const rendered = data
-      .map((row) => substituteRow(stripMarkers(block, name), row))
+      .map((row) => substituteRow(stripMarkers(block, name), row, images))
       .join('');
     out = out.slice(0, span.start) + rendered + out.slice(span.end);
   }
@@ -568,13 +628,63 @@ function stripMarkers(block: string, name: string): string {
     .join('');
 }
 
+/**
+ * Reads an `Image:Source,Width[,Height]` slot and names the photograph it wants.
+ *
+ * `Source` is a field like `PhotoID` or `SalesCaptureID`, holding the key of the
+ * photograph for this slot — for a slot inside a repeating region, the key comes
+ * from the row, so each comparable sale carries its own thumbnail.
+ *
+ * Returns the resolved token when a photograph is available, and null otherwise,
+ * leaving the slot to be resolved later or removed.
+ */
+function resolveImageSlot(
+  name: string,
+  lookup: (field: string) => string | null,
+  images: Record<string, ImageInput> | undefined,
+): string | null {
+  const spec = name.slice('Image:'.length);
+  const parts = spec.split(',').map((p) => p.trim());
+  const source = parts[0];
+  if (!source) return null;
+  const key = lookup(source);
+  if (!key || !images || !images[key]) return null;
+  const width = parts[1] ? Number(parts[1]) : null;
+  const height = parts[2] ? Number(parts[2]) : null;
+  return (
+    OPEN +
+    encodeImageToken({
+      key,
+      width: Number.isFinite(width) ? width : null,
+      height: Number.isFinite(height) ? height : null,
+    }) +
+    CLOSE
+  );
+}
+
 /** Row values fill bare tokens; job-level tokens are left for pass 4. */
-function substituteRow(block: string, row: FieldValues): string {
+function substituteRow(
+  block: string,
+  row: FieldValues,
+  images?: Record<string, ImageInput>,
+): string {
   return block.replace(
     new RegExp(`${OPEN}([^${CLOSE}]+)${CLOSE}`, 'g'),
     (whole, name: string) => {
       if (name.startsWith('Valuations.') || name.startsWith('Valuer.')) return whole;
-      if (name.startsWith('Image:')) return whole;
+      if (name.startsWith('Image:')) {
+        const resolved = resolveImageSlot(
+          name,
+          (field) => {
+            const v = row[field];
+            return v === undefined || v === null || v === '' ? null : String(v);
+          },
+          images,
+        );
+        // Unresolved here, so a job-level photograph can still reach it in pass 4.
+        return resolved ?? whole;
+      }
+      if (name.startsWith('Image@')) return whole;
       const v = row[name];
       return v === undefined || v === null ? '' : escapeXml(String(v));
     },
@@ -652,11 +762,29 @@ export function shouldDeleteBlock(expr: string, switches: FieldValues): boolean 
 
 /* ------------------------------------------------------------------ pass 4 */
 
-function substitute(xml: string, fields: FieldValues, report: FillReport): string {
+function substitute(
+  xml: string,
+  fields: FieldValues,
+  report: FillReport,
+  images?: Record<string, ImageInput>,
+): string {
   return xml.replace(
     new RegExp(`${OPEN}([^${CLOSE}]+)${CLOSE}`, 'g'),
     (whole, name: string) => {
-      if (name.startsWith('Image:')) return whole;
+      // Already resolved against a row; the image pass places it.
+      if (name.startsWith('Image@')) return whole;
+      if (name.startsWith('Image:')) {
+        const resolved = resolveImageSlot(
+          name,
+          (field) => {
+            const v = fields[field];
+            return v === undefined || v === null || v === '' ? null : String(v);
+          },
+          images,
+        );
+        // Still unresolved: no photograph for this slot, so it is removed later.
+        return resolved ?? whole;
+      }
       const v = fields[name];
       if (v === undefined || v === null || v === '') {
         if (!report.fieldsMissing.includes(name)) report.fieldsMissing.push(name);
@@ -668,11 +796,17 @@ function substitute(xml: string, fields: FieldValues, report: FillReport): strin
   );
 }
 
-/** Image slots are not filled yet; remove the tokens so Word opens the file. */
+/**
+ * Removes whatever no value reached, so Word still opens the file.
+ *
+ * An image slot surviving to here had no photograph: the picture comes out and
+ * the caption and table cell around it stay, which is what a report with a
+ * photograph still to be added should look like.
+ */
 function stripRemainingTokens(xml: string, report: FillReport): string {
   return xml.replace(new RegExp(`${OPEN}([^${CLOSE}]+)${CLOSE}`, 'g'), (_w, name: string) => {
     const text = String(name);
-    if (text.startsWith('Image:')) report.imagesSkipped += 1;
+    if (text.startsWith('Image:') || text.startsWith('Image@')) report.imagesSkipped += 1;
     else if (/^(VPDel(Start|End)|Table(Start|End)):/.test(text)) {
       if (!report.markersOrphaned.includes(text)) report.markersOrphaned.push(text);
     } else if (!report.tokensDropped.includes(name)) report.tokensDropped.push(name);
@@ -716,6 +850,42 @@ function collectPlaceholders(xml: string, report: FillReport): void {
 }
 
 /** Sets `w:updateFields`, so Word refreshes the contents page when opened. */
+/**
+ * Replaces the template's authorship in `docProps/core.xml` with this report's.
+ *
+ * Only the elements named are touched, and each is created in document order if
+ * the template left it out, because Word treats `cp:coreProperties` as an
+ * ordered sequence and rejects a property that appears out of place.
+ */
+function setCoreProperties(core: string, props: DocProperties): string {
+  const now = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+  const values: [string, string | undefined][] = [
+    ['dc:title', props.title],
+    ['dc:creator', props.creator],
+    ['cp:lastModifiedBy', props.lastModifiedBy],
+    ['cp:revision', '1'],
+  ];
+
+  let out = core;
+  for (const [tag, value] of values) {
+    if (value === undefined) continue;
+    const text = escapeXml(value);
+    const existing = new RegExp(`<${tag}(?:\\s[^>]*)?(?:/>|>[\\s\\S]*?</${tag}>)`);
+    out = existing.test(out)
+      ? out.replace(existing, `<${tag}>${text}</${tag}>`)
+      : out.replace('</cp:coreProperties>', `<${tag}>${text}</${tag}></cp:coreProperties>`);
+  }
+
+  // The dates are typed, so they are rewritten rather than generated blind.
+  for (const tag of ['dcterms:created', 'dcterms:modified']) {
+    const existing = new RegExp(`<${tag}(?:\\s[^>]*)?>[\\s\\S]*?</${tag}>`);
+    const replacement = `<${tag} xsi:type="dcterms:W3CDTF">${now}</${tag}>`;
+    if (existing.test(out)) out = out.replace(existing, replacement);
+  }
+
+  return out;
+}
+
 function updateFieldsOnOpen(settings: string): string {
   if (settings.includes('<w:updateFields')) {
     return settings.replace(/<w:updateFields[^>]*\/>/, '<w:updateFields w:val="true"/>');

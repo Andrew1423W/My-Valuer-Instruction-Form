@@ -18,6 +18,7 @@ import type { FieldValues, FillInput } from './docx-template';
 import type { ReportTemplate, ReportType } from '@/db/schema';
 import { NZ_TZ, PROPERTY_TYPE_LABELS } from '@/lib/format';
 import dictionary from './field-dictionary.json';
+import { PHOTO_GRID_REGION, photoSlots } from './photo-slots';
 
 /** The templates, read into a spec by `tools/extract-template-spec.py`. */
 export type TemplateSpec = {
@@ -327,7 +328,6 @@ export function derivedFields(job: ReportJob): FieldValues {
   const inspection = job.inspections?.[0];
   const valuer = job.allocatedTo;
   const authorised = job.authorisedBy;
-  const locality = [p.suburb, p.town].filter(Boolean).join(', ');
 
   return present({
     'Valuations.JobNumber': job.jobNo,
@@ -340,7 +340,10 @@ export function derivedFields(job: ReportJob): FieldValues {
 
     'Valuations.Address': p.address,
     'Valuations.Suburb': p.suburb,
-    'Valuations.PropAddressTA': locality,
+    // The territorial authority, not a locality: the cover prints Address,
+    // Suburb and this one under each other, so repeating the suburb here gave
+    // "Havelock North, Havelock North, Hastings".
+    'Valuations.PropAddressTA': p.town,
     'Valuations.TerritorialAuthority': p.town,
     'Valuations.LocalAuthority': p.town,
     'Valuations.RegionalCouncil': p.region,
@@ -529,7 +532,79 @@ export type StoredReportData = {
  * left to the valuer, so the document can never disagree with the job about
  * what kind of report it is.
  */
-export function buildFillInput(job: ReportJob, stored: StoredReportData): FillInput {
+/** An inspection photograph, as the fill addresses it. */
+export type ReportPhoto = {
+  /** How the image bytes are keyed in `FillInput.images`. */
+  key: string;
+  /** The template region it fills, or null to join the back-page grid. */
+  slot: string | null;
+  caption: string | null;
+};
+
+/**
+ * Turns the job's photographs into rows for the template's picture regions.
+ *
+ * Every picture slot sits inside a region, so a photograph reaches the document
+ * the same way a schedule row does. A slot with one photograph gets a region of
+ * one row; the back-page grid gets a row per pair, because the template lays it
+ * out two to a row and names the columns `PhotoID1` and `PhotoID2`.
+ *
+ * A slot nobody assigned a photograph to produces no row at all, which removes
+ * the slot — a report with no rear elevation should not carry an empty frame.
+ */
+export function photoRows(
+  template: ReportTemplate,
+  photos: ReportPhoto[],
+): Record<string, FieldValues[]> {
+  const rows: Record<string, FieldValues[]> = {};
+  const slots = new Map(photoSlots(template).map((s) => [s.name, s]));
+
+  for (const photo of photos) {
+    if (!photo.slot || photo.slot === PHOTO_GRID_REGION) continue;
+    const slot = slots.get(photo.slot);
+    if (!slot) continue;
+    // One photograph to a single slot: the first assigned wins.
+    if (rows[photo.slot]) continue;
+    // Write the key under every name the region's slots read. Most read
+    // `PhotoID`, but the Home Overview kitchen and bathroom read `PhotoID1`,
+    // so taking the names from the template is what reaches those slots.
+    const row: FieldValues = {};
+    for (const source of slot.sources) {
+      row[source] = photo.key;
+      row[source.replace(/^PhotoID/, 'Title')] = photo.caption ?? '';
+    }
+    rows[photo.slot] = [row];
+  }
+
+  // Everything not placed on its own falls to the back-page grid, in order.
+  const grid = photos.filter(
+    (p) => !p.slot || p.slot === PHOTO_GRID_REGION || !slots.has(p.slot),
+  );
+  if (grid.length > 0) {
+    const pairs: FieldValues[] = [];
+    for (let i = 0; i < grid.length; i += 2) {
+      const left = grid[i];
+      const right = grid[i + 1];
+      pairs.push({
+        PhotoID1: left.key,
+        Title1: left.caption ?? '',
+        // An odd number of photographs leaves the right column empty rather
+        // than repeating the left one.
+        PhotoID2: right ? right.key : '',
+        Title2: right?.caption ?? '',
+      });
+    }
+    rows[PHOTO_GRID_REGION] = pairs;
+  }
+
+  return rows;
+}
+
+export function buildFillInput(
+  job: ReportJob,
+  stored: StoredReportData,
+  photos: ReportPhoto[] = [],
+): FillInput {
   const derived = derivedFields(job);
   const derivedRowsForJob = derivedRows(job);
 
@@ -553,6 +628,12 @@ export function buildFillInput(job: ReportJob, stored: StoredReportData): FillIn
     if (data.length > 0) rows[region] = data;
   }
   for (const [region, data] of Object.entries(stored.rows)) {
+    if (data.length > 0) rows[region] = data;
+  }
+
+  // Photograph regions last: they are filled from the inspection, and the entry
+  // form does not offer them as schedules, so nothing upstream owns them.
+  for (const [region, data] of Object.entries(photoRows(job.reportTemplate, photos))) {
     if (data.length > 0) rows[region] = data;
   }
 

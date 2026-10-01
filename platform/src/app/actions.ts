@@ -25,6 +25,7 @@ import {
   type JobStatus,
 } from '@/db/schema';
 import { requireValuer } from '@/lib/session';
+import { isPhotoSlot } from '@/report/photo-slots';
 import { nzToday, parseNzDateTime } from '@/lib/format';
 
 /* --------------------------------------------------------------- helpers */
@@ -613,6 +614,56 @@ export async function saveReportSection(fd: FormData) {
         target: [jobReportSwitches.jobId, jobReportSwitches.fieldName],
         set: { value: sw.value, updatedAt: new Date() },
       });
+  }
+
+  revalidatePath(`/jobs/${jobId}/report`);
+}
+
+/**
+ * Says which picture slot each inspection photograph fills, and captions it.
+ *
+ * The template decides where a photograph can go — front elevation, aerial
+ * photograph, the back-page grid — so only slots that template declares are
+ * accepted; anything else falls back to the grid rather than being stored and
+ * silently ignored at fill time.
+ */
+export async function savePhotoSlots(fd: FormData) {
+  await requireValuer();
+  const jobId = intOrNull(fd, 'jobId');
+  if (!jobId) throw new Error('jobId missing');
+
+  const job = await db.query.jobs.findFirst({ where: eq(jobs.id, jobId) });
+  if (!job) throw new Error('job not found');
+
+  // One photograph to a slot: the last one assigned to a slot keeps it, and any
+  // earlier holder drops to the grid, so the form cannot produce two fronts.
+  const claimed = new Map<string, number>();
+  const updates: { id: number; slot: string | null; caption: string | null }[] = [];
+
+  for (const [key, raw] of fd.entries()) {
+    if (typeof raw !== 'string' || !key.startsWith('slot:')) continue;
+    const photoId = Number(key.slice('slot:'.length));
+    if (!Number.isFinite(photoId)) continue;
+
+    const wanted = raw.trim();
+    const slot = wanted !== '' && isPhotoSlot(job.reportTemplate, wanted) ? wanted : null;
+    const caption = str(fd, `caption:${photoId}`); // already null when blank
+    if (slot) {
+      const previous = claimed.get(slot);
+      if (previous !== undefined) {
+        const earlier = updates.find((u) => u.id === previous);
+        if (earlier) earlier.slot = null;
+      }
+      claimed.set(slot, photoId);
+    }
+    updates.push({ id: photoId, slot, caption });
+  }
+
+  for (const u of updates) {
+    await db
+      .update(inspectionPhotos)
+      .set({ slot: u.slot, caption: u.caption })
+      .where(eq(inspectionPhotos.id, u.id));
   }
 
   revalidatePath(`/jobs/${jobId}/report`);

@@ -38,9 +38,30 @@ Deliberately **not** built (per instruction): invoicing and fee chasing.
   (the existing instruction form already does this through Microsoft Graph).
 - Offline inspection capture (currently needs a connection to save).
 - Evidence import from existing reports and spreadsheets.
-- Photographs into the templates' image slots (18 commercial, 23 residential):
-  the slots are read and reported, but not yet filled, so photographs still go
-  in by hand.
+- Thumbnails of comparable sales and lettings in the evidence schedules: the
+  templates have the slots (`SalesCaptureID`, `LeaseCaptureID`), but the
+  evidence records carry no photograph yet. Photographs of the subject
+  property are filled — see below.
+
+---
+
+## Photographs
+
+Photographs taken at the inspection go into the master template's own picture
+slots. On the report page each photograph has a **Goes in** list, built from the
+template rather than hard-coded: front page, front and rear elevation, kitchen,
+bathroom, plans, elevation drawing, aerial photograph, street map. Anything left
+on the back-page grid is laid out two to a row, in order, with its caption under
+it. A slot no photograph was assigned to is removed from the document rather
+than printed empty, and the fill reports how many slots that was.
+
+The picture itself is written as Word writes one — the bytes under
+`word/media/`, a relationship from the part that shows it, and an inline
+drawing where the merge field stood — so the document opens in Word with no
+repair prompt. A slot that sets a width but no height keeps the photograph's own
+proportions, so a portrait photograph is not stretched into a landscape box.
+
+`npm run template:verify` checks all of this against both master templates.
 
 ---
 

@@ -11,6 +11,7 @@ import path from 'node:path';
 import { asc, desc, eq } from 'drizzle-orm';
 import { db } from '@/db';
 import {
+  inspectionPhotos,
   inspections,
   jobComparables,
   jobReportRows,
@@ -19,11 +20,17 @@ import {
   jobs,
   tenancies,
 } from '@/db/schema';
-import { fillTemplate, type FieldValues, type FillReport } from './docx-template';
+import {
+  fillTemplate,
+  type FieldValues,
+  type FillReport,
+  type ImageInput,
+} from './docx-template';
 import {
   TEMPLATE_FILES,
   buildFillInput,
   type ReportJob,
+  type ReportPhoto,
   type StoredReportData,
 } from './job-fields';
 
@@ -84,12 +91,64 @@ export async function loadJobForReport(jobId: number) {
   return { ...job, property: { ...job.property, tenancies: schedule } };
 }
 
+/**
+ * Reads the job's inspection photographs off disk, ready for the picture slots.
+ *
+ * Photographs come from the most recent inspection, because that is the one the
+ * report describes. A file that has gone missing is skipped rather than failing
+ * the report: a photograph the valuer can re-upload should not stop the document
+ * being produced, and the fill reports the slot it could not fill.
+ *
+ * In production this is the one place that reads the photo store, so moving to
+ * an Azure Blob container is a change here and in the upload action, nowhere else.
+ */
+async function loadPhotos(
+  job: Awaited<ReturnType<typeof loadJobForReport>>,
+): Promise<{ photos: ReportPhoto[]; images: Record<string, ImageInput> }> {
+  const inspection = job?.inspections?.[0];
+  if (!inspection) return { photos: [], images: {} };
+
+  const stored = await db
+    .select()
+    .from(inspectionPhotos)
+    .where(eq(inspectionPhotos.inspectionId, inspection.id))
+    .orderBy(asc(inspectionPhotos.sortOrder), asc(inspectionPhotos.id));
+
+  const uploadDir = process.env.UPLOAD_DIR ?? path.join(process.cwd(), 'uploads');
+  const photos: ReportPhoto[] = [];
+  const images: Record<string, ImageInput> = {};
+
+  for (const photo of stored) {
+    const key = `photo-${photo.id}`;
+    try {
+      const data = await readFile(path.join(uploadDir, photo.filename));
+      images[key] = { data, description: photo.caption ?? undefined };
+      photos.push({ key, slot: photo.slot, caption: photo.caption });
+    } catch {
+      // Missing file: leave the slot empty rather than failing the report.
+    }
+  }
+
+  return { photos, images };
+}
+
 export async function buildJobReport(jobId: number): Promise<BuiltReport | null> {
   const job = await loadJobForReport(jobId);
   if (!job) return null;
 
   const stored = await loadStoredReportData(jobId);
-  const input = buildFillInput(job as unknown as ReportJob, stored);
+  const { photos, images } = await loadPhotos(job);
+  const input = {
+    ...buildFillInput(job as unknown as ReportJob, stored, photos),
+    images,
+    // The master templates carry the author who first drew them up, so the
+    // report says who issued it rather than who wrote the template.
+    properties: {
+      title: `${job.jobNo} — ${job.property.address}`,
+      creator: job.allocatedTo?.name ?? 'My Valuer Limited',
+      lastModifiedBy: 'My Valuer Limited',
+    },
+  };
 
   const templatePath = path.join(process.cwd(), TEMPLATE_FILES[job.reportTemplate]);
   const templateBytes = await readFile(templatePath);
