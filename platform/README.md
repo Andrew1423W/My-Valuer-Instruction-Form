@@ -8,6 +8,11 @@ owns outright.
 Nothing here is derived from ValuePRO's code, markup or assets. The feature set
 is modelled on the work a Hawke's Bay valuation practice actually does.
 
+This started life in a `platform/` folder of the staff instruction form's
+repository and was split out with its history intact, which is why the first
+commit is already a working application. The instruction form stays where it
+is; the two share a look and a tenant, not a codebase.
+
 ---
 
 ## What works today
@@ -130,7 +135,7 @@ npm run template:verify   # 90 checks, both templates, end to end
 Requires Node 20+ and a PostgreSQL 14+ server.
 
 ```bash
-cd platform
+cd my-valuer-platform
 npm install
 cp .env.example .env          # then edit DATABASE_URL
 
@@ -219,6 +224,7 @@ tools/
   verify-field-expressions.ts    Word IF and = fields evaluate correctly
   verify-job-mapping.ts          a job reaches the document, end to end
   verify-report-entry.ts         the entry form asks the right questions
+  verify-image-fill.ts           photographs land in the templates' picture slots
 src/
   app/
     page.tsx                     dashboard
@@ -239,6 +245,8 @@ src/
   report/
     field-dictionary.json        the templates, read into a spec
     docx-template.ts             the fill engine
+    docx-images.ts               writing a picture into a .docx
+    photo-slots.ts               which slots take an inspection photograph
     job-fields.ts                a job mapped onto the template's field names
     entry.ts                     the entry form, generated from the dictionary
     build.ts                     reads a job and fills its template
