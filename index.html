@@ -300,6 +300,7 @@ body{
 .check-item:hover{border-color:var(--blue);}
 .check-item:focus-visible{outline:2px solid var(--blue-dark);outline-offset:2px;}
 .check-item.checked{border-color:var(--blue-dark);background:var(--blue);color:var(--white);}
+#c_purpose_other::placeholder{color:rgba(255,255,255,0.7);font-style:italic;font-weight:500;}
 .check-item input[type=checkbox]{display:none;}
 
 /* FEE */
@@ -1779,22 +1780,23 @@ function togglePurpose(el) {
 
   const txt = el.textContent.trim();
   const fullText = el.getAttribute("data-full") || "";
-
-  // Other — show free text box, hide blurb
-  const otherBox  = document.getElementById("purposeOther");
-  const blurbBox  = document.getElementById("purposeBlurb");
-  const blurbArea = document.getElementById("c_purpose_blurb");
-  const otherArea = document.getElementById("c_purpose_other");
+  const blurbBox   = document.getElementById("purposeBlurb");
+  const blurbArea  = document.getElementById("c_purpose_blurb");
+  const otherLabel = document.getElementById("purposeOtherLabel");
+  const otherInput = document.getElementById("c_purpose_other");
 
   if (txt === "Other") {
-    if (otherBox)  otherBox.style.display  = "block";
-    if (blurbBox)  blurbBox.style.display  = "none";
-    // Mirror any existing Other text into the blurb so PDF builders pick it up.
-    if (blurbArea) blurbArea.value = otherArea ? (otherArea.value || "") : "";
+    // Swap the "Other" label for an inline text box, in the same chip.
+    if (otherLabel) otherLabel.style.display = "none";
+    if (otherInput) { otherInput.style.display = "inline-block"; setTimeout(() => otherInput.focus(), 0); }
+    if (blurbBox)   blurbBox.style.display = "none";
+    if (blurbArea)  blurbArea.value = otherInput ? (otherInput.value || "") : "";
   } else {
-    if (otherBox)  otherBox.style.display  = "none";
-    if (blurbBox)  blurbBox.style.display  = fullText ? "block" : "none";
-    if (blurbArea) blurbArea.value = fullText;
+    // Restore the "Other" chip to its label.
+    if (otherLabel) otherLabel.style.display = "";
+    if (otherInput) otherInput.style.display = "none";
+    if (blurbBox)   blurbBox.style.display = fullText ? "block" : "none";
+    if (blurbArea)  blurbArea.value = fullText;
   }
 }
 
@@ -1804,6 +1806,19 @@ function syncPurposeOther() {
   const otherArea = document.getElementById("c_purpose_other");
   const blurbArea = document.getElementById("c_purpose_blurb");
   if (otherArea && blurbArea) blurbArea.value = otherArea.value || "";
+}
+
+// Short "type of valuation" label for outputs. When "Other" is selected it
+// returns the free-typed text, so the instruction shows what's actually being
+// done instead of the word "Other".
+function purposeLabelText() {
+  const el = document.querySelector('#purposeGrid .check-item.checked');
+  if (!el) return '';
+  const txt = el.textContent.trim();
+  if (txt === 'Other') {
+    return (document.getElementById('c_purpose_other')?.value || '').trim() || 'Other';
+  }
+  return txt;
 }
 
 function getChecked(gridId) {
@@ -2260,7 +2275,7 @@ function buildEmailHTML() {
   const dueDate    = v('c_due_date') ? new Date(v('c_due_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
   const sender     = getSenderName();
   const senderEmail= getSenderEmail();
-  const purposeLabel = document.querySelector('#purposeGrid .check-item.checked')?.textContent?.trim() || '';
+  const purposeLabel = purposeLabelText() || '';
   const purposeBlurb = v('c_purpose_blurb') || purposeLabel;
   const _addlFull  = getAdditionalPurpose();
   const addlLabel  = _addlFull ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || '') : '';
@@ -2355,7 +2370,7 @@ function buildEmailPlain() {
   const vos       = v('c_vos');
   const alloc     = v('c_alloc');
   const dueDate   = v('c_due_date') ? new Date(v('c_due_date')).toLocaleDateString('en-NZ',{day:'numeric',month:'long',year:'numeric'}) : '';
-  const purposeLabel = document.querySelector('#purposeGrid .check-item.checked')?.textContent?.trim() || '';
+  const purposeLabel = purposeLabelText() || '';
   const purposeBlurb = v('c_purpose_blurb') || purposeLabel;
   const _addlFull = getAdditionalPurpose();
   const addlLabel = _addlFull ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || '') : '';
@@ -2965,7 +2980,7 @@ function printForm() {
   // Purpose
   const purpose = getChecked('purposeGrid') || '';
   const addlPurpose = getAdditionalPurpose() || '';
-  const purposeLabel = document.querySelector('#purposeGrid .check-item.checked')?.textContent?.trim() || 'Valuation Fee';
+  const purposeLabel = purposeLabelText() || 'Valuation Fee';
   const addlLabel = addlPurpose ? (document.querySelector('#additionalPurposeGrid .check-item.checked')?.textContent?.trim() || 'Additional Fee') : '';
   const propType = document.querySelector('#propTypeGrid .check-item.checked')?.textContent?.trim() || '';
 
@@ -3260,11 +3275,13 @@ function resetForm() {
   const qBtn = document.getElementById("quoteEmailBtn");
   if (qBtn) qBtn.style.display = "none";
 
-  // Hide purpose/proptype Other boxes and blurb
-  const purposeOther = document.getElementById("purposeOther");
+  // Reset the inline "Other" chip (label back, clear text) and hide blurb boxes.
+  const otherLabel = document.getElementById("purposeOtherLabel");
+  const otherInput = document.getElementById("c_purpose_other");
+  if (otherLabel) otherLabel.style.display = "";
+  if (otherInput) { otherInput.style.display = "none"; otherInput.value = ""; }
   const purposeBlurb = document.getElementById("purposeBlurb");
   const propTypeOther = document.getElementById("propTypeOther");
-  if (purposeOther)  purposeOther.style.display  = "none";
   if (purposeBlurb)  purposeBlurb.style.display  = "none";
   if (propTypeOther) propTypeOther.style.display = "none";
 }
@@ -4270,11 +4287,7 @@ resetForm = function() {
             <div class="check-item" onclick="togglePurpose(this)" data-full="To provide a Ground Rental assessment of the property">Ground Rental</div>
             <div class="check-item" onclick="togglePurpose(this)" data-full="To provide a valuation of the property for Financial Reporting purposes">Financial Reporting</div>
             <div class="check-item" onclick="togglePurpose(this)" data-full="To provide a retrospective valuation of the property">Retrospective Valuation</div>
-            <div class="check-item" onclick="togglePurpose(this)">Other</div>
-          </div>
-          <div id="purposeOther" style="display:none;margin-top:8px;">
-            <label style="font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:0.06em;">Specify purpose — type freely</label>
-            <textarea id="c_purpose_other" placeholder="Type the purpose of valuation…" style="width:100%;min-height:70px;resize:vertical;margin-top:4px;" oninput="syncPurposeOther()"></textarea>
+            <div class="check-item" id="purposeOtherChip" onclick="togglePurpose(this)"><span id="purposeOtherLabel">Other</span><input type="text" id="c_purpose_other" placeholder="type the valuation type…" oninput="syncPurposeOther()" onclick="event.stopPropagation()" onkeydown="if(event.key==='Enter')this.blur()" style="display:none;border:none;background:transparent;color:#fff;font-family:inherit;font-size:12px;font-weight:600;outline:none;min-width:160px;"/></div>
           </div>
           <div id="purposeBlurb" style="display:none;margin-top:8px;">
             <label style="font-size:11px;font-weight:700;color:var(--grey);text-transform:uppercase;letter-spacing:0.06em;">Purpose statement — edit if required</label>
