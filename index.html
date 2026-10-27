@@ -957,7 +957,12 @@ async function saveJobToSharePoint() {
       LandValue:        v('c_rv_land'),
       CapitalValue:     v('c_rv_cv'),
       CouncilRates:     v('c_rates_council'),
-      IsQuote:          document.getElementById('c_is_quote')?.checked ? 'Yes' : 'No'
+      IsQuote:          document.getElementById('c_is_quote')?.checked ? 'Yes' : 'No',
+      // Full-fidelity snapshot of every field (including the Terms/Report/Invoice
+      // delivery details) so the job can be re-opened later from the archive and
+      // restored exactly as it was sent. Stored in the FormData (multi-line) column;
+      // harmlessly skipped if that column hasn't been added to the list.
+      FormData:         (function(){ try { return JSON.stringify(collectFormData()); } catch(e){ return ''; } })()
     };
 
     // Only send fields whose columns exist, formatting each value to match its
@@ -1115,6 +1120,26 @@ document.addEventListener('focusin', function (e) {
     const inst = document.getElementById('c_inst_phone');
     if (inst && inst.value.trim()) { e.target.value = inst.value; _lastInstPhoneCopy = inst.value; }
   }
+});
+
+// ── QUOTE FEE → FEE FOR THIS VALUATION ────────────────────
+// When the Quote Fee is typed, mirror it into "Fee for this valuation" so the
+// agreed quote flows straight through. The valuation fee stays overtypeable:
+// once it's been edited to something other than the mirrored value, it's left
+// alone.
+let _lastQuoteFeeCopy = '';
+function mirrorQuoteFee() {
+  const q  = document.getElementById('c_quote_fee');
+  const f1 = document.getElementById('c_fee1');
+  if (!q || !f1) return;
+  if (f1.value.trim() === '' || f1.value === _lastQuoteFeeCopy) {
+    f1.value = q.value;
+    _lastQuoteFeeCopy = q.value;
+    if (typeof calcFee === 'function') calcFee();
+  }
+}
+document.addEventListener('input', function (e) {
+  if (e.target && e.target.id === 'c_quote_fee') mirrorQuoteFee();
 });
 function fillPropertyFields(f) {
   if (!f) return;
@@ -1442,6 +1467,20 @@ async function loadJobFromSharePoint(itemId) {
 }
 
 function applyJobFields(fields) {
+  // If a full-fidelity snapshot was stored, restore everything from it — this
+  // brings back the delivery details (Terms/Report/Invoice recipients) and every
+  // other field exactly as the job was saved. Fall through to the column-by-column
+  // mapping below for older jobs that predate the FormData snapshot.
+  if (fields && fields.FormData) {
+    try {
+      const snap = JSON.parse(fields.FormData);
+      if (snap && typeof snap === 'object') {
+        applyFormData(snap);
+        if (typeof refreshDeliveryDisplays === 'function') refreshDeliveryDisplays();
+        return;
+      }
+    } catch (e) { /* malformed snapshot — fall back to field mapping */ }
+  }
   const setV = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
   setV('c_prop_addr',   fields.Title);
   setV('c_inst_date',   fields.InstructionDate);
@@ -3833,6 +3872,7 @@ function applyFormData(data) {
       if (inputs[1]) inputs[1].value = r.email || '';
     });
   });
+  if (typeof refreshDeliveryDisplays === 'function') refreshDeliveryDisplays();
   calcFee();
 }
 
