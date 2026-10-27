@@ -72,16 +72,19 @@ and all columns in one go (and is safe to re-run).
 | CapitalValue       | Single line     |
 | CouncilRates       | Single line     |
 | IsQuote            | Single line     |
+| FormData           | **Multi-line**  |
 
 ---
 
 ## Notes
 
 - If the list **already exists** with most of these columns, you only need to
-  add the missing one — most likely **`ClientAddress`** (added for the
-  returning-client autofill). The form is built to keep working even if
-  `ClientAddress` is absent; it just won't store/fill the address until you add
-  it.
+  add the missing one(s). The newest addition is **`FormData`** (Multiple lines
+  of text) — this stores a complete snapshot of every field, including the
+  Terms/Report/Invoice **delivery details**, so a job re-opened from the Job
+  Archive comes back exactly as it was sent. The form is built to keep working
+  even if a column is absent; without `FormData` it will still save the job, but
+  re-opening it won't restore the delivery details.
 - Dates and fees are stored as plain text so the values round-trip exactly as
   typed in the form — that's intentional, keep them as Single line of text.
 - The site URL and list name are configurable at the top of

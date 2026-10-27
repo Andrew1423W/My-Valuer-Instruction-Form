@@ -57,6 +57,7 @@ $columns = [ordered]@{
     CapitalValue     = "Text"
     CouncilRates     = "Text"
     IsQuote          = "Text"
+    FormData         = "Note"
 }
 
 Write-Host "Connecting to $SiteUrl ..." -ForegroundColor Cyan
