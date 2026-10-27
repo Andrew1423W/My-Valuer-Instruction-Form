@@ -577,10 +577,11 @@ async function getGraphTokenSilent() {
 
 async function sendViaGraph(to, subject, body, cc, bcc) {
   const token = await getGraphToken();
+  const isHtml = /^\s*</.test(body || '');
   const message = {
     message: {
       subject: subject,
-      body: { contentType: 'Text', content: body },
+      body: { contentType: isHtml ? 'HTML' : 'Text', content: body },
       toRecipients: [{ emailAddress: { address: to } }]
     },
     saveToSentItems: true
@@ -1721,6 +1722,33 @@ function calcFee() {
   if (tot) tot.textContent = "$" + total.toLocaleString("en-NZ",{minimumFractionDigits:2,maximumFractionDigits:2});
 }
 
+// Money with thousands separators, e.g. 1200 -> "1,200.00"
+function fmtMoney(n) {
+  return (Number(n) || 0).toLocaleString("en-NZ", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+// Branded email header (navy letterhead) + matching footer bar.
+function emailHeaderHTML() {
+  return '<div style="background:linear-gradient(135deg,#1F3A5F 0%,#2d6a9f 100%);padding:24px 30px;">' +
+    '<div style="font-size:23px;font-weight:800;color:#ffffff;letter-spacing:0.3px;">My Valuer <span style="font-weight:400;color:rgba(255,255,255,0.72);">Limited</span></div>' +
+    '<div style="font-size:12px;color:rgba(255,255,255,0.78);margin-top:4px;font-style:italic;letter-spacing:0.02em;">our people like property</div>' +
+    '</div>';
+}
+function emailFooterHTML() {
+  return '<div style="background:#0f1830;padding:14px 30px;text-align:center;">' +
+    '<div style="font-size:11px;color:rgba(255,255,255,0.65);line-height:1.6;">2 Pandora Road, Pandora, Napier &nbsp;·&nbsp; 06 835 3350 &nbsp;·&nbsp; myvaluer.net.nz</div>' +
+    '</div>';
+}
+// Wrap body content in a clean white card with header + footer.
+function emailShell(contentHtml) {
+  return '<div style="background:#eef2f7;padding:16px;font-family:Arial,Helvetica,sans-serif;">' +
+    '<div style="max-width:680px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 14px rgba(15,24,48,0.10);border:1px solid #e3e9f1;">' +
+    emailHeaderHTML() +
+    '<div style="padding:26px 30px;">' + contentHtml + '</div>' +
+    emailFooterHTML() +
+    '</div></div>';
+}
+
+
 function selectPropType(el) {
   el.closest(".check-grid").querySelectorAll(".check-item").forEach(function(item) {
     item.classList.remove("checked");
@@ -2294,8 +2322,8 @@ function buildEmailHTML() {
   const apptStr    = apptDate ? new Date(apptDate).toLocaleDateString('en-NZ',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) + (apptTime ? ' at ' + apptTime : '') : '';
   const f1         = parseFloat(v('c_fee1'))||0;
   const f2         = parseFloat(v('c_fee2'))||0;
-  const gst        = ((f1+f2)*0.15).toFixed(2);
-  const total      = ((f1+f2)*1.15).toFixed(2);
+  const gst        = (f1+f2)*0.15;
+  const total      = (f1+f2)*1.15;
   const council    = v('c_council_file');
   const mileage    = v('c_mileage');
   const fTitles    = v('c_fee_titles');
@@ -2319,8 +2347,8 @@ function buildEmailHTML() {
   const sec = (title, rows) => { const c = rows.filter(Boolean).join(''); if (!c) return ''; return '<div style="margin-bottom:20px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:'+B+';border-bottom:2px solid '+B+';padding-bottom:5px;margin-bottom:10px;">'+title+'</div><table style="width:100%;border-collapse:collapse;">'+c+'</table></div>'; };
   const row = (lbl, val) => val ? '<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;width:170px;vertical-align:top;">'+lbl+'</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;">'+val+'</td></tr>' : '';
 
-  return '<div style="font-family:Arial,sans-serif;max-width:680px;margin:0 auto;">'
-    + '<p style="font-size:14px;color:#1a1a2e;line-height:1.7;margin-bottom:20px;">Hi,<br><br>Please load the following new valuation instruction into ValuePro.</p>'
+  return emailShell(
+      '<p style="font-size:14px;color:#1a1a2e;line-height:1.7;margin:0 0 20px;">Hi,<br><br>Please load the following new valuation instruction into ValuePro.</p>'
     + '<div style="background:#f0f5fb;border:1.5px solid '+B+';border-radius:8px;padding:14px 18px;margin-bottom:16px;">'
     + '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:'+B+';margin-bottom:4px;">Property Address</div>'
     + '<div style="font-size:16px;font-weight:800;color:#0e1c35;">'+(prop||'—')+'</div>'
@@ -2338,11 +2366,11 @@ function buildEmailHTML() {
     + sec('Terms, Report & Invoice Delivery', [row('Terms of Engagement',fmtD(toeD)),row('Report To',fmtD(rptD)),row('Invoice To',fmtD(invD))])
     + ((apptNm||apptStr) ? sec('Appointment',[row('Contact',apptNm),row('Phone',apptPh),row('Date & Time',apptStr)]) : '')
     + ((f1||f2) ? '<div style="margin-bottom:20px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:'+B+';border-bottom:2px solid '+B+';padding-bottom:5px;margin-bottom:10px;">Valuation Fee</div><table style="width:100%;border-collapse:collapse;">'
-    + (f1?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;width:170px;">'+(purposeLabel||'Valuation Fee')+'</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;text-align:right;width:16px;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;width:80px;">'+f1.toFixed(2)+'</td><td style="padding:5px 0;font-size:11px;color:#9ca3af;padding-left:8px;">excl. GST</td></tr>':'')
-    + (f2?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">'+(addlLabel||'Additional Fee')+'</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;text-align:right;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;">'+f2.toFixed(2)+'</td><td style="padding:5px 0;font-size:11px;color:#9ca3af;padding-left:8px;">excl. GST</td></tr>':'')
+    + (f1?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;width:170px;">'+(purposeLabel||'Valuation Fee')+'</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;text-align:right;width:16px;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;width:80px;">'+fmtMoney(f1)+'</td><td style="padding:5px 0;font-size:11px;color:#9ca3af;padding-left:8px;">excl. GST</td></tr>':'')
+    + (f2?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">'+(addlLabel||'Additional Fee')+'</td><td style="padding:5px 0;font-size:12px;color:#1a1a2e;text-align:right;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;">'+fmtMoney(f2)+'</td><td style="padding:5px 0;font-size:11px;color:#9ca3af;padding-left:8px;">excl. GST</td></tr>':'')
     + '<tr><td colspan="4" style="padding:2px 0;"><hr style="border:none;border-top:1px solid #e5e7eb;margin:0;"/></td></tr>'
-    + '<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">GST (15%)</td><td style="padding:5px 0;font-size:12px;text-align:right;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;">'+gst+'</td><td></td></tr>'
-    + '<tr style="border-top:2px solid #0e1c35;"><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;">TOTAL incl. GST</td><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;text-align:right;">$</td><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;text-align:right;">'+total+'</td><td></td></tr>'
+    + '<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">GST (15%)</td><td style="padding:5px 0;font-size:12px;text-align:right;">$</td><td style="padding:5px 0;font-size:12px;font-weight:700;color:#1a1a2e;text-align:right;">'+fmtMoney(gst)+'</td><td></td></tr>'
+    + '<tr style="border-top:2px solid #0e1c35;"><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;">TOTAL incl. GST</td><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;text-align:right;">$</td><td style="padding:6px 0;font-size:13px;font-weight:800;color:#0e1c35;text-align:right;">'+fmtMoney(total)+'</td><td></td></tr>'
     + (council?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">Council File</td><td colspan="3" style="padding:5px 0;font-size:12px;color:#1a1a2e;">'+council+'</td></tr>':'')
     + (mileage?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">Mileage</td><td colspan="3" style="padding:5px 0;font-size:12px;color:#1a1a2e;">'+mileage+' km</td></tr>':'')
     + (fTitles?'<tr><td style="padding:5px 0;font-size:12px;font-weight:600;color:#6b7280;">Titles</td><td colspan="3" style="padding:5px 0;font-size:12px;color:#1a1a2e;">'+fTitles+'</td></tr>':'')
@@ -2351,7 +2379,7 @@ function buildEmailHTML() {
     + (notes ? '<div style="margin-bottom:20px;"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:'+B+';border-bottom:2px solid '+B+';padding-bottom:5px;margin-bottom:10px;">Valuation Notes</div><div style="background:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;padding:10px 14px;font-size:13px;color:#1a1a2e;line-height:1.7;">'+notes+'</div></div>' : '')
     + '<hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;"/>'
     + buildSignatureHTML()
-    + '</div>';
+  );
 }
 
 
@@ -2509,12 +2537,12 @@ function buildEmailPlain() {
   lines.push(div);
   lines.push('VALUATION FEE');
   lines.push(div);
-  if (f1) lines.push(pad(purposeLabel || 'Market Report Fee', '$' + f1.toFixed(2) + '  excl. GST'));
-  if (f2) lines.push(pad(addlLabel || 'Additional Fee',       '$' + f2.toFixed(2) + '  excl. GST'));
+  if (f1) lines.push(pad(purposeLabel || 'Market Report Fee', '$' + fmtMoney(f1) + '  excl. GST'));
+  if (f2) lines.push(pad(addlLabel || 'Additional Fee',       '$' + fmtMoney(f2) + '  excl. GST'));
   if (f1||f2) {
     lines.push('                      ' + '\u2500'.repeat(18));
-    lines.push(pad('GST (15%)',         '$' + gst));
-    lines.push(pad('TOTAL incl. GST',   '$' + total));
+    lines.push(pad('GST (15%)',         '$' + fmtMoney((f1+f2)*0.15)));
+    lines.push(pad('TOTAL incl. GST',   '$' + fmtMoney((f1+f2)*1.15)));
   }
   if (council)  lines.push(pad('Council File', council));
   if (mileage)  lines.push(pad('Mileage', mileage + ' km'));
@@ -2621,11 +2649,12 @@ function openEmailPreview(to, subject, body, isQuote, plainTextBody, cc) {
     previewBodyEl.style.whiteSpace = 'pre-wrap';
     previewBodyEl.style.padding = '32px';
   }
-  // Store plain text for actual sending
-  window._previewTo   = to;
-  window._previewSub  = subject;
-  window._previewBody = plainTextBody || body;
-  window._previewCc   = cc || null;
+  // Store the HTML body for sending, plus a plain-text version for the Outlook fallback.
+  window._previewTo    = to;
+  window._previewSub   = subject;
+  window._previewBody  = body;
+  window._previewPlain = plainTextBody || '';
+  window._previewCc    = cc || null;
 
   const btn = document.getElementById("previewSendBtn");
   btn.disabled = false;
@@ -2811,7 +2840,7 @@ async function sendEmailFromPreview() {
       "?subject=" + encodeURIComponent(sub) +
       (ccStr ? "&cc=" + encodeURIComponent(ccStr) : "") +
       (bccStr ? "&bcc=" + encodeURIComponent(bccStr) : "") +
-      "&body=" + encodeURIComponent(body);
+      "&body=" + encodeURIComponent(window._previewPlain || body);
     window.location.href = mailtoUrl;
     status.style.display = "block";
     status.style.background = "#fef3c7";
@@ -2884,8 +2913,8 @@ function openQuoteEmail() {
   const quoteExpiry = document.getElementById("c_quote_expiry").value;
   const sender      = getSenderName();
   const senderEmail = getSenderEmail();
-  const gst         = (quoteFee * 0.15).toFixed(2);
-  const total       = (quoteFee * 1.15).toFixed(2);
+  const gst         = quoteFee * 0.15;
+  const total       = quoteFee * 1.15;
   const expiryStr   = quoteExpiry ? new Date(quoteExpiry).toLocaleDateString("en-NZ",{day:"numeric",month:"long",year:"numeric"}) : "14 days from today";
   const purpose     = getChecked("purposeGrid") || "Valuation services as discussed";
 
@@ -2900,9 +2929,9 @@ function openQuoteEmail() {
     "PROPERTY\n" + prop + "\n\n" +
     "SCOPE OF WORK\n" + purpose + "\n\n" +
     "FEE PROPOSAL\n" +
-    "Professional Fee (excl. GST): $" + quoteFee.toFixed(2) + "\n" +
-    "GST (15%): $" + gst + "\n" +
-    "Total (incl. GST): $" + total + "\n\n" +
+    "Professional Fee (excl. GST): $" + fmtMoney(quoteFee) + "\n" +
+    "GST (15%): $" + fmtMoney(gst) + "\n" +
+    "Total (incl. GST): $" + fmtMoney(total) + "\n\n" +
     "This quote is valid until " + expiryStr + ".\n\n" +
     "To accept this quote, please reply to this email confirming your instruction to proceed.\n\n" +
     "If you have any questions, please do not hesitate to contact us.\n\n" +
@@ -2919,16 +2948,50 @@ function openQuoteEmail() {
     "PROPERTY\n" + prop + "\n\n" +
     "SCOPE OF WORK\n" + purpose + "\n\n" +
     "FEE PROPOSAL\n" +
-    "Professional Fee (excl. GST): $" + quoteFee.toFixed(2) + "\n" +
-    "GST (15%): $" + gst + "\n" +
-    "Total (incl. GST): $" + total + "\n\n" +
+    "Professional Fee (excl. GST): $" + fmtMoney(quoteFee) + "\n" +
+    "GST (15%): $" + fmtMoney(gst) + "\n" +
+    "Total (incl. GST): $" + fmtMoney(total) + "\n\n" +
     "This quote is valid until " + expiryStr + ".\n\n" +
     "We look forward to assisting you with this valuation. To get started, simply reply to this email confirming your instruction to proceed and we will be in touch to arrange access at your earliest convenience.\n\n" +
     "If you have any questions, please do not hesitate to contact us.\n\n" +
     buildSignaturePlain();
 
-  // Open preview window for valuer to review before sending
-  openEmailPreview(clientEmail, subject, finalText, true);
+  // Branded HTML version (what actually gets sent).
+  const greet = instructorFirstName() || client || "Client";
+  const feeRow = (label, amount, suffix) =>
+    '<tr>' +
+      '<td style="padding:6px 0;font-size:13.5px;color:#475569;font-weight:600;">' + _escAttr(label) + '</td>' +
+      '<td style="padding:6px 0;font-size:13.5px;color:#1a1a2e;font-weight:700;text-align:right;white-space:nowrap;">$' + amount + '</td>' +
+      '<td style="padding:6px 0 6px 10px;font-size:11px;color:#9ca3af;">' + (suffix || '') + '</td>' +
+    '</tr>';
+  const quoteHtml = emailShell(
+    '<p style="font-size:14.5px;color:#1a1a2e;line-height:1.7;margin:0 0 14px;">Dear ' + _escAttr(greet) + ',</p>' +
+    '<p style="font-size:14px;color:#1f2733;line-height:1.7;margin:0 0 20px;">Thank you for your enquiry. Please find below our fee proposal for the above property.</p>' +
+    '<div style="background:#f0f5fb;border:1.5px solid #7DA7D9;border-radius:8px;padding:12px 16px;margin-bottom:20px;">' +
+      '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#2d6a9f;margin-bottom:3px;">Property</div>' +
+      '<div style="font-size:15px;font-weight:700;color:#0e1c35;">' + _escAttr(prop) + '</div>' +
+    '</div>' +
+    '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2d6a9f;border-bottom:2px solid #7DA7D9;padding-bottom:5px;margin-bottom:8px;">Scope of Work</div>' +
+    '<p style="font-size:14px;color:#1f2733;line-height:1.6;margin:0 0 22px;">' + _escAttr(purpose) + '</p>' +
+    '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#2d6a9f;border-bottom:2px solid #7DA7D9;padding-bottom:5px;margin-bottom:6px;">Fee Proposal</div>' +
+    '<table style="width:100%;border-collapse:collapse;margin:8px 0 20px;">' +
+      feeRow('Professional Fee', fmtMoney(quoteFee), 'excl. GST') +
+      feeRow('GST (15%)', fmtMoney(gst), '') +
+      '<tr><td colspan="3" style="padding:2px 0;"><hr style="border:none;border-top:1px solid #e5e7eb;margin:0;"/></td></tr>' +
+      '<tr style="border-top:2px solid #0e1c35;">' +
+        '<td style="padding:8px 0;font-size:14px;font-weight:800;color:#0e1c35;">Total (incl. GST)</td>' +
+        '<td style="padding:8px 0;font-size:14px;font-weight:800;color:#0e1c35;text-align:right;white-space:nowrap;">$' + fmtMoney(total) + '</td><td></td>' +
+      '</tr>' +
+    '</table>' +
+    '<p style="font-size:13px;color:#64748b;margin:0 0 18px;">This quote is valid until <b style="color:#1f2733;">' + _escAttr(expiryStr) + '</b>.</p>' +
+    '<p style="font-size:14px;color:#1f2733;line-height:1.7;margin:0 0 16px;">We look forward to assisting you with this valuation. To get started, simply reply to this email confirming your instruction to proceed and we will be in touch to arrange access at your earliest convenience.</p>' +
+    '<p style="font-size:14px;color:#1f2733;line-height:1.7;margin:0 0 20px;">If you have any questions, please do not hesitate to contact us.</p>' +
+    '<hr style="border:none;border-top:1px solid #e5e7eb;margin:22px 0;"/>' +
+    buildSignatureHTML()
+  );
+
+  // Open preview window for valuer to review before sending (HTML sent, plain text is the fallback)
+  openEmailPreview(clientEmail, subject, quoteHtml, true, finalText);
 }
 
 
